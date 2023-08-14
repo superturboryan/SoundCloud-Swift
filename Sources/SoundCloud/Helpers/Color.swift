@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-extension Color {
+public extension Color {
     
     public static let scOrange = Color("SC-Orange")
 }

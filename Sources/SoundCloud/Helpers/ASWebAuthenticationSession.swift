@@ -8,14 +8,14 @@
 import AuthenticationServices
 import Foundation
 
-extension ASWebAuthenticationSession {
+public extension ASWebAuthenticationSession {
     /// Presents a webpage for authenticating using SSO and returns the authorization code after the user successfully signs in
     /// - Parameters:
     ///   - from: Authentication URL to present for SSO
     ///   - context: Delegate object that specifies how to present web page. Defaults to UIApplication.shared.keyWindow
     ///   - ephemeralSession: 🍪❓
     /// - Returns: Authorization code from callback URL
-    @MainActor public static func getAuthCode(
+    @MainActor static func getAuthCode(
         from url: String,
         context: ASWebAuthenticationPresentationContextProviding = ApplicationWindowContextProvider(),
         ephemeralSession: Bool // Use cookies
@@ -37,7 +37,7 @@ extension ASWebAuthenticationSession {
         }
     }
     
-    public class ApplicationWindowContextProvider: NSObject, ASWebAuthenticationPresentationContextProviding {
+    class ApplicationWindowContextProvider: NSObject, ASWebAuthenticationPresentationContextProviding {
         public func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
             return UIApplication.shared.keyWindow!
         }

@@ -7,8 +7,8 @@
 
 import Foundation
 
-extension Int {
-    public var dateWithSecondsFromNow: Date {
+public extension Int {
+    var dateWithSecondsFromNow: Date {
         Calendar.current.date(
             byAdding: .second,
             value: self,
@@ -16,7 +16,7 @@ extension Int {
         )!
     }
     
-    public var timeStringFromSeconds: String {
+    var timeStringFromSeconds: String {
         let minutes = String(format: "%02d", ((self % 3600) / 60))
         let seconds = String(format: "%02d", ((self % 3600) % 60))
         var result = minutes + ":" + seconds
