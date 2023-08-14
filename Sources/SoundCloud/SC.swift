@@ -95,10 +95,16 @@ public extension SC {
 //MARK: - Authentication
 extension SC {
     private func getAuthCode() async throws -> String {
+        #if os(iOS)
         try await ASWebAuthenticationSession.getAuthCode(
             from: authorizeURL,
             ephemeralSession: false
         )
+        #else
+        try await ASWebAuthenticationSession.getAuthCode(
+            from: authorizeURL
+        )
+        #endif
     }
     
     private func getNewAuthTokens(using authCode: String) async throws -> (OAuthTokenResponse) {

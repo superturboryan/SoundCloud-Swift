@@ -9,8 +9,8 @@ import AuthenticationServices
 import Foundation
 
 public extension ASWebAuthenticationSession {
-    #if !os(watchOS)
     
+    #if os(iOS)
     /// Presents a webpage for authenticating using SSO and returns the authorization code after the user successfully signs in
     /// - Parameters:
     ///   - from: Authentication URL to present for SSO
@@ -25,7 +25,7 @@ public extension ASWebAuthenticationSession {
         try await withCheckedThrowingContinuation { continuation in
             let session = ASWebAuthenticationSession(
                 url: URL(string: url)!,
-                callbackURLScheme: "" // Rely on URL scheme in info.plist for callback
+                callbackURLScheme: String(redirectURI.split(separator: ":").first!)
             ) { url, error in
                 if let error {
                     continuation.resume(throwing: error)
@@ -46,14 +46,14 @@ public extension ASWebAuthenticationSession {
     }
     #endif
     
+    #if os(watchOS)
     @MainActor static func getAuthCode(
-        from url: String,
-        ephemeralSession: Bool // Use cookies
+        from url: String
     ) async throws -> String {
         try await withCheckedThrowingContinuation { continuation in
             let session = ASWebAuthenticationSession(
                 url: URL(string: url)!,
-                callbackURLScheme: "" // Rely on URL scheme in info.plist for callback
+                callbackURLScheme: String(redirectURI.split(separator: ":").first!)
             ) { url, error in
                 if let error {
                     continuation.resume(throwing: error)
@@ -61,8 +61,9 @@ public extension ASWebAuthenticationSession {
                 }
                 continuation.resume(returning: url!.queryParameters!["code"]!)
             }
-            session.prefersEphemeralWebBrowserSession = ephemeralSession
+            session.prefersEphemeralWebBrowserSession = false
             session.start()
         }
     }
+    #endif
 }

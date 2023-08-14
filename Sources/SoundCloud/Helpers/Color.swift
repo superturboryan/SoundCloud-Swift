@@ -9,5 +9,5 @@ import SwiftUI
 
 public extension Color {
     
-    public static let scOrange = Color("SC-Orange")
+    static let scOrange = Color("SC-Orange", bundle: .module)
 }
