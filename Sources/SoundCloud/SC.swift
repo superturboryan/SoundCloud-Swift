@@ -5,72 +5,84 @@
 //  Created by Ryan Forsyth on 2023-08-10.
 //
 
+import Foundation
 import AuthenticationServices
 
-enum SCError: Error {
-    case failedLoadingPersistedTokens
-}
-
-@MainActor public class SC: ObservableObject {
-    
-    private var asyncNetworkService: (URLRequest) async throws -> (Data, URLResponse)
+@MainActor
+public class SC: ObservableObject {
     
     @Published public var me: Me? = nil
     @Published public var isLoggedIn: Bool = true
     
-    private var authTokens: OAuthTokenResponse = .empty {
-        didSet {
-            isLoggedIn = !authTokens.accessToken.isEmpty
-            persistAuthTokens(authTokens)
+    private var persistenceService: AuthTokenPersisting
+    private var asyncNetworkService: (URLRequest) async throws -> (Data, URLResponse)
+    
+    private var authTokens: OAuthTokenResponse? {
+        get {
+            persistenceService.loadAuthTokens()
+        }
+        set {
+            isLoggedIn = newValue != nil
+            if let newValue {
+                persistenceService.saveAuthTokens(newValue)
+                print("✅ 💾 🔑 Tokens saved to persistence")
+            } else {
+                persistenceService.deleteAuthTokens()
+            }
         }
     }
     
     private let decoder = JSONDecoder()
-    private let encoder = JSONEncoder()
     
     private var authHeader: [String : String] {
-        ["Authorization" : "Bearer " + authTokens.accessToken]
+        ["Authorization" : "Bearer " + (authTokens?.accessToken ?? "")]
     }
     
-    ///  Use this initializer to optionally inject a custom network service for accessing the SoundCloud API.
+    /// Use this initializer to optionally inject persistence and networking services to use when interacting with the SoundCloud API.
     ///
-    ///  If you need to use this initializer for a **SwiftUI ObservableObject**, you can return a closure that
-    ///  injects the dependencies:
-    ///  ```swift
-    ///  @StateObject var sc: SC = { () -> SC in
-    ///     let dependency = URLSession.shared.data(for:)
-    ///     return SC(asyncNetworkService: dependency)
-    ///  }() // Don't forget to execute the closure!
-    ///  ```
-    /// - Parameter asyncNetworkService: Service to use for making requests to the SoundCloud API. **Defaults to URLSession**
-    public init(asyncNetworkService: @escaping (URLRequest) async throws -> (Data, URLResponse) = URLSession.shared.data) {
+    /// If you need to assign the SC instance to a **SwiftUI ObservableObject** variable, you can use a closure to inject
+    /// the dependencies and then return the SC instance:
+    /// ```swift
+    /// @StateObject var sc: SC = { () -> SC in
+    ///    let dependency = URLSession.shared.data(for:)
+    ///    return SC(asyncNetworkService: dependency)
+    /// }() // Don't forget to execute the closure!
+    /// ```
+    ///  - Parameter asyncNetworkService: Service to use for making requests to the SoundCloud API. **Defaults to URLSession**
+    ///  - Parameter persistenceService: Serivce to use for persisting OAuthTokens. **Defaults to UserDefaults**
+    public init(
+        persistenceService: AuthTokenPersisting = UserDefaultsService(),
+        asyncNetworkService: @escaping (URLRequest) async throws -> (Data, URLResponse) = URLSession.shared.data
+    ) {
+        self.persistenceService = persistenceService
         self.asyncNetworkService = asyncNetworkService
         
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         
-        do { try loadPersistedAuthTokens() }
-        catch { print("❌ 💾 🔑") }
-    }
-        
-    public func login() async {
-        //TODO: Handle try! errors
-        do {
-            let authCode = try await getAuthCode()
-            let newAuthTokens = try await getNewAuthTokens(using: authCode)
-            authTokens = newAuthTokens
-        } catch {
-            print("❌ Failed to login")
+        if authTokens == nil { 
+            logout()
         }
-    }
-    
-    public func logout() {
-        authTokens = .empty
-        deletePersistedAuthTokens()
     }
 }
 
 //MARK: - API
 public extension SC {
+    func login() async {
+        //TODO: Handle try! errors
+        do {
+            let authCode = try await getAuthCode()
+            print("✅ 🔊 ☁️")
+            let newAuthTokens = try await getNewAuthTokens(using: authCode)
+            authTokens = newAuthTokens
+        } catch {
+            print("❌ 🔊 ☁️")
+        }
+    }
+    
+    func logout() {
+        authTokens = nil
+    }
+    
     func loadMyProfile() async throws {
         me = try await get(.me())
     }
@@ -91,40 +103,24 @@ extension SC {
     
     private func getNewAuthTokens(using authCode: String) async throws -> (OAuthTokenResponse) {
         let tokenResponse = try await get(.accessToken(authCode))
-        print("✅ access, refresh tokens: \n \(tokenResponse.accessToken) \n \(tokenResponse.refreshToken)")
+        print("✅ Received new tokens:")
+        dump(tokenResponse)
         return tokenResponse
     }
     
     private func refreshAuthTokens() async throws {
-        let tokenResponse = try await get(.refreshToken(authTokens.refreshToken))
-        print("♻️  Refreshed oauth, refresh tokens: \n \(tokenResponse.accessToken) \n \(tokenResponse.refreshToken)")
+        let tokenResponse = try await get(.refreshToken(authTokens?.refreshToken ?? ""))
+        print("♻️  Refreshed tokens:")
+        dump(tokenResponse)
         authTokens = tokenResponse
-    }
-    
-    private func persistAuthTokens(_ authTokens: OAuthTokenResponse) {
-        let authTokensData = try! encoder.encode(authTokens)
-        UserDefaults.standard.set(authTokensData, forKey: OAuthTokenResponse.codingKey)
-    }
-    
-    private func loadPersistedAuthTokens() throws {
-        guard
-            let persistedData = UserDefaults.standard.object(forKey: OAuthTokenResponse.codingKey) as? Data,
-            let decodedAuthTokens = try? decoder.decode(OAuthTokenResponse.self, from: persistedData)
-        else { throw SCError.failedLoadingPersistedTokens }
-        
-        authTokens = decodedAuthTokens
-    }
-    
-    private func deletePersistedAuthTokens() {
-        UserDefaults.standard.set(nil, forKey: OAuthTokenResponse.codingKey)
     }
 }
 
 // MARK: - API request
 extension SC {
-    private func get<T: Decodable>(_ request: SCRequest<T>) async throws -> T {
+    private func get<T: Decodable>(_ request: Request<T>) async throws -> T {
         // ⚠️ Check that this isn't a request to refresh the token
-        if authTokens.isExpired && isLoggedIn && !request.isToRefresh {
+        if authTokens?.isExpired ?? true && isLoggedIn && !request.isToRefresh {
             try await refreshAuthTokens()
         }
         return try await fetchData(from: authorized(request))
@@ -137,7 +133,7 @@ extension SC {
         return decodedObject
     }
     
-    private func authorized<T>(_ scRequest: SCRequest<T>) -> URLRequest {
+    private func authorized<T>(_ scRequest: Request<T>) -> URLRequest {
         let urlWithPath = URL(string: apiURL + scRequest.path)!
         var components = URLComponents(url: urlWithPath, resolvingAgainstBaseURL: false)!
         components.queryItems = scRequest.queryParameters?.map { name, value in URLQueryItem(name: name, value: value) }

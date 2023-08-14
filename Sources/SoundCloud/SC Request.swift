@@ -18,36 +18,39 @@ let authorizeURL = apiURL
     + "&redirect_uri=\(redirectURI)"
     + "&response_type=code"
 
-struct SCRequest<T: Decodable> {
+extension SC {
     
-    var api: API
-    
-    enum API {
-        case accessToken(_ accessCode: String)
-        case refreshAccessToken(_ refreshToken: String)
-        case me
-        case myLikedTracks
-    }
-    
-    static func accessToken(_ code: String) -> SCRequest<OAuthTokenResponse> {
-        SCRequest<OAuthTokenResponse>(api: .accessToken(code))
-    }
-    
-    static func refreshToken(_ refreshToken: String) -> SCRequest<OAuthTokenResponse> {
-        SCRequest<OAuthTokenResponse>(api: .refreshAccessToken(refreshToken))
-    }
-    
-    static func me() -> SCRequest<Me> {
-        SCRequest<Me>(api: .me)
-    }
-    
-    static func myLikedTracks() -> SCRequest<[Track]> {
-        SCRequest<[Track]>(api: .myLikedTracks)
+    struct Request<T: Decodable> {
+        
+        var api: API
+        
+        enum API {
+            case accessToken(_ accessCode: String)
+            case refreshAccessToken(_ refreshToken: String)
+            case me
+            case myLikedTracks
+        }
+        
+        static func accessToken(_ code: String) -> Request<OAuthTokenResponse> {
+            Request<OAuthTokenResponse>(api: .accessToken(code))
+        }
+        
+        static func refreshToken(_ refreshToken: String) -> Request<OAuthTokenResponse> {
+            Request<OAuthTokenResponse>(api: .refreshAccessToken(refreshToken))
+        }
+        
+        static func me() -> Request<Me> {
+            Request<Me>(api: .me)
+        }
+        
+        static func myLikedTracks() -> Request<[Track]> {
+            Request<[Track]>(api: .myLikedTracks)
+        }
     }
 }
 
 //MARK: - Request Parameters
-extension SCRequest {
+extension SC.Request {
     
     var path: String {
         switch api {
@@ -59,7 +62,7 @@ extension SCRequest {
         }
     }
     
-    @MainActor var queryParameters: [String : String]? { // Remove @MainActor
+    var queryParameters: [String : String]? { // Remove @MainActor
         switch api {
 
         case .accessToken(let accessCode): return [
@@ -94,7 +97,7 @@ extension SCRequest {
 }
 
 //MARK: - Helpers
-extension SCRequest {
+extension SC.Request {
     var useAuthHeader: Bool {
         switch api {
         case .accessToken, .refreshAccessToken: return false
