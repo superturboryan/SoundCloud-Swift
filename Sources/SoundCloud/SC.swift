@@ -12,7 +12,7 @@ import AuthenticationServices
 public class SC: ObservableObject {
     
     @Published public var me: Me? = nil
-    @Published public var isLoggedIn: Bool = true
+    @Published public private(set) var isLoggedIn: Bool = true
     
     private var persistenceService: AuthTokenPersisting
     private var asyncNetworkService: (URLRequest) async throws -> (Data, URLResponse)
