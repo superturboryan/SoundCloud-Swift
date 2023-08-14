@@ -9,6 +9,8 @@ import AuthenticationServices
 import Foundation
 
 public extension ASWebAuthenticationSession {
+    #if !os(watchOS)
+    
     /// Presents a webpage for authenticating using SSO and returns the authorization code after the user successfully signs in
     /// - Parameters:
     ///   - from: Authentication URL to present for SSO
@@ -40,6 +42,27 @@ public extension ASWebAuthenticationSession {
     class ApplicationWindowContextProvider: NSObject, ASWebAuthenticationPresentationContextProviding {
         public func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
             return UIApplication.shared.keyWindow!
+        }
+    }
+    #endif
+    
+    @MainActor static func getAuthCode(
+        from url: String,
+        ephemeralSession: Bool // Use cookies
+    ) async throws -> String {
+        try await withCheckedThrowingContinuation { continuation in
+            let session = ASWebAuthenticationSession(
+                url: URL(string: url)!,
+                callbackURLScheme: "" // Rely on URL scheme in info.plist for callback
+            ) { url, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                continuation.resume(returning: url!.queryParameters!["code"]!)
+            }
+            session.prefersEphemeralWebBrowserSession = ephemeralSession
+            session.start()
         }
     }
 }
