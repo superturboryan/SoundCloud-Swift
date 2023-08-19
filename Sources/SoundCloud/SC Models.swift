@@ -7,6 +7,11 @@
 
 import Foundation
 
+public enum UserPlaylistId: Int {
+    case likes = 0
+    case myFollowingsRecentTracks = 1
+}
+
 public struct OAuthTokenResponse: Codable {
     public let accessToken: String
     public let expiresIn: Int
@@ -48,6 +53,31 @@ public struct Me: Codable {
     public let likesCount: Int
     public let playlistCount: Int
     public let locale: String
+    
+    var user: User {
+        User(
+            avatarUrl: avatarUrl,
+            id: id,
+            permalinkUrl: permalink,
+            uri: uri,
+            username: username,
+            createdAt: createdAt,
+            firstName: firstName,
+            lastName: lastName,
+            fullName: fullName,
+            city: city,
+            country: country,
+            description: "",
+            trackCount: trackCount,
+            repostsCount: repostsCount,
+            followersCount: followersCount,
+            followingsCount: followingsCount,
+            commentsCount: commentsCount,
+            online: online,
+            likesCount: likesCount,
+            playlistCount: playlistCount
+        )
+    }
 }
 
 public struct User: Decodable, Equatable {
@@ -62,7 +92,7 @@ public struct User: Decodable, Equatable {
     public let fullName: String
     public let city: String?
     public let country: String?
-    public let description: String
+    public let description: String?
     public let trackCount: Int
     public let repostsCount: Int
     public let followersCount: Int
@@ -95,6 +125,15 @@ public struct Playlist: Decodable, Identifiable, Equatable {
     public let streamable: Bool
     public let artworkUrl: String?
     public let tracksUri: String
+}
+
+public struct PlaylistWithTracks: Identifiable, Equatable {
+    public let id: Int
+    public let title: String
+    public let duration: Int
+    public let user: User
+    public let artworkUrl: String
+    public let tracks: [Track]
 }
 
 public struct Track: Decodable, Identifiable, Equatable {
@@ -154,6 +193,15 @@ public let testUser = User(
     playlistCount: 0
 )
 
+public let testPlaylistWithTracks = PlaylistWithTracks(
+    id: testPlaylist.id,
+    title: testPlaylist.title,
+    duration: testPlaylist.duration,
+    user: testUser,
+    artworkUrl: testPlaylist.artworkUrl!,
+    tracks: Array(repeating: testTrack, count: 5)
+)
+
 public let testPlaylist = Playlist(
     id: 1587600994,
     duration: 32367489,
@@ -174,7 +222,7 @@ public let testPlaylist = Playlist(
     kind: "",
     title: "RIZ LA TEEF on Rinse FM",
     streamable: true,
-    artworkUrl: nil,
+    artworkUrl: testTrack.artworkUrl,
     tracksUri: "https://api.soundcloud.com/playlists/1587600994/tracks"
 )
 
