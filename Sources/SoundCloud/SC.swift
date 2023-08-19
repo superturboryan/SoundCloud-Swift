@@ -25,7 +25,7 @@ public class SC: ObservableObject {
             isLoggedIn = newValue != nil
             if let newValue {
                 persistenceService.saveAuthTokens(newValue)
-                print("✅ 💾 🔑 Tokens saved to persistence")
+                print("✅ 💾 🔑 Tokens saved to persistence \n\(newValue)")
             } else {
                 persistenceService.deleteAuthTokens()
             }
@@ -75,7 +75,7 @@ public extension SC {
             let newAuthTokens = try await getNewAuthTokens(using: authCode)
             authTokens = newAuthTokens
         } catch {
-            print("❌ 🔊 ☁️")
+            print("❌ 🔊 ☁️ \(error.localizedDescription)")
         }
     }
     
@@ -89,6 +89,18 @@ public extension SC {
     
     func getMyLikedTracks() async throws -> [Track] {
         try await get(.myLikedTracks())
+    }
+    
+    func getMyFollowingsRecentTracks() async throws -> [Track] {
+        try await get(.myFollowingsRecentTracks())
+    }
+    
+    func getMyLikedPlaylists() async throws -> [Playlist] {
+        try await get(.myLikedPlaylists())
+    }
+    
+    func getTracksForPlaylists(_ id: Int) async throws -> [Track] {
+        try await get(.tracksForPlaylist(id))
     }
 }
 

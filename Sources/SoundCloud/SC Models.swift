@@ -73,6 +73,30 @@ public struct User: Decodable, Equatable {
     public let playlistCount: Int
 }
 
+public struct Playlist: Decodable, Identifiable, Equatable {
+    public let id: Int
+    public let duration: Int
+    public let genre: String
+    public let permalink: String
+    public let permalinkUrl: String
+    public let description: String?
+    public let uri: String
+    public let tagList: String
+    public let trackCount: Int
+    public let lastModified: String
+    public let license: String
+    public let user: User
+    public let likesCount: Int
+    public let sharing: String // "public"
+    public let createdAt: String
+    public let tags: String
+    public let kind: String
+    public let title: String
+    public let streamable: Bool
+    public let artworkUrl: String?
+    public let tracksUri: String
+}
+
 public struct Track: Decodable, Identifiable, Equatable {
     public let id: Int
     public let createdAt: String
@@ -128,6 +152,30 @@ public let testUser = User(
     online: false,
     likesCount: 0,
     playlistCount: 0
+)
+
+public let testPlaylist = Playlist(
+    id: 1587600994,
+    duration: 32367489,
+    genre: "",
+    permalink: "",
+    permalinkUrl: "",
+    description: nil,
+    uri: "",
+    tagList: "",
+    trackCount: 7,
+    lastModified: "023/08/10 20:27:42 +0000",
+    license: "",
+    user: testUser,
+    likesCount: 20,
+    sharing: "",
+    createdAt: "2023/03/20 17:08:42 +0000",
+    tags: "",
+    kind: "",
+    title: "RIZ LA TEEF on Rinse FM",
+    streamable: true,
+    artworkUrl: nil,
+    tracksUri: "https://api.soundcloud.com/playlists/1587600994/tracks"
 )
 
 public let testTrack = Track(

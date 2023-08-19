@@ -11,7 +11,7 @@ import Foundation
 public extension ASWebAuthenticationSession {
     
     #if os(iOS)
-    /// Presents a webpage for authenticating using SSO and returns the authorization code after the user successfully signs in
+    /// Async-await wrapper for ASWebAuthenticationSession. Presents a webpage for authenticating using SSO and returns the authorization code after the user successfully signs in
     /// - Parameters:
     ///   - from: Authentication URL to present for SSO
     ///   - context: Delegate object that specifies how to present web page. Defaults to UIApplication.shared.keyWindow
@@ -48,7 +48,8 @@ public extension ASWebAuthenticationSession {
     
     #if os(watchOS)
     @MainActor static func getAuthCode(
-        from url: String
+        from url: String,
+        ephemeralSession: Bool = false
     ) async throws -> String {
         try await withCheckedThrowingContinuation { continuation in
             let session = ASWebAuthenticationSession(
@@ -61,7 +62,7 @@ public extension ASWebAuthenticationSession {
                 }
                 continuation.resume(returning: url!.queryParameters!["code"]!)
             }
-            session.prefersEphemeralWebBrowserSession = false
+            session.prefersEphemeralWebBrowserSession = ephemeralSession
             session.start()
         }
     }
