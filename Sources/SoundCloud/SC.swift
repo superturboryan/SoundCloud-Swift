@@ -17,7 +17,7 @@ public class SC: ObservableObject {
     private var persistenceService: AuthTokenPersisting
     private var asyncNetworkService: (URLRequest) async throws -> (Data, URLResponse)
     
-    private var authTokens: OAuthTokenResponse? {
+    public var authTokens: OAuthTokenResponse? {
         get {
             persistenceService.loadAuthTokens()
         }
@@ -25,7 +25,7 @@ public class SC: ObservableObject {
             isLoggedIn = newValue != nil
             if let newValue {
                 persistenceService.saveAuthTokens(newValue)
-                print("✅ 💾 🔑 Tokens saved to persistence \n\(newValue)")
+                print("✅ 💾 🔑 Tokens saved to persistence")
             } else {
                 persistenceService.deleteAuthTokens()
             }
@@ -165,7 +165,7 @@ extension SC {
         return tokenResponse
     }
     
-    private func refreshAuthTokens() async throws {
+    public func refreshAuthTokens() async throws {
         let tokenResponse = try await get(.refreshToken(authTokens?.refreshToken ?? ""))
         print("♻️  Refreshed tokens:")
         dump(tokenResponse)

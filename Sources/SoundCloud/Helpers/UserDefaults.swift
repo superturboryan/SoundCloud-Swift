@@ -34,6 +34,5 @@ public struct UserDefaultsService: AuthTokenPersisting {
     }
     public func deleteAuthTokens() {
         UserDefaults.standard.set(nil, forKey: OAuthTokenResponse.codingKey)
-        UserDefaults.standard.set(nil, forKey: "expiry")
     }
 }

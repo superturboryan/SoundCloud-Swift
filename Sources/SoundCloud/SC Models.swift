@@ -16,10 +16,10 @@ public struct OAuthTokenResponse: Codable {
     public let accessToken: String
     public let expiresIn: Int
     public let refreshToken: String
-    public let scope: String // Not used
-    public let tokenType: String // Always "bearer"?
+    public let scope: String
+    public let tokenType: String
     
-    public var expiryDate: Date? = nil
+    internal var expiryDate: Date? = nil // Set when persisting object
 }
 
 extension OAuthTokenResponse {
@@ -27,7 +27,7 @@ extension OAuthTokenResponse {
         expiryDate == nil ? true : expiryDate! < Date()
     }
     public static var empty: Self { OAuthTokenResponse(accessToken: "", expiresIn: 0, refreshToken: "", scope: "", tokenType: "") }
-    public static var codingKey: String { "\(OAuthTokenResponse.self)" }
+    public static let codingKey = "\(OAuthTokenResponse.self)"
 }
 
 public struct Me: Codable {
