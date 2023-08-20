@@ -8,11 +8,11 @@
 import Foundation
 
 public extension Int {
-    var dateWithSecondsFromNow: Date {
+    func dateWithSecondsAdded(to date: Date) -> Date {
         Calendar.current.date(
             byAdding: .second,
             value: self,
-            to: Date()
+            to: date
         )!
     }
     

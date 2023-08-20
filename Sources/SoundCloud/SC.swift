@@ -58,7 +58,6 @@ public class SC: ObservableObject {
         self.asyncNetworkService = asyncNetworkService
         
         decoder.keyDecodingStrategy = .convertFromSnakeCase
-        
         if authTokens == nil { 
             logout()
         }
@@ -178,7 +177,7 @@ extension SC {
 extension SC {
     private func get<T: Decodable>(_ request: Request<T>) async throws -> T {
         // ⚠️ Check that this isn't a request to refresh the token
-        if authTokens?.isExpired ?? true && isLoggedIn && !request.isToRefresh {
+        if authTokens?.isExpired ?? false && isLoggedIn && !request.isToRefresh {
             try await refreshAuthTokens()
         }
         return try await fetchData(from: authorized(request))

@@ -18,16 +18,22 @@ public struct UserDefaultsService: AuthTokenPersisting {
     
     public func loadAuthTokens() -> OAuthTokenResponse? {
         guard
-            let data = UserDefaults.standard.object(forKey: OAuthTokenResponse.codingKey) as? Data,
-            let tokens = try? JSONDecoder().decode(OAuthTokenResponse.self, from: data)
-        else { return nil }
+            let tokenData = UserDefaults.standard.object(forKey: OAuthTokenResponse.codingKey) as? Data,
+            let tokens = try? JSONDecoder().decode(OAuthTokenResponse.self, from: tokenData)
+        else {
+            return nil
+        }
         return tokens
     }
     public func saveAuthTokens(_ tokens: OAuthTokenResponse) {
-        let authTokensData = try! JSONEncoder().encode(tokens)
+        var tokensWithDateSet = tokens
+        tokensWithDateSet.expiryDate = tokens.expiresIn.dateWithSecondsAdded(to: Date())
+        let authTokensData = try! JSONEncoder().encode(tokensWithDateSet)
         UserDefaults.standard.set(authTokensData, forKey: OAuthTokenResponse.codingKey)
+        UserDefaults.standard.synchronize()
     }
     public func deleteAuthTokens() {
         UserDefaults.standard.set(nil, forKey: OAuthTokenResponse.codingKey)
+        UserDefaults.standard.set(nil, forKey: "expiry")
     }
 }
