@@ -91,7 +91,7 @@ public extension SC {
         let totalDuration = tracks.reduce(into: 0) { $0 += $1.durationInSeconds }
         return PlaylistWithTracks(
             id: UserPlaylistId.likes.rawValue,
-            title: "My liked tracks",
+            title: "Liked tracks",
             duration: totalDuration,
             user: me!.user,
             artworkUrl: tracks.first?.artworkUrl ?? "",
@@ -104,7 +104,7 @@ public extension SC {
         let totalDuration = tracks.reduce(into: 0) { $0 += $1.durationInSeconds }
         return PlaylistWithTracks(
             id: UserPlaylistId.myFollowingsRecentTracks.rawValue,
-            title: "New from followings",
+            title: "Recently posted",
             duration: totalDuration,
             user: me!.user,
             artworkUrl: tracks.first?.artworkUrl ?? "",
