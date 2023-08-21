@@ -153,7 +153,7 @@ public struct Track: Decodable, Identifiable, Equatable {
     public let uri: String
     public let user: User
     public let permalinkUrl: String
-    public let artworkUrl: String
+    public let artworkUrl: String?
     public let streamUrl: String
     public let downloadUrl: String?
     public let waveformUrl: String
@@ -168,7 +168,7 @@ public struct Track: Decodable, Identifiable, Equatable {
 
 extension Track {
     public var durationInSeconds: Int { duration / 1000 }
-    public var largerArtworkUrl: String { artworkUrl.replacingOccurrences(of: "large.jpg", with: "t500x500.jpg") }
+    public var largerArtworkUrl: String? { artworkUrl?.replacingOccurrences(of: "large.jpg", with: "t500x500.jpg") }
 }
 
 //MARK: - Test objects
