@@ -31,6 +31,7 @@ extension SC {
             case myLikedTracks
             case myFollowingsRecentTracks
             case myLikedPlaylists
+            case myPlaylists
             case tracksForPlaylist(_ id: Int)
         }
         
@@ -58,6 +59,10 @@ extension SC {
             Request<[Playlist]>(api: .myLikedPlaylists)
         }
         
+        static func myPlaylists() -> Request<[Playlist]> {
+            Request<[Playlist]>(api: .myPlaylists)
+        }
+        
         static func tracksForPlaylist(_ id: Int) -> Request<[Track]> {
             Request<[Track]>(api: .tracksForPlaylist(id))
         }
@@ -76,6 +81,7 @@ extension SC.Request {
         case .myLikedTracks: return "me/likes/tracks"
         case .myFollowingsRecentTracks: return "me/followings/tracks"
         case .myLikedPlaylists: return "me/likes/playlists"
+        case .myPlaylists: return "me/playlists"
         case .tracksForPlaylist(let id): return "playlists/\(id)/tracks"
         }
     }
