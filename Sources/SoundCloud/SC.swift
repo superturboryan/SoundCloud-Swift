@@ -166,23 +166,7 @@ public extension SC {
     }
     
     func getMyPlaylists() async throws -> [Playlist] {
-        let playlists = try await get(.myPlaylists())
-        let playlistsWithTracks = try await withThrowingTaskGroup(of: (Playlist, [Track]).self, returning: [Playlist].self) { taskGroup in
-            for playlist in playlists {
-                taskGroup.addTask { (playlist, try await self.getTracksForPlaylists(playlist.id)) }
-            }
-            
-            var result = [Playlist]()
-            for try await (playlist, tracks) in taskGroup {
-                var playlistWithTracks = playlist
-                playlistWithTracks.tracks = tracks
-                result.append(playlistWithTracks)
-            }
-            
-            return result
-        }
-        
-        return playlistsWithTracks
+        try await get(.myPlaylists())
     }
     
     private func getTracksForPlaylists(_ id: Int) async throws -> [Track] {

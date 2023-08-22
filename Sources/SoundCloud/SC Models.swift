@@ -89,8 +89,8 @@ public struct User: Decodable, Equatable {
     public let uri: String
     public let username: String
     public let createdAt: String
-    public let firstName: String
-    public let lastName: String
+    public let firstName: String?
+    public let lastName: String?
     public let fullName: String
     public let city: String?
     public let country: String?
@@ -124,10 +124,10 @@ public struct Playlist: Decodable, Identifiable, Equatable {
     public let tags: String
     public let kind: String
     public let title: String
-    public let streamable: Bool
+    public let streamable: Bool?
     public let artworkUrl: String?
     public let tracksUri: String
-    public var tracks: [Track]? = nil
+    public var tracks: [Track]?
 }
 
 public struct Track: Decodable, Identifiable, Equatable {
@@ -146,7 +146,7 @@ public struct Track: Decodable, Identifiable, Equatable {
     public let user: User
     public let permalinkUrl: String
     public let artworkUrl: String?
-    public let streamUrl: String
+    public let streamUrl: String?
     public let downloadUrl: String?
     public let waveformUrl: String
     public let availableCountryCodes: String?
