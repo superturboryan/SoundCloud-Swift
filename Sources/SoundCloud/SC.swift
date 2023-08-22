@@ -86,49 +86,76 @@ public extension SC {
         me = try await get(.me())
     }
     
-    func getMyLikedTracks() async throws -> PlaylistWithTracks {
+    func getMyLikedTracks() async throws -> Playlist {
         let tracks = try await get(.myLikedTracks())
         let totalDuration = tracks.reduce(into: 0) { $0 += $1.durationInSeconds }
-        return PlaylistWithTracks(
+        return Playlist(
             id: UserPlaylistId.likes.rawValue,
-            title: "Liked tracks",
             duration: totalDuration,
+            genre: "",
+            permalink: "",
+            permalinkUrl: "",
+            description: "",
+            uri: "",
+            tagList: "",
+            trackCount: tracks.count,
+            lastModified: "",
+            license: "",
             user: me!.user,
+            likesCount: 0,
+            sharing: "",
+            createdAt: "",
+            tags: "",
+            kind: "",
+            title: "Likes",
+            streamable: true,
             artworkUrl: tracks.first?.artworkUrl ?? "",
+            tracksUri: "",
             tracks: tracks
         )
     }
     
-    func getMyFollowingsRecentTracks() async throws -> PlaylistWithTracks {
+    func getMyFollowingsRecentTracks() async throws -> Playlist {
         let tracks = try await get(.myFollowingsRecentTracks())
         let totalDuration = tracks.reduce(into: 0) { $0 += $1.durationInSeconds }
-        return PlaylistWithTracks(
+        
+        return Playlist(
             id: UserPlaylistId.myFollowingsRecentTracks.rawValue,
-            title: "Recently posted",
             duration: totalDuration,
+            genre: "",
+            permalink: "",
+            permalinkUrl: "",
+            description: "",
+            uri: "",
+            tagList: "",
+            trackCount: tracks.count,
+            lastModified: "",
+            license: "",
             user: me!.user,
-            artworkUrl: tracks.first?.artworkUrl ?? "",
+            likesCount: 0,
+            sharing: "",
+            createdAt: "",
+            tags: "",
+            kind: "",
+            title: "Recently posted",
+            streamable: true,
+            artworkUrl: tracks.first!.artworkUrl,
+            tracksUri: "",
             tracks: tracks
         )
     }
     
-    func getMyLikedPlaylists() async throws -> [PlaylistWithTracks] {
+    func getMyLikedPlaylists() async throws -> [Playlist] {
         let playlists = try await get(.myLikedPlaylists())
-        let playlistsWithTracks = try await withThrowingTaskGroup(of: (Playlist, [Track]).self, returning: [PlaylistWithTracks].self) { taskGroup in
+        let playlistsWithTracks = try await withThrowingTaskGroup(of: (Playlist, [Track]).self, returning: [Playlist].self) { taskGroup in
             for playlist in playlists {
                 taskGroup.addTask { (playlist, try await self.getTracksForPlaylists(playlist.id)) }
             }
             
-            var result = [PlaylistWithTracks]()
+            var result = [Playlist]()
             for try await (playlist, tracks) in taskGroup {
-                let playlistWithTracks = PlaylistWithTracks(
-                    id: playlist.id,
-                    title: playlist.title,
-                    duration: playlist.duration,
-                    user: playlist.user,
-                    artworkUrl: playlist.artworkUrl ?? tracks.first?.artworkUrl ?? "",
-                    tracks: tracks
-                )
+                var playlistWithTracks = playlist
+                playlistWithTracks.tracks = tracks
                 result.append(playlistWithTracks)
             }
             
@@ -138,23 +165,17 @@ public extension SC {
         return playlistsWithTracks
     }
     
-    func getMyPlaylists() async throws -> [PlaylistWithTracks] {
+    func getMyPlaylists() async throws -> [Playlist] {
         let playlists = try await get(.myPlaylists())
-        let playlistsWithTracks = try await withThrowingTaskGroup(of: (Playlist, [Track]).self, returning: [PlaylistWithTracks].self) { taskGroup in
+        let playlistsWithTracks = try await withThrowingTaskGroup(of: (Playlist, [Track]).self, returning: [Playlist].self) { taskGroup in
             for playlist in playlists {
                 taskGroup.addTask { (playlist, try await self.getTracksForPlaylists(playlist.id)) }
             }
             
-            var result = [PlaylistWithTracks]()
+            var result = [Playlist]()
             for try await (playlist, tracks) in taskGroup {
-                let playlistWithTracks = PlaylistWithTracks(
-                    id: playlist.id,
-                    title: playlist.title,
-                    duration: playlist.duration,
-                    user: playlist.user,
-                    artworkUrl: playlist.artworkUrl ?? tracks.first?.artworkUrl ?? "",
-                    tracks: tracks
-                )
+                var playlistWithTracks = playlist
+                playlistWithTracks.tracks = tracks
                 result.append(playlistWithTracks)
             }
             

@@ -127,15 +127,7 @@ public struct Playlist: Decodable, Identifiable, Equatable {
     public let streamable: Bool
     public let artworkUrl: String?
     public let tracksUri: String
-}
-
-public struct PlaylistWithTracks: Identifiable, Equatable {
-    public let id: Int
-    public let title: String
-    public let duration: Int
-    public let user: User
-    public let artworkUrl: String
-    public let tracks: [Track]
+    public var tracks: [Track]? = nil
 }
 
 public struct Track: Decodable, Identifiable, Equatable {
@@ -195,15 +187,6 @@ public let testUser = User(
     playlistCount: 0
 )
 
-public let testPlaylistWithTracks = PlaylistWithTracks(
-    id: testPlaylist.id,
-    title: testPlaylist.title,
-    duration: testPlaylist.duration,
-    user: testUser,
-    artworkUrl: testPlaylist.artworkUrl!,
-    tracks: Array(repeating: testTrack, count: 5)
-)
-
 public let testPlaylist = Playlist(
     id: 1587600994,
     duration: 32367489,
@@ -225,7 +208,8 @@ public let testPlaylist = Playlist(
     title: "RIZ LA TEEF on Rinse FM",
     streamable: true,
     artworkUrl: testTrack.artworkUrl,
-    tracksUri: "https://api.soundcloud.com/playlists/1587600994/tracks"
+    tracksUri: "https://api.soundcloud.com/playlists/1587600994/tracks",
+    tracks: Array(repeating: testTrack, count: 10)
 )
 
 public let testTrack = Track(
