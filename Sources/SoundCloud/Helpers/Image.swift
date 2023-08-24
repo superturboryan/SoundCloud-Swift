@@ -24,4 +24,8 @@ public extension Image {
     static var scLogo: Image {
         Image("sc_logo", bundle: .module)
     }
+    
+    internal static var testWaveForm: Image {
+        Image("test_waveform", bundle: .module)
+    }
 }

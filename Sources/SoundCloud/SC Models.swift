@@ -230,7 +230,7 @@ public let testTrack = Track(
     artworkUrl: "https://i1.sndcdn.com/artworks-5Ahdjl0532u9N1a2-zoAq3w-large.jpg",
     streamUrl: "https://api.soundcloud.com/tracks/1586682955/stream",
     downloadUrl: "",
-    waveformUrl: "",
+    waveformUrl: "https://wave.sndcdn.com/ycxIIzLADTvQ_m.png",
     availableCountryCodes: "",
     userFavorite: false,
     userPlaybackCount: 0,
