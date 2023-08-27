@@ -130,6 +130,16 @@ public struct Playlist: Decodable, Identifiable, Equatable {
     public var tracks: [Track]?
 }
 
+extension Playlist {
+    public var durationInSeconds: Int {
+        (tracks ?? []).reduce(into: 0, { $0 += $1.durationInSeconds})
+    }
+    
+    public var artworkUrlWithUserFallback: URL {
+        URL(string: artworkUrl ?? user.avatarUrl)!
+    }
+}
+
 public struct Track: Decodable, Identifiable, Equatable {
     public let id: Int
     public let createdAt: String

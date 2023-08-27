@@ -28,4 +28,14 @@ public extension Int {
         
         return result
     }
+    
+    var hoursAndMinutesStringFromSeconds: String {
+        let minutes = String(format: "%02d", ((self % 3600) / 60))
+        var result = minutes + "mins"
+        if self > 3600 {
+            let hours = String(format: "%02d", (self / 3600))
+            result = hours + "hr " + result
+        }
+        return result
+    }
 }
