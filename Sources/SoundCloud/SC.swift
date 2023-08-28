@@ -88,10 +88,8 @@ public extension SC {
     
     func getMyLikedTracks() async throws -> Playlist {
         let tracks = try await get(.myLikedTracks())
-        let totalDuration = tracks.reduce(into: 0) { $0 += $1.durationInSeconds }
         return Playlist(
             id: UserPlaylistId.likes.rawValue,
-            duration: totalDuration,
             genre: "",
             permalink: "",
             permalinkUrl: "",
@@ -117,11 +115,8 @@ public extension SC {
     
     func getMyFollowingsRecentTracks() async throws -> Playlist {
         let tracks = try await get(.myFollowingsRecentTracks())
-        let totalDuration = tracks.reduce(into: 0) { $0 += $1.durationInSeconds }
-        
         return Playlist(
             id: UserPlaylistId.myFollowingsRecentTracks.rawValue,
-            duration: totalDuration,
             genre: "",
             permalink: "",
             permalinkUrl: "",

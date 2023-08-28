@@ -10,6 +10,7 @@ import Foundation
 public enum UserPlaylistId: Int {
     case likes = 0
     case myFollowingsRecentTracks = 1
+    case nowPlayingQueue = 2
 }
 
 public struct OAuthTokenResponse: Codable {
@@ -56,7 +57,7 @@ public struct Me: Codable {
     public let playlistCount: Int
     public let locale: String
     
-    var user: User {
+    public var user: User {
         User(
             avatarUrl: avatarUrl,
             id: id,
@@ -107,7 +108,6 @@ public struct User: Decodable, Equatable {
 
 public struct Playlist: Decodable, Identifiable, Equatable {
     public let id: Int
-    public let duration: Int
     public let genre: String
     public let permalink: String
     public let permalinkUrl: String
@@ -128,9 +128,56 @@ public struct Playlist: Decodable, Identifiable, Equatable {
     public let artworkUrl: String?
     public let tracksUri: String
     public var tracks: [Track]?
+    
+    public init(
+        id: Int,
+        genre: String = "",
+        permalink: String = "",
+        permalinkUrl: String = "",
+        description: String? = nil,
+        uri: String = "",
+        tagList: String = "",
+        trackCount: Int,
+        lastModified: String = "",
+        license: String = "",
+        user: User,
+        likesCount: Int = 0,
+        sharing: String = "",
+        createdAt: String = "",
+        tags: String = "",
+        kind: String = "",
+        title: String,
+        streamable: Bool? = true,
+        artworkUrl: String? = nil,
+        tracksUri: String = "",
+        tracks: [Track]
+    ) {
+        self.id = id
+        self.genre = genre
+        self.permalink = permalink
+        self.permalinkUrl = permalinkUrl
+        self.description = description
+        self.uri = uri
+        self.tagList = tagList
+        self.trackCount = trackCount
+        self.lastModified = lastModified
+        self.license = license
+        self.user = user
+        self.likesCount = likesCount
+        self.sharing = sharing
+        self.createdAt = createdAt
+        self.tags = tags
+        self.kind = kind
+        self.title = title
+        self.streamable = streamable
+        self.artworkUrl = artworkUrl
+        self.tracksUri = tracksUri
+        self.tracks = tracks
+    }
 }
 
 extension Playlist {
+    
     public var durationInSeconds: Int {
         (tracks ?? []).reduce(into: 0, { $0 += $1.durationInSeconds})
     }
@@ -199,7 +246,6 @@ public let testUser = User(
 
 public let testPlaylist = Playlist(
     id: 1587600994,
-    duration: 32367489,
     genre: "",
     permalink: "",
     permalinkUrl: "",
