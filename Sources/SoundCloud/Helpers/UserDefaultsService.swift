@@ -7,12 +7,6 @@
 
 import Foundation
 
-public protocol AuthTokenPersisting {
-    func loadAuthTokens() -> OAuthTokenResponse?
-    func saveAuthTokens(_ tokens: OAuthTokenResponse) -> Void
-    func deleteAuthTokens()
-}
-
 public struct UserDefaultsService: AuthTokenPersisting {
     public init() { }
     

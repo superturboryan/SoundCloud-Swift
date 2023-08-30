@@ -14,20 +14,20 @@ public class SC: ObservableObject {
     @Published public var me: Me? = nil
     @Published public private(set) var isLoggedIn: Bool = true
     
-    private var persistenceService: AuthTokenPersisting
+    private var authPersistenceService: AuthTokenPersisting
     private var asyncNetworkService: (URLRequest) async throws -> (Data, URLResponse)
     
     public var authTokens: OAuthTokenResponse? {
         get {
-            persistenceService.loadAuthTokens()
+            authPersistenceService.loadAuthTokens()
         }
         set {
             isLoggedIn = newValue != nil
             if let newValue {
-                persistenceService.saveAuthTokens(newValue)
+                authPersistenceService.saveAuthTokens(newValue)
                 print("✅ 💾 🔑 Tokens saved to persistence")
             } else {
-                persistenceService.deleteAuthTokens()
+                authPersistenceService.deleteAuthTokens()
             }
         }
     }
@@ -49,12 +49,12 @@ public class SC: ObservableObject {
     /// }() // Don't forget to execute the closure!
     /// ```
     ///  - Parameter asyncNetworkService: Service to use for making requests to the SoundCloud API. **Defaults to URLSession**
-    ///  - Parameter persistenceService: Serivce to use for persisting OAuthTokens. **Defaults to UserDefaults**
+    ///  - Parameter authPersistenceService: Serivce to use for persisting OAuthTokens. **Defaults to Keychain**
     public init(
-        persistenceService: AuthTokenPersisting = UserDefaultsService(),
+        authPersistenceService: AuthTokenPersisting = KeychainService(),
         asyncNetworkService: @escaping (URLRequest) async throws -> (Data, URLResponse) = URLSession.shared.data
     ) {
-        self.persistenceService = persistenceService
+        self.authPersistenceService = authPersistenceService
         self.asyncNetworkService = asyncNetworkService
         
         decoder.keyDecodingStrategy = .convertFromSnakeCase
