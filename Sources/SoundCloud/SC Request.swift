@@ -33,6 +33,7 @@ extension SC {
             case myLikedPlaylists
             case myPlaylists
             case tracksForPlaylist(_ id: Int)
+            case streamInfoForTrack(_ id: Int)
         }
         
         static func accessToken(_ code: String) -> Request<OAuthTokenResponse> {
@@ -66,6 +67,10 @@ extension SC {
         static func tracksForPlaylist(_ id: Int) -> Request<[Track]> {
             Request<[Track]>(api: .tracksForPlaylist(id))
         }
+        
+        static func streamInfoForTrack(_ id: Int) -> Request<StreamInfo> {
+            Request<StreamInfo>(api: .streamInfoForTrack(id))
+        }
     }
 }
 
@@ -83,6 +88,7 @@ extension SC.Request {
         case .myLikedPlaylists: return "me/likes/playlists"
         case .myPlaylists: return "me/playlists"
         case .tracksForPlaylist(let id): return "playlists/\(id)/tracks"
+        case .streamInfoForTrack(let id): return "tracks/\(id)/streams"
         }
     }
     

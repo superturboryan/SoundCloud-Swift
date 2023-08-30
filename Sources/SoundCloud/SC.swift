@@ -14,6 +14,8 @@ public class SC: ObservableObject {
     @Published public var me: Me? = nil
     @Published public private(set) var isLoggedIn: Bool = true
     
+    @Published var downloadsInProgress: [Track : Double] = [:]
+    
     private var authPersistenceService: AuthTokenPersisting
     
     public var authTokens: OAuthTokenResponse? {
@@ -166,6 +168,14 @@ public extension SC {
     private func getTracksForPlaylists(_ id: Int) async throws -> [Track] {
         try await get(.tracksForPlaylist(id))
     }
+    
+    private func getStreamInfoForTrack(_ id: Int) async throws -> StreamInfo {
+        try await get(.streamInfoForTrack(id))
+    }
+    
+    func downloadTrack(_ track: Track) async throws {
+        let streamInfo = try await getStreamInfoForTrack(track.id)
+    }
 }
 
 //MARK: - Authentication
@@ -218,7 +228,7 @@ extension SC {
     private func authorized<T>(_ scRequest: Request<T>) -> URLRequest {
         let urlWithPath = URL(string: apiURL + scRequest.path)!
         var components = URLComponents(url: urlWithPath, resolvingAgainstBaseURL: false)!
-        components.queryItems = scRequest.queryParameters?.map { name, value in URLQueryItem(name: name, value: value) }
+        components.queryItems = scRequest.queryParameters?.map { URLQueryItem(name: $0, value: $1) }
         
         var request = URLRequest(url: components.url!)
         request.httpMethod = scRequest.httpMethod

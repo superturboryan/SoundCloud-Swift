@@ -233,9 +233,20 @@ public struct Track: Decodable, Identifiable, Equatable {
     public let access: String // playable / preview / blocked
 }
 
+extension Track: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+}
+
 extension Track {
     public var durationInSeconds: Int { duration / 1000 }
     public var largerArtworkUrl: String? { artworkUrl?.replacingOccurrences(of: "large.jpg", with: "t500x500.jpg") }
+}
+
+public struct StreamInfo: Decodable {
+    public let httpMp3128Url: String
+    public let hlsMp3128Url: String
 }
 
 //MARK: - Test objects
