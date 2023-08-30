@@ -60,6 +60,9 @@ public class SC: ObservableObject {
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         if authTokens == nil { 
             logout()
+        } else {
+            print("✅ 💾 🔑 Loaded tokens from persistence")
+            dump(authTokens)
         }
     }
 }

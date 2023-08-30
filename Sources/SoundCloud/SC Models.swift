@@ -31,7 +31,7 @@ extension OAuthTokenResponse {
     public static let codingKey = "\(OAuthTokenResponse.self)"
 }
 
-public struct Me: Codable {
+public struct Me: Decodable {
     public let avatarUrl: String
     public let id: Int
     public let kind: String
@@ -55,6 +55,7 @@ public struct Me: Codable {
     public let online: Bool
     public let likesCount: Int
     public let playlistCount: Int
+    public let subscriptions: [Subscription]
     public let locale: String
     
     public var user: User {
@@ -78,8 +79,18 @@ public struct Me: Codable {
             commentsCount: commentsCount,
             online: online,
             likesCount: likesCount,
-            playlistCount: playlistCount
+            playlistCount: playlistCount,
+            subscriptions: subscriptions
         )
+    }
+}
+
+public struct Subscription: Decodable, Equatable {
+    public let product: Product
+    
+    public struct Product: Decodable, Equatable {
+        public let id: String
+        public let name: String
     }
 }
 
@@ -104,6 +115,13 @@ public struct User: Decodable, Equatable {
     public let online: Bool
     public let likesCount: Int
     public let playlistCount: Int
+    public let subscriptions: [Subscription]
+}
+
+public extension User {
+    var subscription: String {
+        (subscriptions.first?.product.name) ?? "Free"
+    }
 }
 
 public struct Playlist: Decodable, Identifiable, Equatable {
@@ -241,7 +259,8 @@ public let testUser = User(
     commentsCount: 0,
     online: false,
     likesCount: 0,
-    playlistCount: 0
+    playlistCount: 0,
+    subscriptions: [testFreeSubscription]
 )
 
 public let testPlaylist = Playlist(
@@ -295,6 +314,8 @@ public let testTrack = Track(
     repostsCount: 0,
     access: "playable"
 )
+
+public let testFreeSubscription = Subscription(product: Subscription.Product(id: "free", name: "Free"))
 
 /*
  API image sizes:
