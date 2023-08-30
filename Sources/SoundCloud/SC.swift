@@ -15,7 +15,6 @@ public class SC: ObservableObject {
     @Published public private(set) var isLoggedIn: Bool = true
     
     private var authPersistenceService: AuthTokenPersisting
-    private var asyncNetworkService: (URLRequest) async throws -> (Data, URLResponse)
     
     public var authTokens: OAuthTokenResponse? {
         get {
@@ -38,24 +37,21 @@ public class SC: ObservableObject {
         ["Authorization" : "Bearer " + (authTokens?.accessToken ?? "")]
     }
     
-    /// Use this initializer to optionally inject persistence and networking services to use when interacting with the SoundCloud API.
+    /// Use this initializer to optionally inject persistence  service to use when interacting with the SoundCloud API.
     ///
     /// If you need to assign the SC instance to a **SwiftUI ObservableObject** variable, you can use a closure to inject
     /// the dependencies and then return the SC instance:
     /// ```swift
     /// @StateObject var sc: SC = { () -> SC in
-    ///    let dependency = URLSession.shared.data(for:)
-    ///    return SC(asyncNetworkService: dependency)
+    ///    let dependency = KeychainService()
+    ///    return SC(authPersistenceService: dependency)
     /// }() // Don't forget to execute the closure!
     /// ```
-    ///  - Parameter asyncNetworkService: Service to use for making requests to the SoundCloud API. **Defaults to URLSession**
     ///  - Parameter authPersistenceService: Serivce to use for persisting OAuthTokens. **Defaults to Keychain**
     public init(
-        authPersistenceService: AuthTokenPersisting = KeychainService(),
-        asyncNetworkService: @escaping (URLRequest) async throws -> (Data, URLResponse) = URLSession.shared.data
+        authPersistenceService: AuthTokenPersisting = KeychainService()
     ) {
         self.authPersistenceService = authPersistenceService
-        self.asyncNetworkService = asyncNetworkService
         
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         if authTokens == nil { 
@@ -213,7 +209,7 @@ extension SC {
     }
     
     private func fetchData<T: Decodable>(from request: URLRequest) async throws -> T {
-        let (data, response) = try await asyncNetworkService(request)
+        let (data, response) = try await URLSession.shared.data(for: request)
         // TODO: Handle response
         let decodedObject = try decoder.decode(T.self, from: data)
         return decodedObject
