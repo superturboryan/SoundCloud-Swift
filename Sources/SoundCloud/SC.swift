@@ -5,11 +5,12 @@
 //  Created by Ryan Forsyth on 2023-08-10.
 //
 
+import Combine
 import Foundation
 import AuthenticationServices
 
 @MainActor
-public class SC: ObservableObject {
+public class SC: NSObject, ObservableObject {
     
     @Published public var me: Me? = nil
     @Published public private(set) var isLoggedIn: Bool = true
@@ -39,6 +40,10 @@ public class SC: ObservableObject {
         ["Authorization" : "Bearer " + (authTokens?.accessToken ?? "")]
     }
     
+    private var subscriptions = Set<AnyCancellable>()
+    
+    private var documentsUrl = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+    
     /// Use this initializer to optionally inject persistence  service to use when interacting with the SoundCloud API.
     ///
     /// If you need to assign the SC instance to a **SwiftUI ObservableObject** variable, you can use a closure to inject
@@ -54,6 +59,7 @@ public class SC: ObservableObject {
         authPersistenceService: AuthTokenPersisting = KeychainService()
     ) {
         self.authPersistenceService = authPersistenceService
+        super.init()
         
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         if authTokens == nil { 
@@ -173,8 +179,9 @@ public extension SC {
         try await get(.streamInfoForTrack(id))
     }
     
-    func downloadTrack(_ track: Track) async throws {
+    func beginDownloadingTrack(_ track: Track) async throws {
         let streamInfo = try await getStreamInfoForTrack(track.id)
+        try await beginDownloadingTrack(track, from: streamInfo.httpMp3128Url)
     }
 }
 
@@ -237,5 +244,53 @@ extension SC {
             request.allHTTPHeaderFields = authHeader
         }
         return request
+    }
+}
+
+// MARK: - Downloads
+extension SC: URLSessionTaskDelegate {
+    private func beginDownloadingTrack(_ track: Track, from url: String) async throws {
+        
+        //TODO: Check if already downloaded!
+        let path = track.localFileUrl.path
+        if FileManager.default.fileExists(atPath: path) {
+            print("😳 Track already exists at path: \(path)")
+            return
+        }
+        
+        downloadsInProgress[track] = 0
+        
+        var request = URLRequest(url: URL(string: url)!)
+        request.allHTTPHeaderFields = authHeader
+        
+        // Add track id to request to know which track is being downloaded in delegate
+        request.addValue("\(track.id)", forHTTPHeaderField: "track_id")
+        
+        let (data, _) = try await URLSession.shared.data(for: request, delegate: self)
+        // Catch error and remove download in progress?
+        
+        try data.write(to: track.localFileUrl)
+        
+        downloadsInProgress.removeValue(forKey: track)
+    }
+    
+    public func urlSession(_ session: URLSession, didCreateTask task: URLSessionTask) {
+        let trackId = (task.originalRequest?.value(forHTTPHeaderField: "track_id"))!
+        let trackBeingDownloaded = downloadsInProgress.first(where: { track, progress in
+            track.id == Int(trackId)
+        })!
+        task.progress.publisher(for: \.fractionCompleted)
+            .sink { [weak self] progress in
+                print("\n🛜 Download progress for \(trackBeingDownloaded.key.title): \(progress)")
+                self?.downloadsInProgress[trackBeingDownloaded.key] = progress
+            }
+            .store(in: &subscriptions)
+    }
+}
+
+private extension Track {
+    var localFileUrl: URL {
+        let documentsUrl = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        return documentsUrl.appendingPathComponent("\(id).mp3")
     }
 }
