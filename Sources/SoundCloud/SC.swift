@@ -173,23 +173,27 @@ public extension SC {
         try await get(.myPlaylists())
     }
     
+    func download(_ track: Track) async throws {
+        let streamInfo = try await getStreamInfoForTrack(track.id)
+        try await beginDownloadingTrack(track, from: streamInfo.httpMp3128Url)
+    }
+    
+    func removeDownload(_ trackToRemove: Track) throws {
+        let trackMp3Url = trackToRemove.localFileUrl(extensioN: "mp3") // TODO: Enum for file extensions
+        let trackJsonUrl = trackToRemove.localFileUrl(extensioN: "json")
+        try FileManager.default.removeItem(at: trackMp3Url)
+        try FileManager.default.removeItem(at: trackJsonUrl)
+        
+        downloadedTracks.removeAll(where: { $0.id == trackToRemove.id })
+    }
+    
+    // MARK: Private API Helpers
     private func getTracksForPlaylists(_ id: Int) async throws -> [Track] {
         try await get(.tracksForPlaylist(id))
     }
     
     private func getStreamInfoForTrack(_ id: Int) async throws -> StreamInfo {
         try await get(.streamInfoForTrack(id))
-    }
-    
-    func beginDownloadingTrack(_ track: Track) async throws {
-        let streamInfo = try await getStreamInfoForTrack(track.id)
-        try await beginDownloadingTrack(track, from: streamInfo.httpMp3128Url)
-    }
-    
-    func getDownloadedTracks() throws -> [Track] {
-        
-        
-        return []
     }
 }
 
@@ -331,6 +335,8 @@ extension SC: URLSessionTaskDelegate {
         
         downloadedTracks = loadedTracks
     }
+    
+    
 }
 
 private extension Track {
