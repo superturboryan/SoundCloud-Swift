@@ -16,8 +16,7 @@ public class SC: NSObject, ObservableObject {
     @Published public private(set) var isLoggedIn: Bool = true
     
     @Published public var downloadsInProgress: [Track : Double] = [:]
-    
-    @Published public var downloadedTracks: [Track] = []
+    @Published public var downloadedTracks: [Track] = [] // Tracks with streamURL set to local mp3 url
     
     private var authPersistenceService: AuthTokenPersisting
     
@@ -97,55 +96,19 @@ public extension SC {
     
     func getMyLikedTracks() async throws -> Playlist {
         let tracks = try await get(.myLikedTracks())
-        return Playlist(
+        return tracks.playlist(
             id: UserPlaylistId.likes.rawValue,
-            genre: "",
-            permalink: "",
-            permalinkUrl: "",
-            description: "",
-            uri: "",
-            tagList: "",
-            trackCount: tracks.count,
-            lastModified: "",
-            license: "",
-            user: me!.user,
-            likesCount: 0,
-            sharing: "",
-            createdAt: "",
-            tags: "",
-            kind: "",
             title: "Likes",
-            streamable: true,
-            artworkUrl: tracks.first?.artworkUrl ?? "",
-            tracksUri: "",
-            tracks: tracks
+            user: me!.user
         )
     }
     
     func getMyFollowingsRecentTracks() async throws -> Playlist {
         let tracks = try await get(.myFollowingsRecentTracks())
-        return Playlist(
+        return tracks.playlist(
             id: UserPlaylistId.myFollowingsRecentTracks.rawValue,
-            genre: "",
-            permalink: "",
-            permalinkUrl: "",
-            description: "",
-            uri: "",
-            tagList: "",
-            trackCount: tracks.count,
-            lastModified: "",
-            license: "",
-            user: me!.user,
-            likesCount: 0,
-            sharing: "",
-            createdAt: "",
-            tags: "",
-            kind: "",
             title: "Recently posted",
-            streamable: true,
-            artworkUrl: tracks.first!.artworkUrl,
-            tracksUri: "",
-            tracks: tracks
+            user: me!.user
         )
     }
     
@@ -179,8 +142,8 @@ public extension SC {
     }
     
     func removeDownload(_ trackToRemove: Track) throws {
-        let trackMp3Url = trackToRemove.localFileUrl(extensioN: "mp3") // TODO: Enum for file extensions
-        let trackJsonUrl = trackToRemove.localFileUrl(extensioN: "json")
+        let trackMp3Url = trackToRemove.localFileUrl(withExtension: "mp3") // TODO: Enum for file extensions
+        let trackJsonUrl = trackToRemove.localFileUrl(withExtension: "json")
         try FileManager.default.removeItem(at: trackMp3Url)
         try FileManager.default.removeItem(at: trackJsonUrl)
         
@@ -264,7 +227,7 @@ extension SC: URLSessionTaskDelegate {
     private func beginDownloadingTrack(_ track: Track, from url: String) async throws {
         
         //TODO: Check if already downloaded!
-        let localMp3Url = track.localFileUrl(extensioN: "mp3")
+        let localMp3Url = track.localFileUrl(withExtension: "mp3")
         if FileManager.default.fileExists(atPath: localMp3Url.path) {
             print("😳 Track already exists at path: \(localMp3Url.path)")
             return
@@ -282,7 +245,7 @@ extension SC: URLSessionTaskDelegate {
         try trackData.write(to: localMp3Url)
         
         let trackJsonData = try JSONEncoder().encode(track)
-        let localJsonUrl = track.localFileUrl(extensioN: "json")
+        let localJsonUrl = track.localFileUrl(withExtension: "json")
         try trackJsonData.write(to: localJsonUrl)
         
         downloadsInProgress.removeValue(forKey: track)
@@ -324,13 +287,13 @@ extension SC: URLSessionTaskDelegate {
             let trackJsonData = try Data(contentsOf: trackJsonURL)
             var downloadedTrack = try JSONDecoder().decode(Track.self, from: trackJsonData)
             
-            let downloadedTrackLocalMp3Url = downloadedTrack.localFileUrl(extensioN: "mp3").absoluteString
+            let downloadedTrackLocalMp3Url = downloadedTrack.localFileUrl(withExtension: "mp3").absoluteString
             downloadedTrack.streamUrl = downloadedTrackLocalMp3Url
             
             loadedTracks.append(downloadedTrack)
         }
         
-        print("\n💾 Loaded downloaded tracks: ")
+        print("\n✅💾🧡 Loaded downloaded tracks: ")
         dump(downloadedTrackIds)
         
         downloadedTracks = loadedTracks
@@ -339,8 +302,36 @@ extension SC: URLSessionTaskDelegate {
     
 }
 
+extension Array where Element == Track {
+    func playlist(id: Int, title: String, user: User) -> Playlist {
+        return Playlist(
+            id: id,
+            genre: "",
+            permalink: "",
+            permalinkUrl: "",
+            description: "",
+            uri: "",
+            tagList: "",
+            trackCount: self.count,
+            lastModified: "",
+            license: "",
+            user: user,
+            likesCount: 0,
+            sharing: "",
+            createdAt: "",
+            tags: "",
+            kind: "",
+            title: title,
+            streamable: true,
+            artworkUrl: self.first?.artworkUrl ?? "",
+            tracksUri: "",
+            tracks: self
+        )
+    }
+}
+
 private extension Track {
-    func localFileUrl(extensioN: String) -> URL {
+    func localFileUrl(withExtension extensioN: String) -> URL {
         let documentsUrl = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         return documentsUrl.appendingPathComponent("\(id).\(extensioN)")
     }
