@@ -11,6 +11,7 @@ public enum UserPlaylistId: Int {
     case likes = 0
     case myFollowingsRecentTracks = 1
     case nowPlayingQueue = 2
+    case downloads = 3
 }
 
 public struct OAuthTokenResponse: Codable {

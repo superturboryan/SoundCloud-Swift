@@ -282,6 +282,11 @@ extension SC: URLSessionTaskDelegate {
         try trackJsonData.write(to: localJsonUrl)
         
         downloadsInProgress.removeValue(forKey: track)
+        
+        var trackWithLocalMp3Url = track
+        trackWithLocalMp3Url.streamUrl = localMp3Url.absoluteString
+        
+        downloadedTracks.append(trackWithLocalMp3Url)
     }
     
     public func urlSession(_ session: URLSession, didCreateTask task: URLSessionTask) {
