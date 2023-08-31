@@ -221,7 +221,7 @@ public struct Track: Codable, Identifiable, Equatable {
     public let user: User
     public let permalinkUrl: String
     public let artworkUrl: String?
-    public let streamUrl: String?
+    public var streamUrl: String?
     public let downloadUrl: String?
     public let waveformUrl: String
     public let availableCountryCodes: String?

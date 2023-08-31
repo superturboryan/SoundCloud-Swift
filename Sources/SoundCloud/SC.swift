@@ -15,7 +15,9 @@ public class SC: NSObject, ObservableObject {
     @Published public var me: Me? = nil
     @Published public private(set) var isLoggedIn: Bool = true
     
-    @Published var downloadsInProgress: [Track : Double] = [:]
+    @Published public var downloadsInProgress: [Track : Double] = [:]
+    
+    @Published public var downloadedTracks: [Track] = []
     
     private var authPersistenceService: AuthTokenPersisting
     
@@ -42,8 +44,6 @@ public class SC: NSObject, ObservableObject {
     
     private var subscriptions = Set<AnyCancellable>()
     
-    private var documentsUrl = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-    
     /// Use this initializer to optionally inject persistence  service to use when interacting with the SoundCloud API.
     ///
     /// If you need to assign the SC instance to a **SwiftUI ObservableObject** variable, you can use a closure to inject
@@ -68,6 +68,8 @@ public class SC: NSObject, ObservableObject {
             print("✅ 💾 🔑 Loaded tokens from persistence")
             dump(authTokens)
         }
+        
+        try? loadDownloadedTracks()
     }
 }
 
@@ -183,6 +185,12 @@ public extension SC {
         let streamInfo = try await getStreamInfoForTrack(track.id)
         try await beginDownloadingTrack(track, from: streamInfo.httpMp3128Url)
     }
+    
+    func getDownloadedTracks() throws -> [Track] {
+        
+        
+        return []
+    }
 }
 
 //MARK: - Authentication
@@ -288,6 +296,35 @@ extension SC: URLSessionTaskDelegate {
                 self?.downloadsInProgress[trackBeingDownloaded] = progress
             }
             .store(in: &subscriptions)
+    }
+    
+    private func loadDownloadedTracks() throws {
+        var loadedTracks = [Track]()
+        
+        let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let downloadedTrackIds = try FileManager.default.contentsOfDirectory(atPath: documentsURL.path).filter {
+            // Remove any file not an mp3
+            $0.lowercased().contains("mp3")
+        }.map {
+            // Remove mp3 extension so only id remains
+            $0.replacingOccurrences(of: ".mp3", with: "")
+        }
+        
+        for id in downloadedTrackIds {
+            let trackJsonURL = documentsURL.appendingPathComponent("\(id).json")
+            let trackJsonData = try Data(contentsOf: trackJsonURL)
+            var downloadedTrack = try JSONDecoder().decode(Track.self, from: trackJsonData)
+            
+            let downloadedTrackLocalMp3Url = downloadedTrack.localFileUrl(extensioN: "mp3").absoluteString
+            downloadedTrack.streamUrl = downloadedTrackLocalMp3Url
+            
+            loadedTracks.append(downloadedTrack)
+        }
+        
+        print("\n💾 Loaded downloaded tracks: ")
+        dump(downloadedTrackIds)
+        
+        downloadedTracks = loadedTracks
     }
 }
 
