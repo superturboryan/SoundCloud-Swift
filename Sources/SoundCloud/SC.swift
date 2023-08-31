@@ -12,11 +12,20 @@ import AuthenticationServices
 @MainActor
 public class SC: NSObject, ObservableObject {
     
-    @Published public var me: Me? = nil
+    @Published public var me: User? = nil
     @Published public private(set) var isLoggedIn: Bool = true
     
-    @Published public var downloadsInProgress: [Track : Double] = [:]
-    @Published public var downloadedTracks: [Track] = [] // Tracks with streamURL set to local mp3 url
+    @Published public var downloadsInProgress: [Track : Progress] = [:]
+    
+    // Tracks with streamURL set to local mp3 url
+    @Published public var downloadedTracks: [Track] = [] {
+        didSet {
+            if let me {
+                downloadedTracksPlaylist = downloadedTracks.playlist(id: UserPlaylistId.downloads.rawValue, title: "Downloads", user: me)
+            }
+        }
+    }
+    @Published public var downloadedTracksPlaylist: Playlist?
     
     private var authPersistenceService: AuthTokenPersisting
     
@@ -68,7 +77,7 @@ public class SC: NSObject, ObservableObject {
             dump(authTokens)
         }
         
-        try? loadDownloadedTracks()
+//        try? loadDownloadedTracks()
     }
 }
 
@@ -92,6 +101,8 @@ public extension SC {
     
     func loadMyProfile() async throws {
         me = try await get(.me())
+        
+        try? loadDownloadedTracks() // TEMPORARY
     }
     
     func getMyLikedTracks() async throws -> Playlist {
@@ -99,7 +110,7 @@ public extension SC {
         return tracks.playlist(
             id: UserPlaylistId.likes.rawValue,
             title: "Likes",
-            user: me!.user
+            user: me!
         )
     }
     
@@ -108,7 +119,7 @@ public extension SC {
         return tracks.playlist(
             id: UserPlaylistId.myFollowingsRecentTracks.rawValue,
             title: "Recently posted",
-            user: me!.user
+            user: me!
         )
     }
     
@@ -233,7 +244,7 @@ extension SC: URLSessionTaskDelegate {
             return
         }
         
-        downloadsInProgress[track] = 0
+        downloadsInProgress[track] = Progress(totalUnitCount: 0)
         
         var request = URLRequest(url: URL(string: url)!)
         request.allHTTPHeaderFields = authHeader
@@ -261,10 +272,10 @@ extension SC: URLSessionTaskDelegate {
         let trackBeingDownloaded = downloadsInProgress.keys.first(where: {
             $0.id == Int(trackId)
         })!
-        task.progress.publisher(for: \.fractionCompleted)
+        task.publisher(for: \.progress)
             .receive(on: RunLoop.main)
             .sink { [weak self] progress in
-                print("\n⬇️🎵 Download progress for \(trackBeingDownloaded.title): \(progress)")
+                print("\n⬇️🎵 Download progress for \(trackBeingDownloaded.title): \(progress.fractionCompleted)")
                 self?.downloadsInProgress[trackBeingDownloaded] = progress
             }
             .store(in: &subscriptions)
@@ -302,7 +313,7 @@ extension SC: URLSessionTaskDelegate {
     
 }
 
-extension Array where Element == Track {
+private extension Array where Element == Track {
     func playlist(id: Int, title: String, user: User) -> Playlist {
         return Playlist(
             id: id,

@@ -32,60 +32,6 @@ extension OAuthTokenResponse {
     public static let codingKey = "\(OAuthTokenResponse.self)"
 }
 
-public struct Me: Decodable {
-    public let avatarUrl: String
-    public let id: Int
-    public let kind: String
-    public let permalinkUrl: String
-    public let uri: String
-    public let username: String
-    public let permalink: String
-    public let createdAt: String
-    public let lastModified: String
-    public let firstName: String
-    public let lastName: String
-    public let fullName: String
-    public let city: String?
-    public let country: String?
-    public let trackCount: Int
-    public let publicFavoritesCount: Int
-    public let repostsCount: Int
-    public let followersCount: Int
-    public let followingsCount: Int
-    public let commentsCount: Int
-    public let online: Bool
-    public let likesCount: Int
-    public let playlistCount: Int
-    public let subscriptions: [Subscription]
-    public let locale: String
-    
-    public var user: User {
-        User(
-            avatarUrl: avatarUrl,
-            id: id,
-            permalinkUrl: permalink,
-            uri: uri,
-            username: username,
-            createdAt: createdAt,
-            firstName: firstName,
-            lastName: lastName,
-            fullName: fullName,
-            city: city,
-            country: country,
-            description: "",
-            trackCount: trackCount,
-            repostsCount: repostsCount,
-            followersCount: followersCount,
-            followingsCount: followingsCount,
-            commentsCount: commentsCount,
-            online: online,
-            likesCount: likesCount,
-            playlistCount: playlistCount,
-            subscriptions: subscriptions
-        )
-    }
-}
-
 public struct Subscription: Codable, Equatable {
     public let product: Product
     
@@ -243,6 +189,11 @@ extension Track: Hashable {
 extension Track {
     public var durationInSeconds: Int { duration / 1000 }
     public var largerArtworkUrl: String? { artworkUrl?.replacingOccurrences(of: "large.jpg", with: "t500x500.jpg") }
+    public var fileSizeInMb: Double {
+        let fileSizeInKb = durationInSeconds * 16 // Based on 128 bitrate
+        return Double(fileSizeInKb) / Double(1024)
+    }
+    public var isDownloaded: Bool { streamUrl?.contains("file") ?? false }
 }
 
 public struct StreamInfo: Decodable {
@@ -294,38 +245,40 @@ public let testPlaylist = Playlist(
     kind: "",
     title: "RIZ LA TEEF on Rinse FM",
     streamable: true,
-    artworkUrl: testTrack.artworkUrl,
+    artworkUrl: testTrack().artworkUrl,
     tracksUri: "https://api.soundcloud.com/playlists/1587600994/tracks",
-    tracks: Array(repeating: testTrack, count: 10)
+    tracks: Array(repeating: testTrack(), count: 10)
 )
 
-public let testTrack = Track(
-    id: 1586682955,
-    createdAt: "2023/08/08 08:24:13 +0000",
-    duration: 3678067,
-    commentCount: 0,
-    sharing: "public",
-    tagList: "FrazerRay RinseFM Breakbeat Garage Bass",
-    streamable: true,
-    genre: "",
-    title: "Frazer Ray - 07 August 2023",
-    description: "",
-    license: "",
-    uri: "https://api.soundcloud.com/tracks/1586682955",
-    user: testUser,
-    permalinkUrl: "",
-    artworkUrl: "https://i1.sndcdn.com/artworks-5Ahdjl0532u9N1a2-zoAq3w-large.jpg",
-    streamUrl: "https://api.soundcloud.com/tracks/1586682955/stream",
-    downloadUrl: "",
-    waveformUrl: "https://wave.sndcdn.com/ycxIIzLADTvQ_m.png",
-    availableCountryCodes: "",
-    userFavorite: false,
-    userPlaybackCount: 0,
-    playbackCount: 0,
-    favoritingsCount: 0,
-    repostsCount: 0,
-    access: "playable"
-)
+public func testTrack() -> Track {
+    Track(
+        id: Int.random(in: 0..<1000),
+        createdAt: "2023/08/08 08:24:13 +0000",
+        duration: 3678067,
+        commentCount: 0,
+        sharing: "public",
+        tagList: "FrazerRay RinseFM Breakbeat Garage Bass",
+        streamable: true,
+        genre: "",
+        title: "Frazer Ray - 07 August 2023",
+        description: "",
+        license: "",
+        uri: "https://api.soundcloud.com/tracks/1586682955",
+        user: testUser,
+        permalinkUrl: "",
+        artworkUrl: "https://i1.sndcdn.com/artworks-5Ahdjl0532u9N1a2-zoAq3w-large.jpg",
+        streamUrl: "https://api.soundcloud.com/tracks/1586682955/stream",
+        downloadUrl: "",
+        waveformUrl: "https://wave.sndcdn.com/ycxIIzLADTvQ_m.png",
+        availableCountryCodes: "",
+        userFavorite: false,
+        userPlaybackCount: 0,
+        playbackCount: 0,
+        favoritingsCount: 0,
+        repostsCount: 0,
+        access: "playable"
+    )
+}
 
 public let testFreeSubscription = Subscription(product: Subscription.Product(id: "free", name: "Free"))
 

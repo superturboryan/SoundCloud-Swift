@@ -44,8 +44,8 @@ extension SC {
             Request<OAuthTokenResponse>(api: .refreshAccessToken(refreshToken))
         }
         
-        static func me() -> Request<Me> {
-            Request<Me>(api: .me)
+        static func me() -> Request<User> {
+            Request<User>(api: .me)
         }
         
         static func myLikedTracks() -> Request<[Track]> {
