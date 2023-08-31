@@ -252,9 +252,9 @@ extension SC: URLSessionTaskDelegate {
     private func beginDownloadingTrack(_ track: Track, from url: String) async throws {
         
         //TODO: Check if already downloaded!
-        let path = track.localFileUrl.path
-        if FileManager.default.fileExists(atPath: path) {
-            print("😳 Track already exists at path: \(path)")
+        let localMp3Url = track.localFileUrl(extensioN: "mp3")
+        if FileManager.default.fileExists(atPath: localMp3Url.path) {
+            print("😳 Track already exists at path: \(localMp3Url.path)")
             return
         }
         
@@ -262,35 +262,38 @@ extension SC: URLSessionTaskDelegate {
         
         var request = URLRequest(url: URL(string: url)!)
         request.allHTTPHeaderFields = authHeader
-        
         // Add track id to request to know which track is being downloaded in delegate
         request.addValue("\(track.id)", forHTTPHeaderField: "track_id")
         
-        let (data, _) = try await URLSession.shared.data(for: request, delegate: self)
         // Catch error and remove download in progress?
+        let (trackData, _) = try await URLSession.shared.data(for: request, delegate: self)
+        try trackData.write(to: localMp3Url)
         
-        try data.write(to: track.localFileUrl)
+        let trackJsonData = try JSONEncoder().encode(track)
+        let localJsonUrl = track.localFileUrl(extensioN: "json")
+        try trackJsonData.write(to: localJsonUrl)
         
         downloadsInProgress.removeValue(forKey: track)
     }
     
     public func urlSession(_ session: URLSession, didCreateTask task: URLSessionTask) {
         let trackId = (task.originalRequest?.value(forHTTPHeaderField: "track_id"))!
-        let trackBeingDownloaded = downloadsInProgress.first(where: { track, progress in
-            track.id == Int(trackId)
+        let trackBeingDownloaded = downloadsInProgress.keys.first(where: {
+            $0.id == Int(trackId)
         })!
         task.progress.publisher(for: \.fractionCompleted)
+            .receive(on: RunLoop.main)
             .sink { [weak self] progress in
-                print("\n🛜 Download progress for \(trackBeingDownloaded.key.title): \(progress)")
-                self?.downloadsInProgress[trackBeingDownloaded.key] = progress
+                print("\n⬇️🎵 Download progress for \(trackBeingDownloaded.title): \(progress)")
+                self?.downloadsInProgress[trackBeingDownloaded] = progress
             }
             .store(in: &subscriptions)
     }
 }
 
 private extension Track {
-    var localFileUrl: URL {
+    func localFileUrl(extensioN: String) -> URL {
         let documentsUrl = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        return documentsUrl.appendingPathComponent("\(id).mp3")
+        return documentsUrl.appendingPathComponent("\(id).\(extensioN)")
     }
 }

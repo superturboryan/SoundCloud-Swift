@@ -85,16 +85,16 @@ public struct Me: Decodable {
     }
 }
 
-public struct Subscription: Decodable, Equatable {
+public struct Subscription: Codable, Equatable {
     public let product: Product
     
-    public struct Product: Decodable, Equatable {
+    public struct Product: Codable, Equatable {
         public let id: String
         public let name: String
     }
 }
 
-public struct User: Decodable, Equatable {
+public struct User: Codable, Equatable {
     public let avatarUrl: String
     public let id: Int
     public let permalinkUrl: String
@@ -205,7 +205,7 @@ extension Playlist {
     }
 }
 
-public struct Track: Decodable, Identifiable, Equatable {
+public struct Track: Codable, Identifiable, Equatable {
     public let id: Int
     public let createdAt: String
     public let duration: Int
