@@ -10,7 +10,7 @@ import Foundation
 public enum UserPlaylistId: Int {
     case likes = 0
     case myFollowingsRecentTracks = 1
-    case nowPlayingQueue = 2
+    case nowPlaying = 2
     case downloads = 3
 }
 
@@ -190,7 +190,7 @@ extension Track {
         let fileSizeInKb = durationInSeconds * 16 // Based on 128 bitrate
         return Double(fileSizeInKb) / Double(1024)
     }
-    public var isDownloaded: Bool { streamUrl?.contains("file") ?? false }
+    public var isDownloaded: Bool { localFileUrl != nil }
 }
 
 extension Track: Hashable {
@@ -233,7 +233,7 @@ public let testPlaylist = Playlist(
     id: 1587600994,
     genre: "",
     permalink: "",
-    permalinkUrl: "",
+    permalinkUrl: "https://google.com",
     description: nil,
     uri: "",
     tagList: "",
@@ -250,7 +250,7 @@ public let testPlaylist = Playlist(
     streamable: true,
     artworkUrl: testTrack().artworkUrl,
     tracksUri: "https://api.soundcloud.com/playlists/1587600994/tracks",
-    tracks: Array(repeating: testTrack(), count: 10)
+    tracks: [testTrack(), testTrack(), testTrack(), testTrack(), testTrack()]
 )
 
 public func testTrack() -> Track {
@@ -268,7 +268,7 @@ public func testTrack() -> Track {
         license: "",
         uri: "https://api.soundcloud.com/tracks/1586682955",
         user: testUser,
-        permalinkUrl: "",
+        permalinkUrl: "https://soundcloud.com",
         artworkUrl: "https://i1.sndcdn.com/artworks-5Ahdjl0532u9N1a2-zoAq3w-large.jpg",
         streamUrl: "https://api.soundcloud.com/tracks/1586682955/stream",
         downloadUrl: "",

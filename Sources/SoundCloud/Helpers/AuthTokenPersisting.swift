@@ -7,7 +7,7 @@
 
 
 public protocol AuthTokenPersisting {
-    func loadAuthTokens() -> OAuthTokenResponse?
-    func saveAuthTokens(_ tokens: OAuthTokenResponse) -> Void
-    func deleteAuthTokens()
+    var authTokens: OAuthTokenResponse? { get }
+    func save(_ tokens: OAuthTokenResponse) -> Void
+    func delete()
 }

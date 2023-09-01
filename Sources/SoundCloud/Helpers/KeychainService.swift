@@ -13,7 +13,7 @@ public struct KeychainService: AuthTokenPersisting {
     
     public init() {}
     
-    public func loadAuthTokens() -> OAuthTokenResponse? {
+    public var authTokens: OAuthTokenResponse? {
         guard
             let tokenData = kc.getData(OAuthTokenResponse.codingKey),
             let tokens = try? JSONDecoder().decode(OAuthTokenResponse.self, from: tokenData)
@@ -23,14 +23,14 @@ public struct KeychainService: AuthTokenPersisting {
         return tokens
     }
     
-    public func saveAuthTokens(_ tokens: OAuthTokenResponse) {
+    public func save(_ tokens: OAuthTokenResponse) {
         var tokensWithDateSet = tokens
         tokensWithDateSet.expiryDate = tokens.expiresIn.dateWithSecondsAdded(to: Date())
         let authTokensData = try! JSONEncoder().encode(tokensWithDateSet)
         kc.set(authTokensData, forKey: OAuthTokenResponse.codingKey)
     }
     
-    public func deleteAuthTokens() {
+    public func delete() {
         kc.delete(OAuthTokenResponse.codingKey)
     }
 }

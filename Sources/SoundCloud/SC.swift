@@ -17,21 +17,29 @@ public class SC: NSObject, ObservableObject {
     
     @Published public var downloadsInProgress: [Track : Progress] = [:]
     
-    @Published public var downloadedTracks: [Track] = []
+    // Tracks with streamURL set to local mp3 url
+    @Published public var downloadedTracks: [Track] = [] {
+        didSet {
+            if let me {
+                downloadedTracksPlaylist = downloadedTracks.makePlaylist(id: UserPlaylistId.downloads.rawValue, title: "Downloads", user: me)
+            }
+        }
+    }
+    @Published public var downloadedTracksPlaylist: Playlist?
     
-    private var authPersistenceService: AuthTokenPersisting
+    private var tokenService: AuthTokenPersisting
     
     public var authTokens: OAuthTokenResponse? {
         get {
-            authPersistenceService.loadAuthTokens()
+            tokenService.authTokens
         }
         set {
             isLoggedIn = newValue != nil
             if let newValue {
-                authPersistenceService.saveAuthTokens(newValue)
+                tokenService.save(newValue)
                 print("✅ 💾 🔑 Tokens saved to persistence")
             } else {
-                authPersistenceService.deleteAuthTokens()
+                tokenService.delete()
             }
         }
     }
@@ -51,14 +59,14 @@ public class SC: NSObject, ObservableObject {
     /// ```swift
     /// @StateObject var sc: SC = { () -> SC in
     ///    let dependency = KeychainService()
-    ///    return SC(authPersistenceService: dependency)
-    /// }() // Don't forget to execute the closure!
+    ///    return SC(tokenService: dependency)
+    /// }() // 👀 Don't forget to execute the closure!
     /// ```
-    ///  - Parameter authPersistenceService: Serivce to use for persisting OAuthTokens. **Defaults to Keychain**
+    ///  - Parameter tokenService: Serivce to use for persisting OAuthTokens. **Defaults to Keychain**
     public init(
-        authPersistenceService: AuthTokenPersisting = KeychainService()
+        tokenService: AuthTokenPersisting = KeychainService()
     ) {
-        self.authPersistenceService = authPersistenceService
+        self.tokenService = tokenService
         super.init()
         
         decoder.keyDecodingStrategy = .convertFromSnakeCase
@@ -94,7 +102,7 @@ public extension SC {
     func loadMyProfile() async throws {
         me = try await get(.me())
         
-        try? loadDownloadedTracks() // TEMPORARY
+        try? loadDownloadedTracks() // TEMPORARY until user is saved locally
     }
     
     func getMyLikedTracks() async throws -> Playlist {

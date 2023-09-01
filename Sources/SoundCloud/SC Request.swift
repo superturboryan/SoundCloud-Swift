@@ -8,6 +8,8 @@
 import Foundation
 
 var apiURL = "https://api.soundcloud.com/"
+
+// TODO: 🫨 Inject these in init instead of reading from info.plist here in module!
 var clientId: String { Bundle.main.object(forInfoDictionaryKey: "SC_CLIENT_ID") as! String }
 var clientSecret: String { Bundle.main.object(forInfoDictionaryKey: "SC_CLIENT_SECRET") as! String }
 var redirectURI: String { Bundle.main.object(forInfoDictionaryKey: "SC_REDIRECT_URI") as! String }
