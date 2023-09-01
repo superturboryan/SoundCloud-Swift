@@ -152,7 +152,7 @@ extension Playlist {
     }
 }
 
-public struct Track: Codable, Identifiable, Equatable {
+public struct Track: Codable, Identifiable {
     public let id: Int
     public let createdAt: String
     public let duration: Int
@@ -178,15 +178,12 @@ public struct Track: Codable, Identifiable, Equatable {
     public let favoritingsCount: Int?
     public let repostsCount: Int?
     public let access: String // playable / preview / blocked
-}
-
-extension Track: Hashable {
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-    }
+    
+    public var localFileUrl: String? = nil // For downloaded tracks
 }
 
 extension Track {
+    public var playbackUrl: String? { localFileUrl ?? streamUrl }
     public var durationInSeconds: Int { duration / 1000 }
     public var largerArtworkUrl: String? { artworkUrl?.replacingOccurrences(of: "large.jpg", with: "t500x500.jpg") }
     public var fileSizeInMb: Double {
@@ -194,6 +191,12 @@ extension Track {
         return Double(fileSizeInKb) / Double(1024)
     }
     public var isDownloaded: Bool { streamUrl?.contains("file") ?? false }
+}
+
+extension Track: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
 }
 
 public struct StreamInfo: Decodable {
