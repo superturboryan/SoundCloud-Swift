@@ -15,13 +15,17 @@ public class SC: NSObject, ObservableObject {
     @Published public var me: User? = nil
     @Published public private(set) var isLoggedIn: Bool = true
     
-    @Published public private(set) var loadedPlaylists: [PlaylistType : [Playlist]] = [:]
     @Published public var downloadsInProgress: [Track : Progress] = [:]
-    
     // Tracks with streamURL set to local mp3 url
     @Published public var downloadedTracks: [Track] = [] {
-        didSet { loadedPlaylists[.downloads]![0].tracks = downloadedTracks }
+        didSet { loadedPlaylists[PlaylistType.downloads.rawValue]!.tracks = downloadedTracks }
     }
+    
+    @Published public private(set) var loadedPlaylists: [Int : Playlist] = [:]
+    
+    // Use id to filter loadPlaylists dictionary
+    public var myPlaylistIds: [Int] = []
+    public var myLikedPlaylistIds: [Int] = []
     
     private var tokenService: AuthTokenPersisting
     
@@ -82,9 +86,9 @@ public class SC: NSObject, ObservableObject {
     }
     
     private func loadDefaultPlaylists() {
-        loadedPlaylists[.downloads] = [ Playlist(id: PlaylistType.downloads.rawValue, user: me!, title: PlaylistType.downloads.title, tracks: []) ]
-        loadedPlaylists[.likes] = [ Playlist(id: PlaylistType.likes.rawValue, permalinkUrl: me!.permalinkUrl + "/likes", user: me!, title: PlaylistType.likes.title, tracks: []) ]
-        loadedPlaylists[.recentlyPosted] = [ Playlist(id: PlaylistType.recentlyPosted.rawValue, permalinkUrl: me!.permalinkUrl + "/following", user: me!, title: PlaylistType.recentlyPosted.title, tracks: []) ]
+        loadedPlaylists[PlaylistType.downloads.rawValue] = Playlist(id: PlaylistType.downloads.rawValue, user: me!, title: PlaylistType.downloads.title, tracks: [])
+        loadedPlaylists[PlaylistType.likes.rawValue] = Playlist(id: PlaylistType.likes.rawValue, permalinkUrl: me!.permalinkUrl + "/likes", user: me!, title: PlaylistType.likes.title, tracks: [])
+        loadedPlaylists[PlaylistType.recentlyPosted.rawValue] = Playlist(id: PlaylistType.recentlyPosted.rawValue, permalinkUrl: me!.permalinkUrl + "/following", user: me!, title: PlaylistType.recentlyPosted.title, tracks: [])
     }
 }
 
@@ -111,24 +115,48 @@ public extension SC {
     }
     
     func reloadMyLikedTracks() async throws {
-        loadedPlaylists[.likes]![0].tracks = try await get(.myLikedTracks())
+        loadedPlaylists[PlaylistType.likes.rawValue]!.tracks = try await get(.myLikedTracks())
     }
     
     func reloadMyFollowingsRecentlyPostedTracks() async throws {
-        loadedPlaylists[.recentlyPosted]![0].tracks = try await get(.myFollowingsRecentlyPosted())
+        loadedPlaylists[PlaylistType.recentlyPosted.rawValue]!.tracks = try await get(.myFollowingsRecentlyPosted())
     }
     
     func reloadMyLikedPlaylists() async throws {
-        loadedPlaylists[.myLikedPlaylists] = try await get(.myLikedPlaylists())
+        let myLikedPlaylists = try await get(.myLikedPlaylists())
+        myLikedPlaylistIds = myLikedPlaylists.map(\.id)
+        for playlist in myLikedPlaylists {
+            loadedPlaylists[playlist.id] = playlist
+        }
     }
     
     func reloadMyPlaylists() async throws {
-        loadedPlaylists[.myPlaylists] = try await get(.myPlaylists())
+        let myPlaylists = try await get(.myPlaylists())
+        myPlaylistIds = myPlaylists.map(\.id)
+        for playlist in myPlaylists {
+            loadedPlaylists[playlist.id] = playlist
+        }
     }
     
     func download(_ track: Track) async throws {
         let streamInfo = try await getStreamInfoForTrack(track.id)
         try await beginDownloadingTrack(track, from: streamInfo.httpMp3128Url)
+    }
+     
+    func reloadTracksForPlaylist(_ id: Int) async throws {
+        // User playlist types
+        switch id {
+        case PlaylistType.likes.rawValue:
+            try await reloadMyLikedTracks()
+            return
+        case PlaylistType.recentlyPosted.rawValue:
+            try await reloadMyFollowingsRecentlyPostedTracks()
+            return
+        
+        default: break
+        }
+        
+        loadedPlaylists[id]?.tracks = try await getTracksForPlaylists(id)
     }
     
     func removeDownload(_ trackToRemove: Track) throws {
