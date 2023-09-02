@@ -23,7 +23,7 @@ public class SC: NSObject, ObservableObject {
     
     @Published public private(set) var loadedPlaylists: [Int : Playlist] = [:]
     
-    // Use id to filter loadPlaylists dictionary
+    // Use id to filter loadedPlaylists dictionary
     public var myPlaylistIds: [Int] = []
     public var myLikedPlaylistIds: [Int] = []
     
@@ -114,15 +114,15 @@ public extension SC {
         me = try await get(.me())
     }
     
-    func reloadMyLikedTracks() async throws {
+    func loadMyLikedTracksPlaylistWithTracks() async throws {
         loadedPlaylists[PlaylistType.likes.rawValue]!.tracks = try await get(.myLikedTracks())
     }
     
-    func reloadMyFollowingsRecentlyPostedTracks() async throws {
+    func loadRecentlyPostedPlaylistWithTracks() async throws {
         loadedPlaylists[PlaylistType.recentlyPosted.rawValue]!.tracks = try await get(.myFollowingsRecentlyPosted())
     }
     
-    func reloadMyLikedPlaylists() async throws {
+    func loadMyLikedPlaylistsWithoutTracks() async throws {
         let myLikedPlaylists = try await get(.myLikedPlaylists())
         myLikedPlaylistIds = myLikedPlaylists.map(\.id)
         for playlist in myLikedPlaylists {
@@ -130,7 +130,7 @@ public extension SC {
         }
     }
     
-    func reloadMyPlaylists() async throws {
+    func loadMyPlaylistsWithoutTracks() async throws {
         let myPlaylists = try await get(.myPlaylists())
         myPlaylistIds = myPlaylists.map(\.id)
         for playlist in myPlaylists {
@@ -143,20 +143,17 @@ public extension SC {
         try await beginDownloadingTrack(track, from: streamInfo.httpMp3128Url)
     }
      
-    func reloadTracksForPlaylist(_ id: Int) async throws {
-        // User playlist types
-        switch id {
-        case PlaylistType.likes.rawValue:
-            try await reloadMyLikedTracks()
-            return
-        case PlaylistType.recentlyPosted.rawValue:
-            try await reloadMyFollowingsRecentlyPostedTracks()
-            return
-        
-        default: break
+    func loadTracksForPlaylist(_ id: Int) async throws {
+        if let userPlaylistType = PlaylistType(rawValue: id) {
+            switch userPlaylistType {
+            case .likes: try await loadMyLikedTracksPlaylistWithTracks()
+            case .recentlyPosted: try await loadRecentlyPostedPlaylistWithTracks()
+            // These playlists are not reloaded here
+            case .nowPlaying, .downloads: break
+            }
+        } else {
+            loadedPlaylists[id]?.tracks = try await getTracksForPlaylist(id)
         }
-        
-        loadedPlaylists[id]?.tracks = try await getTracksForPlaylists(id)
     }
     
     func removeDownload(_ trackToRemove: Track) throws {
@@ -169,7 +166,7 @@ public extension SC {
     }
     
     // MARK: Private API Helpers
-    private func getTracksForPlaylists(_ id: Int) async throws -> [Track] {
+    private func getTracksForPlaylist(_ id: Int) async throws -> [Track] {
         try await get(.tracksForPlaylist(id))
     }
     
