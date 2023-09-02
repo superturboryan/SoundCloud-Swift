@@ -15,12 +15,12 @@ public class SC: NSObject, ObservableObject {
     @Published public var me: User? = nil
     @Published public private(set) var isLoggedIn: Bool = true
     
-    @Published public private(set) var loadedPlaylists: [UserPlaylist : [Playlist]] = [:]
+    @Published public private(set) var loadedPlaylists: [PlaylistType : [Playlist]] = [:]
     @Published public var downloadsInProgress: [Track : Progress] = [:]
     
     // Tracks with streamURL set to local mp3 url
     @Published public var downloadedTracks: [Track] = [] {
-        didSet { loadedPlaylists[UserPlaylist.downloads]![0].tracks = downloadedTracks }
+        didSet { loadedPlaylists[.downloads]![0].tracks = downloadedTracks }
     }
     
     private var tokenService: AuthTokenPersisting
@@ -81,9 +81,9 @@ public class SC: NSObject, ObservableObject {
     }
     
     private func loadDefaultPlaylists() {
-        loadedPlaylists[UserPlaylist.downloads] = [ Playlist(id: UserPlaylist.downloads.rawValue, user: me!, title: UserPlaylist.downloads.title, tracks: []) ]
-        loadedPlaylists[UserPlaylist.likes] = [ Playlist(id: UserPlaylist.likes.rawValue, permalinkUrl: me!.permalinkUrl + "/likes", user: me!, title: UserPlaylist.likes.title, tracks: []) ]
-        loadedPlaylists[UserPlaylist.recentlyPosted] = [ Playlist(id: UserPlaylist.recentlyPosted.rawValue, permalinkUrl: me!.permalinkUrl + "/following", user: me!, title: UserPlaylist.recentlyPosted.title, tracks: []) ]
+        loadedPlaylists[.downloads] = [ Playlist(id: PlaylistType.downloads.rawValue, user: me!, title: PlaylistType.downloads.title, tracks: []) ]
+        loadedPlaylists[.likes] = [ Playlist(id: PlaylistType.likes.rawValue, permalinkUrl: me!.permalinkUrl + "/likes", user: me!, title: PlaylistType.likes.title, tracks: []) ]
+        loadedPlaylists[.recentlyPosted] = [ Playlist(id: PlaylistType.recentlyPosted.rawValue, permalinkUrl: me!.permalinkUrl + "/following", user: me!, title: PlaylistType.recentlyPosted.title, tracks: []) ]
     }
 }
 
@@ -110,23 +110,19 @@ public extension SC {
     }
     
     func reloadMyLikedTracks() async throws {
-        let tracks = try await get(.myLikedTracks())
-        loadedPlaylists[UserPlaylist.likes]![0].tracks = tracks
+        loadedPlaylists[.likes]![0].tracks = try await get(.myLikedTracks())
     }
     
     func reloadMyFollowingsRecentlyPostedTracks() async throws {
-        let tracks = try await get(.myFollowingsRecentlyPosted())
-        loadedPlaylists[UserPlaylist.recentlyPosted]![0].tracks = tracks
+        loadedPlaylists[.recentlyPosted]![0].tracks = try await get(.myFollowingsRecentlyPosted())
     }
     
     func reloadMyLikedPlaylists() async throws {
-        let playlists = try await get(.myLikedPlaylists())
-        loadedPlaylists[UserPlaylist.myLikedPlaylists] = playlists
+        loadedPlaylists[.myLikedPlaylists] = try await get(.myLikedPlaylists())
     }
     
     func reloadMyPlaylists() async throws {
-        let playlists = try await get(.myPlaylists())
-        loadedPlaylists[UserPlaylist.myPlaylists] = playlists
+        loadedPlaylists[.myPlaylists] = try await get(.myPlaylists())
     }
     
     func download(_ track: Track) async throws {

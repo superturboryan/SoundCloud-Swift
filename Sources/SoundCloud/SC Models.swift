@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum UserPlaylist: Int, CaseIterable {
+public enum PlaylistType: Int, CaseIterable {
     case nowPlaying = 1
     case downloads
     case likes
