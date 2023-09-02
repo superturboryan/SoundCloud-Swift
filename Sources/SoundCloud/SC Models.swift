@@ -7,11 +7,20 @@
 
 import Foundation
 
-public enum UserPlaylistId: Int {
-    case likes = 0
-    case myFollowingsRecentTracks = 1
-    case nowPlaying = 2
-    case downloads = 3
+public enum UserPlaylist: Int, CaseIterable {
+    case nowPlaying = 1
+    case downloads
+    case likes
+    case recentlyPosted
+    
+    var title: String {
+        switch self {
+        case .nowPlaying: return "Now playing"
+        case .downloads: return "Downlaods"
+        case .likes:  return "Likes"
+        case .recentlyPosted: return "Recently posted"
+        }
+    }
 }
 
 public struct OAuthTokenResponse: Codable {
@@ -79,7 +88,7 @@ public struct Playlist: Decodable, Identifiable, Equatable {
     public let description: String?
     public let uri: String
     public let tagList: String
-    public let trackCount: Int
+    public var trackCount: Int
     public let lastModified: String
     public let license: String
     public let user: User
@@ -92,7 +101,7 @@ public struct Playlist: Decodable, Identifiable, Equatable {
     public let streamable: Bool?
     public let artworkUrl: String?
     public let tracksUri: String
-    public var tracks: [Track]?
+    public var tracks: [Track]? { didSet { trackCount = tracks?.count ?? 0 } }
     
     public init(
         id: Int,
@@ -102,7 +111,7 @@ public struct Playlist: Decodable, Identifiable, Equatable {
         description: String? = nil,
         uri: String = "",
         tagList: String = "",
-        trackCount: Int,
+        trackCount: Int = 0,
         lastModified: String = "",
         license: String = "",
         user: User,

@@ -19,13 +19,10 @@ public class SC: NSObject, ObservableObject {
     
     // Tracks with streamURL set to local mp3 url
     @Published public var downloadedTracks: [Track] = [] {
-        didSet {
-            if let me {
-                downloadedTracksPlaylist = downloadedTracks.makePlaylist(id: UserPlaylistId.downloads.rawValue, title: "Downloads", user: me)
-            }
-        }
+        didSet { playlists[UserPlaylist.downloads.rawValue]!.tracks = downloadedTracks }
     }
-    @Published public var downloadedTracksPlaylist: Playlist?
+    
+    @Published public var playlists: [Int : Playlist] = [:]
     
     private var tokenService: AuthTokenPersisting
     
@@ -52,6 +49,8 @@ public class SC: NSObject, ObservableObject {
     
     private var subscriptions = Set<AnyCancellable>()
     
+// MARK: - Setup
+    
     /// Use this initializer to optionally inject persistence  service to use when interacting with the SoundCloud API.
     ///
     /// If you need to assign the SC instance to a **SwiftUI ObservableObject** variable, you can use a closure to inject
@@ -73,11 +72,20 @@ public class SC: NSObject, ObservableObject {
         if authTokens == nil { 
             logout()
         } else {
-            print("✅ 💾 🔑 Loaded tokens from persistence")
-            dump(authTokens)
+            print("✅🔐 Loading tokens from persistence")
+            Task {
+                try await loadMyProfile()
+                loadDefaultPlaylists()
+                try? loadDownloadedTracks()
+            }
         }
-        
-//        try? loadDownloadedTracks()
+    }
+    
+    private func loadDefaultPlaylists() {
+        playlists[UserPlaylist.nowPlaying.rawValue] = Playlist(id: UserPlaylist.nowPlaying.rawValue, user: me!, title: UserPlaylist.nowPlaying.title, tracks: [])
+        playlists[UserPlaylist.downloads.rawValue] = Playlist(id: UserPlaylist.downloads.rawValue, user: me!, title: UserPlaylist.downloads.title, tracks: [])
+        playlists[UserPlaylist.likes.rawValue] = Playlist(id: UserPlaylist.likes.rawValue, user: me!, title: UserPlaylist.likes.title, tracks: [])
+        playlists[UserPlaylist.recentlyPosted.rawValue] = Playlist(id: UserPlaylist.recentlyPosted.rawValue, user: me!, title: UserPlaylist.recentlyPosted.title, tracks: [])
     }
 }
 
@@ -101,14 +109,12 @@ public extension SC {
     
     func loadMyProfile() async throws {
         me = try await get(.me())
-        
-        try? loadDownloadedTracks() // TEMPORARY until user is saved locally
     }
     
     func getMyLikedTracks() async throws -> Playlist {
         let tracks = try await get(.myLikedTracks())
         return tracks.makePlaylist(
-            id: UserPlaylistId.likes.rawValue,
+            id: UserPlaylist.likes.rawValue,
             title: "Likes",
             url: me!.permalinkUrl + "/likes",
             user: me!
@@ -118,7 +124,7 @@ public extension SC {
     func getMyFollowingsRecentTracks() async throws -> Playlist {
         let tracks = try await get(.myFollowingsRecentTracks())
         return tracks.makePlaylist(
-            id: UserPlaylistId.myFollowingsRecentTracks.rawValue,
+            id: UserPlaylist.recentlyPosted.rawValue,
             title: "Recently posted",
             url: me!.permalinkUrl + "/following",
             user: me!
