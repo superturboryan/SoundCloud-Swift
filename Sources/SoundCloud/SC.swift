@@ -290,34 +290,6 @@ extension SC: URLSessionTaskDelegate {
     
 }
 
-private extension Array where Element == Track {
-    func makePlaylist(id: Int, title: String, url: String = "https://soundcloud.com", user: User) -> Playlist {
-        return Playlist(
-            id: id,
-            genre: "",
-            permalink: "",
-            permalinkUrl: url,
-            description: "",
-            uri: "",
-            tagList: "",
-            trackCount: self.count,
-            lastModified: "",
-            license: "",
-            user: user,
-            likesCount: 0,
-            sharing: "",
-            createdAt: "",
-            tags: "",
-            kind: "",
-            title: title,
-            streamable: true,
-            artworkUrl: self.first?.artworkUrl ?? "",
-            tracksUri: "",
-            tracks: self
-        )
-    }
-}
-
 private extension Track {
     func localFileUrl(withExtension extensioN: String) -> URL {
         let documentsUrl = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
