@@ -15,14 +15,13 @@ public class SC: NSObject, ObservableObject {
     @Published public var me: User? = nil
     @Published public private(set) var isLoggedIn: Bool = true
     
+    @Published public private(set) var loadedPlaylists: [UserPlaylist : [Playlist]] = [:]
     @Published public var downloadsInProgress: [Track : Progress] = [:]
     
     // Tracks with streamURL set to local mp3 url
     @Published public var downloadedTracks: [Track] = [] {
-        didSet { playlists[UserPlaylist.downloads.rawValue]!.tracks = downloadedTracks }
+        didSet { loadedPlaylists[UserPlaylist.downloads]![0].tracks = downloadedTracks }
     }
-    
-    @Published public var playlists: [Int : Playlist] = [:]
     
     private var tokenService: AuthTokenPersisting
     
@@ -82,10 +81,9 @@ public class SC: NSObject, ObservableObject {
     }
     
     private func loadDefaultPlaylists() {
-        playlists[UserPlaylist.nowPlaying.rawValue] = Playlist(id: UserPlaylist.nowPlaying.rawValue, user: me!, title: UserPlaylist.nowPlaying.title, tracks: [])
-        playlists[UserPlaylist.downloads.rawValue] = Playlist(id: UserPlaylist.downloads.rawValue, user: me!, title: UserPlaylist.downloads.title, tracks: [])
-        playlists[UserPlaylist.likes.rawValue] = Playlist(id: UserPlaylist.likes.rawValue, user: me!, title: UserPlaylist.likes.title, tracks: [])
-        playlists[UserPlaylist.recentlyPosted.rawValue] = Playlist(id: UserPlaylist.recentlyPosted.rawValue, user: me!, title: UserPlaylist.recentlyPosted.title, tracks: [])
+        loadedPlaylists[UserPlaylist.downloads] = [ Playlist(id: UserPlaylist.downloads.rawValue, user: me!, title: UserPlaylist.downloads.title, tracks: []) ]
+        loadedPlaylists[UserPlaylist.likes] = [ Playlist(id: UserPlaylist.likes.rawValue, permalinkUrl: me!.permalinkUrl + "/likes", user: me!, title: UserPlaylist.likes.title, tracks: []) ]
+        loadedPlaylists[UserPlaylist.recentlyPosted] = [ Playlist(id: UserPlaylist.recentlyPosted.rawValue, permalinkUrl: me!.permalinkUrl + "/following", user: me!, title: UserPlaylist.recentlyPosted.title, tracks: []) ]
     }
 }
 
@@ -111,48 +109,24 @@ public extension SC {
         me = try await get(.me())
     }
     
-    func getMyLikedTracks() async throws -> Playlist {
+    func reloadMyLikedTracks() async throws {
         let tracks = try await get(.myLikedTracks())
-        return tracks.makePlaylist(
-            id: UserPlaylist.likes.rawValue,
-            title: "Likes",
-            url: me!.permalinkUrl + "/likes",
-            user: me!
-        )
+        loadedPlaylists[UserPlaylist.likes]![0].tracks = tracks
     }
     
-    func getMyFollowingsRecentTracks() async throws -> Playlist {
-        let tracks = try await get(.myFollowingsRecentTracks())
-        return tracks.makePlaylist(
-            id: UserPlaylist.recentlyPosted.rawValue,
-            title: "Recently posted",
-            url: me!.permalinkUrl + "/following",
-            user: me!
-        )
+    func reloadMyFollowingsRecentlyPostedTracks() async throws {
+        let tracks = try await get(.myFollowingsRecentlyPosted())
+        loadedPlaylists[UserPlaylist.recentlyPosted]![0].tracks = tracks
     }
     
-    func getMyLikedPlaylists() async throws -> [Playlist] {
+    func reloadMyLikedPlaylists() async throws {
         let playlists = try await get(.myLikedPlaylists())
-        let playlistsWithTracks = try await withThrowingTaskGroup(of: (Playlist, [Track]).self, returning: [Playlist].self) { taskGroup in
-            for playlist in playlists {
-                taskGroup.addTask { (playlist, try await self.getTracksForPlaylists(playlist.id)) }
-            }
-            
-            var result = [Playlist]()
-            for try await (playlist, tracks) in taskGroup {
-                var playlistWithTracks = playlist
-                playlistWithTracks.tracks = tracks
-                result.append(playlistWithTracks)
-            }
-            
-            return result
-        }
-        
-        return playlistsWithTracks
+        loadedPlaylists[UserPlaylist.myLikedPlaylists] = playlists
     }
     
-    func getMyPlaylists() async throws -> [Playlist] {
-        try await get(.myPlaylists())
+    func reloadMyPlaylists() async throws {
+        let playlists = try await get(.myPlaylists())
+        loadedPlaylists[UserPlaylist.myPlaylists] = playlists
     }
     
     func download(_ track: Track) async throws {

@@ -31,7 +31,7 @@ extension SC {
             case refreshAccessToken(_ refreshToken: String)
             case me
             case myLikedTracks
-            case myFollowingsRecentTracks
+            case myFollowingsRecentlyPosted
             case myLikedPlaylists
             case myPlaylists
             case tracksForPlaylist(_ id: Int)
@@ -54,8 +54,8 @@ extension SC {
             Request<[Track]>(api: .myLikedTracks)
         }
         
-        static func myFollowingsRecentTracks() -> Request<[Track]> {
-            Request<[Track]>(api: .myFollowingsRecentTracks)
+        static func myFollowingsRecentlyPosted() -> Request<[Track]> {
+            Request<[Track]>(api: .myFollowingsRecentlyPosted)
         }
         
         static func myLikedPlaylists() -> Request<[Playlist]> {
@@ -86,7 +86,7 @@ extension SC.Request {
         case .refreshAccessToken: return "oauth2/token"
         case .me: return "me"
         case .myLikedTracks: return "me/likes/tracks"
-        case .myFollowingsRecentTracks: return "me/followings/tracks"
+        case .myFollowingsRecentlyPosted: return "me/followings/tracks"
         case .myLikedPlaylists: return "me/likes/playlists"
         case .myPlaylists: return "me/playlists"
         case .tracksForPlaylist(let id): return "playlists/\(id)/tracks"

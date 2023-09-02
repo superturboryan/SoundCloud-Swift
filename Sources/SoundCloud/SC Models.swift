@@ -11,7 +11,9 @@ public enum UserPlaylist: Int, CaseIterable {
     case nowPlaying = 1
     case downloads
     case likes
-    case recentlyPosted
+    case recentlyPosted // By people current user follows
+    case myPlaylists
+    case myLikedPlaylists
     
     var title: String {
         switch self {
@@ -19,6 +21,18 @@ public enum UserPlaylist: Int, CaseIterable {
         case .downloads: return "Downlaods"
         case .likes:  return "Likes"
         case .recentlyPosted: return "Recently posted"
+        case .myPlaylists: return "My playlists"
+        case .myLikedPlaylists: return "My liked playlists"
+            
+        }
+    }
+    
+    var isMany: Bool {
+        switch self {
+        case .myPlaylists: return true
+        case .myLikedPlaylists: return true
+            
+        default: return false
         }
     }
 }
