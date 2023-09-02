@@ -94,7 +94,7 @@ extension SC.Request {
         }
     }
     
-    var queryParameters: [String : String]? { // Remove @MainActor
+    var queryParameters: [String : String]? {
         switch api {
 
         case .accessToken(let accessCode): return [

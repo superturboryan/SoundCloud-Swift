@@ -205,15 +205,20 @@ public struct Track: Codable, Identifiable {
     public var localFileUrl: String? = nil // For downloaded tracks
 }
 
-extension Track {
-    public var playbackUrl: String? { localFileUrl ?? streamUrl }
-    public var durationInSeconds: Int { duration / 1000 }
-    public var largerArtworkUrl: String? { artworkUrl?.replacingOccurrences(of: "large.jpg", with: "t500x500.jpg") }
-    public var fileSizeInMb: Double {
+public extension Track {
+    var playbackUrl: String? { localFileUrl ?? streamUrl }
+    var durationInSeconds: Int { duration / 1000 }
+    var largerArtworkUrl: String? { artworkUrl?.replacingOccurrences(of: "large.jpg", with: "t500x500.jpg") }
+    var fileSizeInMb: Double {
         let fileSizeInKb = durationInSeconds * 16 // Based on 128 bitrate
         return Double(fileSizeInKb) / Double(1024)
     }
-    public var isDownloaded: Bool { localFileUrl != nil }
+    var isDownloaded: Bool { localFileUrl != nil }
+    
+    func localFileUrl(withExtension extensioN: String) -> URL {
+        let documentsUrl = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        return documentsUrl.appendingPathComponent("\(id).\(extensioN)")
+    }
 }
 
 extension Track: Hashable {

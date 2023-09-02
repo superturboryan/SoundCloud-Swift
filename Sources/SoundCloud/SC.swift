@@ -1,6 +1,6 @@
 //
-//  SoundCloudAuthentication.swift
-//  SC Demo
+//  SC.swift
+//  SoundCloud
 //
 //  Created by Ryan Forsyth on 2023-08-10.
 //
@@ -33,7 +33,7 @@ public class SC: NSObject, ObservableObject {
             isLoggedIn = newValue != nil
             if let newValue {
                 tokenService.save(newValue)
-                print("✅ 💾 🔑 Tokens saved to persistence")
+                print("✅ 💾 🔑 New tokens saved to persistence")
             } else {
                 tokenService.delete()
             }
@@ -68,15 +68,16 @@ public class SC: NSObject, ObservableObject {
         super.init()
         
         decoder.keyDecodingStrategy = .convertFromSnakeCase
-        if authTokens == nil { 
-            logout()
-        } else {
-            print("✅🔐 Loading tokens from persistence")
+        
+        if let authTokens {
+            print("✅🔐 Loaded tokens from persistence:"); dump(authTokens)
             Task {
                 try await loadMyProfile()
                 loadDefaultPlaylists()
                 try? loadDownloadedTracks()
             }
+        } else {
+            logout()
         }
     }
     
@@ -166,15 +167,13 @@ extension SC {
     
     private func getNewAuthTokens(using authCode: String) async throws -> (OAuthTokenResponse) {
         let tokenResponse = try await get(.accessToken(authCode))
-        print("✅ Received new tokens:")
-        dump(tokenResponse)
+        print("✅ Received new tokens:"); dump(tokenResponse)
         return tokenResponse
     }
     
     public func refreshAuthTokens() async throws {
         let tokenResponse = try await get(.refreshToken(authTokens?.refreshToken ?? ""))
-        print("♻️  Refreshed tokens:")
-        dump(tokenResponse)
+        print("♻️  Refreshed tokens:"); dump(tokenResponse)
         authTokens = tokenResponse
     }
 }
@@ -215,13 +214,15 @@ extension SC {
 extension SC: URLSessionTaskDelegate {
     private func beginDownloadingTrack(_ track: Track, from url: String) async throws {
         
-        //TODO: Check if already downloaded!
         let localMp3Url = track.localFileUrl(withExtension: "mp3")
-        if FileManager.default.fileExists(atPath: localMp3Url.path) || downloadsInProgress.keys.contains(track) {
+        guard !FileManager.default.fileExists(atPath: localMp3Url.path), !downloadsInProgress.keys.contains(track)
+        else {
+            //TODO: Throw error?
             print("😳 Track already exists or is being downloaded!")
             return
         }
         
+        // Set empty progress for track so didCreateTask can know which track it's starting download for
         downloadsInProgress[track] = Progress(totalUnitCount: 0)
         
         var request = URLRequest(url: URL(string: url)!)
@@ -229,27 +230,30 @@ extension SC: URLSessionTaskDelegate {
         // Add track id to request to know which track is being downloaded in delegate
         request.addValue("\(track.id)", forHTTPHeaderField: "track_id")
         
-        // Catch error and remove download in progress?
+        //TODO: Catch errors
         let (trackData, _) = try await URLSession.shared.data(for: request, delegate: self)
-        try trackData.write(to: localMp3Url)
+        downloadsInProgress.removeValue(forKey: track)
         
+        try trackData.write(to: localMp3Url)
         let trackJsonData = try JSONEncoder().encode(track)
         let localJsonUrl = track.localFileUrl(withExtension: "json")
         try trackJsonData.write(to: localJsonUrl)
         
-        downloadsInProgress.removeValue(forKey: track)
-        
         var trackWithLocalFileUrl = track
         trackWithLocalFileUrl.localFileUrl = localMp3Url.absoluteString
+        
         
         downloadedTracks.append(trackWithLocalFileUrl)
     }
     
     public func urlSession(_ session: URLSession, didCreateTask task: URLSessionTask) {
+        // Get track being downloaded from request
         let trackId = (task.originalRequest?.value(forHTTPHeaderField: "track_id"))!
         let trackBeingDownloaded = downloadsInProgress.keys.first(where: {
             $0.id == Int(trackId)
         })!
+        
+        // Assign task's progress to track being downloaded
         task.publisher(for: \.progress)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] progress in
@@ -262,17 +266,18 @@ extension SC: URLSessionTaskDelegate {
     }
     
     private func loadDownloadedTracks() throws {
-        var loadedTracks = [Track]()
-        
+        // Get downloaded track id's from device's documents directory
         let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         let downloadedTrackIds = try FileManager.default.contentsOfDirectory(atPath: documentsURL.path).filter {
-            // Remove any file not an mp3
+            // Get all mp3 files
             $0.lowercased().contains("mp3")
         }.map {
             // Remove mp3 extension so only id remains
             $0.replacingOccurrences(of: ".mp3", with: "")
         }
         
+        // Load track object for each id, set local mp3 file url
+        var loadedTracks = [Track]()
         for id in downloadedTrackIds {
             let trackJsonURL = documentsURL.appendingPathComponent("\(id).json")
             let trackJsonData = try Data(contentsOf: trackJsonURL)
@@ -283,16 +288,6 @@ extension SC: URLSessionTaskDelegate {
             
             loadedTracks.append(downloadedTrack)
         }
-        
         downloadedTracks = loadedTracks
-    }
-    
-    
-}
-
-private extension Track {
-    func localFileUrl(withExtension extensioN: String) -> URL {
-        let documentsUrl = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        return documentsUrl.appendingPathComponent("\(id).\(extensioN)")
     }
 }
