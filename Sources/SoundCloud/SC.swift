@@ -16,25 +16,21 @@ public class SC: NSObject, ObservableObject {
     @Published public private(set) var isLoggedIn: Bool = true
     
     @Published public var downloadsInProgress: [Track : Progress] = [:]
-    // Tracks with streamURL set to local mp3 url
-    @Published public var downloadedTracks: [Track] = [] {
-        didSet { loadedPlaylists[PlaylistType.downloads.rawValue]!.tracks = downloadedTracks }
+    @Published public var downloadedTracks: [Track] = [] { // Tracks with streamURL set to local mp3 url
+        didSet {
+            loadedPlaylists[PlaylistType.downloads.rawValue]!.tracks = downloadedTracks
+        }
     }
     
     @Published public private(set) var loadedPlaylists: [Int : Playlist] = [:]
-    
     // Use id to filter loadedPlaylists dictionary
     public var myPlaylistIds: [Int] = []
     public var myLikedPlaylistIds: [Int] = []
     
     private var tokenService: AuthTokenPersisting
-    
     public var authTokens: OAuthTokenResponse? {
-        get {
-            tokenService.authTokens
-        }
+        get { tokenService.authTokens }
         set {
-            isLoggedIn = newValue != nil
             if let newValue {
                 tokenService.save(newValue)
                 print("✅ 💾 🔑 New tokens saved to persistence")
@@ -72,17 +68,6 @@ public class SC: NSObject, ObservableObject {
         super.init()
         
         decoder.keyDecodingStrategy = .convertFromSnakeCase
-        
-        if let authTokens {
-            print("✅🔐 Loaded tokens from persistence:"); dump(authTokens)
-            Task {
-                try await loadMyProfile()
-                loadDefaultPlaylists()
-                try? loadDownloadedTracks()
-            }
-        } else {
-            logout()
-        }
     }
     
     private func loadDefaultPlaylists() {
@@ -92,7 +77,7 @@ public class SC: NSObject, ObservableObject {
     }
 }
 
-//MARK: - API
+//MARK: - Public API
 public extension SC {
     func login() async {
         //TODO: Handle try! errors
@@ -101,6 +86,7 @@ public extension SC {
             print("✅ 🔊 ☁️")
             let newAuthTokens = try await getNewAuthTokens(using: authCode)
             authTokens = newAuthTokens
+            isLoggedIn = true
         } catch {
             print("❌ 🔊 ☁️ \(error.localizedDescription)")
         }
@@ -108,6 +94,19 @@ public extension SC {
     
     func logout() {
         authTokens = nil
+        isLoggedIn = false
+    }
+    
+    func loadLibrary() async throws {
+        
+        try await loadMyProfile()
+        loadDefaultPlaylists()
+        try? loadDownloadedTracks()
+        
+        try await loadMyPlaylistsWithoutTracks()
+        try await loadMyLikedPlaylistsWithoutTracks()
+        try await loadMyLikedTracksPlaylistWithTracks()
+        try await loadRecentlyPostedPlaylistWithTracks()
     }
     
     func loadMyProfile() async throws {
@@ -115,11 +114,11 @@ public extension SC {
     }
     
     func loadMyLikedTracksPlaylistWithTracks() async throws {
-        loadedPlaylists[PlaylistType.likes.rawValue]!.tracks = try await get(.myLikedTracks())
+        loadedPlaylists[PlaylistType.likes.rawValue]?.tracks = try await get(.myLikedTracks())
     }
     
     func loadRecentlyPostedPlaylistWithTracks() async throws {
-        loadedPlaylists[PlaylistType.recentlyPosted.rawValue]!.tracks = try await get(.myFollowingsRecentlyPosted())
+        loadedPlaylists[PlaylistType.recentlyPosted.rawValue]?.tracks = try await get(.myFollowingsRecentlyPosted())
     }
     
     func loadMyLikedPlaylistsWithoutTracks() async throws {
@@ -138,11 +137,6 @@ public extension SC {
         }
     }
     
-    func download(_ track: Track) async throws {
-        let streamInfo = try await getStreamInfoForTrack(track.id)
-        try await beginDownloadingTrack(track, from: streamInfo.httpMp3128Url)
-    }
-     
     func loadTracksForPlaylist(_ id: Int) async throws {
         if let userPlaylistType = PlaylistType(rawValue: id) {
             switch userPlaylistType {
@@ -156,6 +150,11 @@ public extension SC {
         }
     }
     
+    func download(_ track: Track) async throws {
+        let streamInfo = try await getStreamInfoForTrack(track.id)
+        try await beginDownloadingTrack(track, from: streamInfo.httpMp3128Url)
+    }
+     
     func removeDownload(_ trackToRemove: Track) throws {
         let trackMp3Url = trackToRemove.localFileUrl(withExtension: "mp3") // TODO: Enum for file extensions
         let trackJsonUrl = trackToRemove.localFileUrl(withExtension: "json")
@@ -204,23 +203,23 @@ extension SC {
 }
 
 // MARK: - API request
-extension SC {
-    private func get<T: Decodable>(_ request: Request<T>) async throws -> T {
+private extension SC {
+    func get<T: Decodable>(_ request: Request<T>) async throws -> T {
         // ⚠️ Check that this isn't a request to refresh the token
-        if authTokens?.isExpired ?? false && isLoggedIn && !request.isToRefresh {
+        if let authTokens, authTokens.isExpired && isLoggedIn && !request.isToRefresh {
             try await refreshAuthTokens()
         }
+
         return try await fetchData(from: authorized(request))
     }
     
-    private func fetchData<T: Decodable>(from request: URLRequest) async throws -> T {
+    func fetchData<T: Decodable>(from request: URLRequest) async throws -> T {
         let (data, response) = try await URLSession.shared.data(for: request)
-        // TODO: Handle response
         let decodedObject = try decoder.decode(T.self, from: data)
         return decodedObject
     }
     
-    private func authorized<T>(_ scRequest: Request<T>) -> URLRequest {
+    func authorized<T>(_ scRequest: Request<T>) -> URLRequest {
         let urlWithPath = URL(string: apiURL + scRequest.path)!
         var components = URLComponents(url: urlWithPath, resolvingAgainstBaseURL: false)!
         components.queryItems = scRequest.queryParameters?.map { URLQueryItem(name: $0, value: $1) }
@@ -291,15 +290,11 @@ extension SC: URLSessionTaskDelegate {
     }
     
     private func loadDownloadedTracks() throws {
-        // Get downloaded track id's from device's documents directory
+        // Get id of downloaded tracks from device's documents directory
         let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        let downloadedTrackIds = try FileManager.default.contentsOfDirectory(atPath: documentsURL.path).filter {
-            // Get all mp3 files
-            $0.lowercased().contains("mp3")
-        }.map {
-            // Remove mp3 extension so only id remains
-            $0.replacingOccurrences(of: ".mp3", with: "")
-        }
+        let downloadedTrackIds = try FileManager.default.contentsOfDirectory(atPath: documentsURL.path)
+            .filter { $0.lowercased().contains("mp3") } // Get all mp3 files
+            .map { $0.replacingOccurrences(of: ".mp3", with: "") } // Remove mp3 extension so only id remains
         
         // Load track object for each id, set local mp3 file url
         var loadedTracks = [Track]()

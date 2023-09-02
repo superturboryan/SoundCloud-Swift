@@ -16,7 +16,7 @@ public enum PlaylistType: Int, CaseIterable {
     public var title: String {
         switch self {
         case .nowPlaying: return "Now playing"
-        case .downloads: return "Downlaods"
+        case .downloads: return "Downloads"
         case .likes:  return "Likes"
         case .recentlyPosted: return "Recently posted"
         }
@@ -189,6 +189,12 @@ public struct Track: Codable, Identifiable {
     public let access: String // playable / preview / blocked
     
     public var localFileUrl: String? = nil // For downloaded tracks
+}
+
+extension Track: Equatable {
+    public static func ==(lhs: Track, rhs: Track) -> Bool {
+        lhs.id == rhs.id
+    }
 }
 
 public extension Track {
