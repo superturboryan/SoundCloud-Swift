@@ -266,7 +266,6 @@ extension SC: URLSessionTaskDelegate {
         var trackWithLocalFileUrl = track
         trackWithLocalFileUrl.localFileUrl = localMp3Url.absoluteString
         
-        
         downloadedTracks.append(trackWithLocalFileUrl)
     }
     
@@ -296,7 +295,7 @@ extension SC: URLSessionTaskDelegate {
             .filter { $0.lowercased().contains("mp3") } // Get all mp3 files
             .map { $0.replacingOccurrences(of: ".mp3", with: "") } // Remove mp3 extension so only id remains
         
-        // Load track object for each id, set local mp3 file url
+        // Load track for each id, set local mp3 file url for track
         var loadedTracks = [Track]()
         for id in downloadedTrackIds {
             let trackJsonURL = documentsURL.appendingPathComponent("\(id).json")

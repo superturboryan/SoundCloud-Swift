@@ -8,6 +8,5 @@
 import SwiftUI
 
 public extension Color {
-    
     static let scOrange = Color("sc_orange", bundle: .module)
 }

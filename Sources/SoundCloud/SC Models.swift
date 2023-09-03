@@ -205,7 +205,6 @@ public extension Track {
         let fileSizeInKb = durationInSeconds * 16 // Based on 128 bitrate
         return Double(fileSizeInKb) / Double(1024)
     }
-    var isDownloaded: Bool { localFileUrl != nil }
     
     func localFileUrl(withExtension extensioN: String) -> URL {
         let documentsUrl = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
