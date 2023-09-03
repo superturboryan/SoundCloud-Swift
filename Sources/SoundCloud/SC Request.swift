@@ -130,7 +130,7 @@ extension SC.Request {
 
 //MARK: - Helpers
 extension SC.Request {
-    var useAuthHeader: Bool {
+    var shouldUseAuthHeader: Bool {
         switch api {
         case .accessToken, .refreshAccessToken: return false
         default: return true

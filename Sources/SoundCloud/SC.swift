@@ -28,7 +28,7 @@ public class SC: NSObject, ObservableObject {
     public var myLikedPlaylistIds: [Int] = []
     
     private var tokenService: AuthTokenPersisting
-    public var authTokens: OAuthTokenResponse? {
+    private var authTokens: OAuthTokenResponse? {
         get { tokenService.authTokens }
         set {
             if let newValue {
@@ -42,10 +42,13 @@ public class SC: NSObject, ObservableObject {
     
     private let decoder = JSONDecoder()
     
-    private var authHeader: [String : String] {
-        ["Authorization" : "Bearer " + (authTokens?.accessToken ?? "")]
-    }
-    
+    public var authHeader: [String : String] { get async throws {
+        if authTokens?.isExpired ?? false {
+            try await refreshAuthTokens()
+        }
+        return ["Authorization" : "Bearer " + (authTokens?.accessToken ?? "")]
+    }}
+
     private var subscriptions = Set<AnyCancellable>()
     
 // MARK: - Setup
@@ -101,12 +104,12 @@ public extension SC {
         
         try await loadMyProfile()
         loadDefaultPlaylists()
-        try? loadDownloadedTracks()
+        try loadDownloadedTracks()
         
-        try await loadMyPlaylistsWithoutTracks()
-        try await loadMyLikedPlaylistsWithoutTracks()
-        try await loadMyLikedTracksPlaylistWithTracks()
-        try await loadRecentlyPostedPlaylistWithTracks()
+        try? await loadMyPlaylistsWithoutTracks()
+        try? await loadMyLikedPlaylistsWithoutTracks()
+        try? await loadMyLikedTracksPlaylistWithTracks()
+        try? await loadRecentlyPostedPlaylistWithTracks()
     }
     
     func loadMyProfile() async throws {
@@ -205,30 +208,26 @@ extension SC {
 // MARK: - API request
 private extension SC {
     func get<T: Decodable>(_ request: Request<T>) async throws -> T {
-        // ⚠️ Check that this isn't a request to refresh the token
-        if let authTokens, authTokens.isExpired && isLoggedIn && !request.isToRefresh {
-            try await refreshAuthTokens()
-        }
-
-        return try await fetchData(from: authorized(request))
+        try await fetchData(from: authorized(request))
     }
     
     func fetchData<T: Decodable>(from request: URLRequest) async throws -> T {
-        let (data, response) = try await URLSession.shared.data(for: request)
+        // TODO: Check response
+        let (data, _) = try await URLSession.shared.data(for: request)
         let decodedObject = try decoder.decode(T.self, from: data)
         return decodedObject
     }
     
-    func authorized<T>(_ scRequest: Request<T>) -> URLRequest {
+    func authorized<T>(_ scRequest: Request<T>) async throws -> URLRequest {
         let urlWithPath = URL(string: apiURL + scRequest.path)!
         var components = URLComponents(url: urlWithPath, resolvingAgainstBaseURL: false)!
         components.queryItems = scRequest.queryParameters?.map { URLQueryItem(name: $0, value: $1) }
         
         var request = URLRequest(url: components.url!)
         request.httpMethod = scRequest.httpMethod
-        // ⚠️ Don't apply authHeader if access token is being requested
-        if scRequest.useAuthHeader {
-            request.allHTTPHeaderFields = authHeader
+        
+        if scRequest.shouldUseAuthHeader {
+            request.allHTTPHeaderFields = try await authHeader // Will refresh tokens if necessary
         }
         return request
     }
@@ -250,8 +249,10 @@ extension SC: URLSessionTaskDelegate {
         downloadsInProgress[track] = Progress(totalUnitCount: 0)
         
         var request = URLRequest(url: URL(string: url)!)
-        request.allHTTPHeaderFields = authHeader
-        // Add track id to request to know which track is being downloaded in delegate
+        request.allHTTPHeaderFields = try await authHeader
+        
+        // ‼️ Response does not contain ID for track
+        // Add track ID to request header to know which track is being downloaded in delegate
         request.addValue("\(track.id)", forHTTPHeaderField: "track_id")
         
         //TODO: Catch errors
@@ -270,12 +271,12 @@ extension SC: URLSessionTaskDelegate {
     }
     
     public func urlSession(_ session: URLSession, didCreateTask task: URLSessionTask) {
-        // Get track being downloaded from request
-        let trackId = (task.originalRequest?.value(forHTTPHeaderField: "track_id"))!
-        let trackBeingDownloaded = downloadsInProgress.keys.first(where: {
-            $0.id == Int(trackId)
-        })!
-        
+        // ‼️ Get track id being downloaded from request header field
+        guard
+            let trackId = Int(task.originalRequest?.value(forHTTPHeaderField: "track_id") ?? ""),
+            let trackBeingDownloaded = downloadsInProgress.keys.first(where: { $0.id == trackId })
+        else { return }
+            
         // Assign task's progress to track being downloaded
         task.publisher(for: \.progress)
             .receive(on: DispatchQueue.main)

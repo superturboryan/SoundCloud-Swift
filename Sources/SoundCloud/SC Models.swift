@@ -248,29 +248,31 @@ public let testUser = User(
     subscriptions: [testFreeSubscription]
 )
 
-public let testPlaylist = Playlist(
-    id: 1587600994,
-    genre: "",
-    permalink: "",
-    permalinkUrl: "https://google.com",
-    description: nil,
-    uri: "",
-    tagList: "",
-    trackCount: 7,
-    lastModified: "023/08/10 20:27:42 +0000",
-    license: "",
-    user: testUser,
-    likesCount: 20,
-    sharing: "",
-    createdAt: "2023/03/20 17:08:42 +0000",
-    tags: "",
-    kind: "",
-    title: "RIZ LA TEEF on Rinse FM",
-    streamable: true,
-    artworkUrl: testTrack().artworkUrl,
-    tracksUri: "https://api.soundcloud.com/playlists/1587600994/tracks",
-    tracks: [testTrack(), testTrack(), testTrack(), testTrack(), testTrack()]
-)
+public func testPlaylist(empty: Bool) -> Playlist {
+    Playlist (
+        id: 1587600994,
+        genre: "",
+        permalink: "",
+        permalinkUrl: "https://google.com",
+        description: nil,
+        uri: "",
+        tagList: "",
+        trackCount: 7,
+        lastModified: "023/08/10 20:27:42 +0000",
+        license: "",
+        user: testUser,
+        likesCount: 20,
+        sharing: "",
+        createdAt: "2023/03/20 17:08:42 +0000",
+        tags: "",
+        kind: "",
+        title: "RIZ LA TEEF on Rinse FM",
+        streamable: true,
+        artworkUrl: testTrack().artworkUrl,
+        tracksUri: "https://api.soundcloud.com/playlists/1587600994/tracks",
+        tracks: empty ? [] : [testTrack(), testTrack(), testTrack(), testTrack(), testTrack()]
+    )
+}
 
 public func testTrack() -> Track {
     Track(
