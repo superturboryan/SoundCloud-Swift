@@ -156,8 +156,8 @@ extension Playlist {
         (tracks ?? []).reduce(into: 0, { $0 += $1.durationInSeconds})
     }
     
-    public var artworkUrlWithUserFallback: URL {
-        URL(string: artworkUrl ?? user.avatarUrl)!
+    public var artworkUrlWithTrackAndUserFallback: URL {
+        URL(string: artworkUrl ?? tracks?.first?.artworkUrl ?? user.avatarUrl)!
     }
 }
 

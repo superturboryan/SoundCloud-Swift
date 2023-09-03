@@ -7,19 +7,25 @@
 
 import SwiftUI
 
-extension LinearGradient {
+public extension LinearGradient {
     enum GradientDirection {
         case horizontal
         case vertical
     }
     
-    static func scOrangeGradient(_ direction: GradientDirection) -> LinearGradient {
-        LinearGradient(gradient: Gradient(stops: [
-            .init(color: .scOrange, location: 0),
-            .init(color: .orange, location: 1)
-        ]),
+    @ViewBuilder
+    static func scOrangeGradient(_ direction: GradientDirection = .vertical) -> LinearGradient {
+        let stops = [
+            Gradient.Stop.init(color: .scOrangeLight, location: direction == .vertical ? 0 : 1),
+            Gradient.Stop.init(color: .scOrangeDark, location: direction == .vertical ? 1 : 0)
+        ]
+        LinearGradient(gradient: Gradient(stops: direction == .vertical ? stops : stops.reversed()),
         startPoint: direction == .vertical ? .top : .leading,
         endPoint: direction == .vertical ? .bottom : .trailing)
+    }
+    
+    static var empty: LinearGradient {
+        LinearGradient(stops: [], startPoint: .top, endPoint: .top)
     }
 }
 
@@ -27,13 +33,13 @@ struct LinearGradient_Previews: PreviewProvider {
 
     static var previews: some View {
         VStack(spacing: 20) {
-            LinearGradient.scOrangeGradient(.vertical)
-                .mask(Image(systemName: "playpause.fill")
-                    .resizable()
-                    .scaledToFit()
-                )
-            LinearGradient.scOrangeGradient(.horizontal)
-                .mask(RoundedRectangle(cornerRadius: 8))
+            Image(systemName: "playpause.fill")
+                .resizable()
+                .scaledToFit()
+                .foregroundStyle(LinearGradient.scOrangeGradient(.vertical))
+
+            RoundedRectangle(cornerRadius: 8)
+                .foregroundStyle(LinearGradient.scOrangeGradient(.horizontal))
         }
         .padding(10)
     }
