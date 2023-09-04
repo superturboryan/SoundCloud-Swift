@@ -30,7 +30,6 @@ public extension LinearGradient {
 }
 
 struct LinearGradient_Previews: PreviewProvider {
-
     static var previews: some View {
         VStack(spacing: 20) {
             Image(systemName: "playpause.fill")

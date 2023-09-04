@@ -218,9 +218,13 @@ extension Track: Hashable {
     }
 }
 
-public struct StreamInfo: Decodable {
+internal struct StreamInfo: Decodable {
     public let httpMp3128Url: String
     public let hlsMp3128Url: String
+}
+
+internal struct Status: Decodable {
+    public let status: String
 }
 
 // MARK: - Test objects

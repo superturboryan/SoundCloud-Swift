@@ -36,6 +36,9 @@ extension SC {
             case myPlaylists
             case tracksForPlaylist(_ id: Int)
             case streamInfoForTrack(_ id: Int)
+            
+            case likeTrack(_ id: Int)
+            case unlikeTrack(_ id: Int)
         }
         
         static func accessToken(_ code: String) -> Request<OAuthTokenResponse> {
@@ -73,6 +76,14 @@ extension SC {
         static func streamInfoForTrack(_ id: Int) -> Request<StreamInfo> {
             Request<StreamInfo>(api: .streamInfoForTrack(id))
         }
+        
+        static func likeTrack(_ id: Int) -> Request<Status> {
+            Request<Status>(api: .likeTrack(id))
+        }
+        
+        static func unlikeTrack(_ id: Int) -> Request<Status> {
+            Request<Status>(api: .likeTrack(id))
+        }
     }
 }
 
@@ -91,6 +102,8 @@ extension SC.Request {
         case .myPlaylists: return "me/playlists"
         case .tracksForPlaylist(let id): return "playlists/\(id)/tracks"
         case .streamInfoForTrack(let id): return "tracks/\(id)/streams"
+            
+        case .likeTrack(let id), .unlikeTrack(let id): return "likes/tracks/\(id)"
         }
     }
     
@@ -120,8 +133,12 @@ extension SC.Request {
     var httpMethod: String {
         switch api {
 
-        case .accessToken: fallthrough
-        case .refreshAccessToken: return "POST"
+        case .accessToken,
+             .refreshAccessToken,
+             .likeTrack:
+            return "POST"
+        
+        case .unlikeTrack: return "DELETE"
         
         default: return "GET"
         }

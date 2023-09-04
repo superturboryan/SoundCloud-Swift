@@ -168,7 +168,15 @@ public extension SC {
         downloadedTracks.removeAll(where: { $0.id == trackToRemove.id })
     }
     
-    // MARK: Private API Helpers
+    func likeTrack(_ id: Int) async throws {
+        try await get(.likeTrack(id))
+    }
+    
+    func unlikeTrack(_ id: Int) async throws {
+        try await get(.unlikeTrack(id))
+    }
+    
+    // MARK: - Private API Helpers
     private func getTracksForPlaylist(_ id: Int) async throws -> [Track] {
         try await get(.tracksForPlaylist(id))
     }
@@ -208,6 +216,8 @@ extension SC {
 
 // MARK: - API request
 private extension SC {
+    
+    @discardableResult
     func get<T: Decodable>(_ request: Request<T>) async throws -> T {
         try await fetchData(from: authorized(request))
     }
