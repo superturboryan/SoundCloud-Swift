@@ -225,11 +225,11 @@ public struct StreamInfo: Decodable {
 
 //MARK: - Test objects
 public let testUser = User(
-    avatarUrl: "",
+    avatarUrl: "https://i1.sndcdn.com/avatars-0DxRBnyCNCI3zL1X-oeoRyw-large.jpg",
     id: 0,
-    permalinkUrl: "",
+    permalinkUrl: "https://i1.sndcdn.com/avatars-0DxRBnyCNCI3zL1X-oeoRyw-large.jpg",
     uri: "",
-    username: "Rinse FM",
+    username: "SuperTurboRyRy",
     createdAt: "",
     firstName: "",
     lastName: "",

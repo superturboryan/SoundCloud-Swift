@@ -14,7 +14,7 @@ public extension LinearGradient {
     }
     
     @ViewBuilder
-    static func scOrangeGradient(_ direction: GradientDirection = .vertical) -> LinearGradient {
+    static func scOrange(_ direction: GradientDirection = .vertical) -> LinearGradient {
         let stops = [
             Gradient.Stop.init(color: .scOrangeLight, location: direction == .vertical ? 0 : 1),
             Gradient.Stop.init(color: .scOrangeDark, location: direction == .vertical ? 1 : 0)
@@ -36,10 +36,10 @@ struct LinearGradient_Previews: PreviewProvider {
             Image(systemName: "playpause.fill")
                 .resizable()
                 .scaledToFit()
-                .foregroundStyle(LinearGradient.scOrangeGradient(.vertical))
+                .foregroundStyle(LinearGradient.scOrange(.vertical))
 
             RoundedRectangle(cornerRadius: 8)
-                .foregroundStyle(LinearGradient.scOrangeGradient(.horizontal))
+                .foregroundStyle(LinearGradient.scOrange(.horizontal))
         }
         .padding(10)
     }
