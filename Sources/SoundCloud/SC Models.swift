@@ -223,7 +223,7 @@ public struct StreamInfo: Decodable {
     public let hlsMp3128Url: String
 }
 
-//MARK: - Test objects
+// MARK: - Test objects
 public let testUser = User(
     avatarUrl: "https://i1.sndcdn.com/avatars-0DxRBnyCNCI3zL1X-oeoRyw-large.jpg",
     id: 0,

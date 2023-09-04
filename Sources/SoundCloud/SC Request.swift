@@ -76,7 +76,7 @@ extension SC {
     }
 }
 
-//MARK: - Request Parameters
+// MARK: - Request Parameters
 extension SC.Request {
     
     var path: String {
@@ -128,7 +128,7 @@ extension SC.Request {
     }
 }
 
-//MARK: - Helpers
+// MARK: - Helpers
 extension SC.Request {
     var shouldUseAuthHeader: Bool {
         switch api {

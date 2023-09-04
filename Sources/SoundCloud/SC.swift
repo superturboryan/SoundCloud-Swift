@@ -12,6 +12,7 @@ import AuthenticationServices
 @MainActor
 public class SC: NSObject, ObservableObject {
     
+    // TODO: Make all @Published use private(set)
     @Published public var me: User? = nil
     @Published public private(set) var isLoggedIn: Bool = true
     
@@ -80,7 +81,7 @@ public class SC: NSObject, ObservableObject {
     }
 }
 
-//MARK: - Public API
+// MARK: - Public API
 public extension SC {
     func login() async {
         //TODO: Handle try! errors
@@ -177,7 +178,7 @@ public extension SC {
     }
 }
 
-//MARK: - Authentication
+// MARK: - Authentication
 extension SC {
     private func getAuthCode() async throws -> String {
         #if os(iOS)
