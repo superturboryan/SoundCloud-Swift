@@ -14,7 +14,7 @@ public class SC: NSObject, ObservableObject {
     
     // TODO: Make all @Published use private(set)
     @Published public var me: User? = nil
-    @Published public private(set) var isLoggedIn: Bool = true
+    @Published public private(set) var isLoggedIn: Bool = true // Prevents LoginView from appearing every app load
     
     @Published public var downloadsInProgress: [Track : Progress] = [:]
     @Published public var downloadedTracks: [Track] = [] { // Tracks with streamURL set to local mp3 url
@@ -23,7 +23,7 @@ public class SC: NSObject, ObservableObject {
         }
     }
     
-    @Published public private(set) var loadedPlaylists: [Int : Playlist] = [:]
+    @Published public var loadedPlaylists: [Int : Playlist] = [:]
     // Use id to filter loadedPlaylists dictionary
     public var myPlaylistIds: [Int] = []
     public var myLikedPlaylistIds: [Int] = []

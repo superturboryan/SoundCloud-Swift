@@ -304,6 +304,14 @@ public func testTrack() -> Track {
     )
 }
 
+public var testDefaultPlaylists: [Int : Playlist] {
+    var loadedPlaylists = [Int : Playlist]()
+    loadedPlaylists[PlaylistType.downloads.rawValue] = Playlist(id: PlaylistType.downloads.rawValue, user: testUser, title: PlaylistType.downloads.title, tracks: [])
+    loadedPlaylists[PlaylistType.likes.rawValue] = Playlist(id: PlaylistType.likes.rawValue, permalinkUrl: testUser.permalinkUrl + "/likes", user: testUser, title: PlaylistType.likes.title, tracks: [])
+    loadedPlaylists[PlaylistType.recentlyPosted.rawValue] = Playlist(id: PlaylistType.recentlyPosted.rawValue, permalinkUrl: testUser.permalinkUrl + "/following", user: testUser, title: PlaylistType.recentlyPosted.title, tracks: [])
+    return loadedPlaylists
+}
+
 public let testFreeSubscription = Subscription(product: Subscription.Product(id: "free", name: "Free"))
 
 /*
