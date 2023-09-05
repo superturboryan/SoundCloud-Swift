@@ -8,6 +8,7 @@
 import Combine
 import Foundation
 import AuthenticationServices
+import SwiftUI
 
 @MainActor
 public class SC: NSObject, ObservableObject {
@@ -16,6 +17,14 @@ public class SC: NSObject, ObservableObject {
     @Published public var me: User? = nil
     @Published public private(set) var isLoggedIn: Bool = true // Prevents LoginView from appearing every app load
     
+    @Published public var loadedPlaylists: [Int : Playlist] = [:]
+    @Published public var loadedTrackNowPlayingQueueIndex: Int = -1
+    @Published public var loadedTrack: Track? {
+        didSet {
+            loadedTrackNowPlayingQueueIndex = loadedPlaylists[PlaylistType.nowPlaying.rawValue]?.tracks?.firstIndex(where: { $0 == loadedTrack }) ?? -1
+        }
+    }
+    
     @Published public var downloadsInProgress: [Track : Progress] = [:]
     @Published public var downloadedTracks: [Track] = [] { // Tracks with streamURL set to local mp3 url
         didSet {
@@ -23,8 +32,16 @@ public class SC: NSObject, ObservableObject {
         }
     }
     
-    @Published public var loadedPlaylists: [Int : Playlist] = [:]
-    // Use id to filter loadedPlaylists dictionary
+    public var isLoadedTrackDownloaded: Bool {
+        guard let loadedTrack else { return false }
+        return downloadedTracks.contains(loadedTrack)
+    }
+    
+    public var nowPlayingPlaylist: Playlist? {
+        loadedPlaylists[PlaylistType.nowPlaying.rawValue]
+    }
+    
+    // Use id to filter loadedPlaylists dictionary for my + liked playlists
     public var myPlaylistIds: [Int] = []
     public var myLikedPlaylistIds: [Int] = []
     
@@ -72,9 +89,12 @@ public class SC: NSObject, ObservableObject {
         super.init()
         
         decoder.keyDecodingStrategy = .convertFromSnakeCase
+        
+        if let authTokens { print("✅💾🔐 Loaded saved auth tokens: \(authTokens.accessToken)") }
     }
     
     private func loadDefaultPlaylists() {
+        loadedPlaylists[PlaylistType.nowPlaying.rawValue] = Playlist(id: PlaylistType.nowPlaying.rawValue, user: me!, title: PlaylistType.nowPlaying.title, tracks: [])
         loadedPlaylists[PlaylistType.downloads.rawValue] = Playlist(id: PlaylistType.downloads.rawValue, user: me!, title: PlaylistType.downloads.title, tracks: [])
         loadedPlaylists[PlaylistType.likes.rawValue] = Playlist(id: PlaylistType.likes.rawValue, permalinkUrl: me!.permalinkUrl + "/likes", user: me!, title: PlaylistType.likes.title, tracks: [])
         loadedPlaylists[PlaylistType.recentlyPosted.rawValue] = Playlist(id: PlaylistType.recentlyPosted.rawValue, permalinkUrl: me!.permalinkUrl + "/following", user: me!, title: PlaylistType.recentlyPosted.title, tracks: [])
@@ -168,12 +188,16 @@ public extension SC {
         downloadedTracks.removeAll(where: { $0.id == trackToRemove.id })
     }
     
-    func likeTrack(_ id: Int) async throws {
-        try await get(.likeTrack(id))
+    func likeTrack(_ likedTrack: Track) async throws {
+        try await get(.likeTrack(likedTrack.id))
+        // 🚨 Hack for SC API cached responses -> Update loaded playlist manually
+        loadedPlaylists[PlaylistType.likes.rawValue]?.tracks?.insert(likedTrack, at: 0)
     }
     
-    func unlikeTrack(_ id: Int) async throws {
-        try await get(.unlikeTrack(id))
+    func unlikeTrack(_ unlikedTrack: Track) async throws {
+        try await get(.unlikeTrack(unlikedTrack.id))
+        // 🚨 Hack for SC API cached responses -> Update loaded playlist manually
+        loadedPlaylists[PlaylistType.likes.rawValue]?.tracks?.removeAll(where: { $0.id == unlikedTrack.id })
     }
     
     // MARK: - Private API Helpers

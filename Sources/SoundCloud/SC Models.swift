@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 public enum PlaylistType: Int, CaseIterable {
     case nowPlaying = 1
@@ -181,7 +182,7 @@ public struct Track: Codable, Identifiable {
     public let downloadUrl: String?
     public let waveformUrl: String
     public let availableCountryCodes: String?
-    public let userFavorite: Bool
+    public var userFavorite: Bool
     public let userPlaybackCount: Int
     public let playbackCount: Int?
     public let favoritingsCount: Int?
@@ -306,6 +307,11 @@ public func testTrack() -> Track {
         repostsCount: 0,
         access: "playable"
     )
+}
+
+public func testTrackBinding() -> Binding<Track> {
+    var track = testTrack()
+    return Binding(get: { track }, set: { newTrack in track = newTrack })
 }
 
 public var testDefaultPlaylists: [Int : Playlist] {

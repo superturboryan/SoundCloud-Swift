@@ -82,7 +82,7 @@ extension SC {
         }
         
         static func unlikeTrack(_ id: Int) -> Request<Status> {
-            Request<Status>(api: .likeTrack(id))
+            Request<Status>(api: .unlikeTrack(id))
         }
     }
 }
