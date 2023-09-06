@@ -5,9 +5,8 @@
 //  Created by Ryan Forsyth on 2023-08-10.
 //
 
-import Combine
-import Foundation
 import AuthenticationServices
+import Combine
 import SwiftUI
 
 @MainActor
@@ -42,6 +41,8 @@ public class SC: NSObject, ObservableObject {
     // Use id to filter loadedPlaylists dictionary for my + liked playlists
     public var myPlaylistIds: [Int] = []
     public var myLikedPlaylistIds: [Int] = []
+    
+    private var downloadTasks: [Track : URLSessionTask] = [:]
     
     private var tokenService: AuthTokenPersisting
     private var authTokens: OAuthTokenResponse? {
@@ -363,6 +364,8 @@ extension SC: URLSessionTaskDelegate {
             let trackId = Int(task.originalRequest?.value(forHTTPHeaderField: "track_id") ?? ""),
             let trackBeingDownloaded = downloadsInProgress.keys.first(where: { $0.id == trackId })
         else { return }
+        
+        downloadTasks[trackBeingDownloaded] = task
             
         // Assign task's progress to track being downloaded
         task.publisher(for: \.progress)
@@ -374,6 +377,17 @@ extension SC: URLSessionTaskDelegate {
                 }
             }
             .store(in: &subscriptions)
+    }
+    
+    public func removeDownloadInProgress(for track: Track) throws {
+        guard
+            downloadsInProgress.keys.contains(track),
+            let task = downloadTasks[track]
+        else { throw Error.trackDownloadNotInProgress }
+        
+        downloadsInProgress.removeValue(forKey: track)
+        task.cancel()
+        downloadTasks.removeValue(forKey: track)
     }
     
     private func loadDownloadedTracks() throws {

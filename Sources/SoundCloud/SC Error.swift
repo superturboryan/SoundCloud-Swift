@@ -10,5 +10,6 @@ import Foundation
 extension SC {
     public enum Error: LocalizedError {
         case failedLoadingPersistedTokens
+        case trackDownloadNotInProgress
     }
 }
