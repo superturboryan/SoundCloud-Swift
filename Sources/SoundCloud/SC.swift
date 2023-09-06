@@ -57,6 +57,7 @@ public class SC: NSObject, ObservableObject {
     private let decoder = JSONDecoder()
     
     public var authHeader: [String : String] { get async throws {
+        // TODO: Fix weird unwrap logic
         if authTokens?.isExpired ?? false {
             try await refreshAuthTokens()
         }
@@ -94,7 +95,6 @@ public extension SC {
         //TODO: Handle try! errors
         do {
             let authCode = try await getAuthCode()
-            print("✅ 🔊 ☁️")
             let newAuthTokens = try await getNewAuthTokens(using: authCode)
             authTokens = newAuthTokens
             isLoggedIn = true
@@ -163,12 +163,12 @@ public extension SC {
     
     func download(_ track: Track) async throws {
         let streamInfo = try await getStreamInfoForTrack(track.id)
-        try await beginDownloadingTrack(track, from: streamInfo.httpMp3128Url)
+        try await downloadTrack(track, from: streamInfo.httpMp3128Url)
     }
      
     func removeDownload(_ trackToRemove: Track) throws {
-        let trackMp3Url = trackToRemove.localFileUrl(withExtension: "mp3") // TODO: Enum for file extensions
-        let trackJsonUrl = trackToRemove.localFileUrl(withExtension: "json")
+        let trackMp3Url = trackToRemove.localFileUrl(withExtension: Track.FileExtension.mp3)
+        let trackJsonUrl = trackToRemove.localFileUrl(withExtension: Track.FileExtension.json)
         try FileManager.default.removeItem(at: trackMp3Url)
         try FileManager.default.removeItem(at: trackJsonUrl)
         
@@ -311,9 +311,9 @@ private extension SC {
 
 // MARK: - Downloads
 extension SC: URLSessionTaskDelegate {
-    private func beginDownloadingTrack(_ track: Track, from url: String) async throws {
+    private func downloadTrack(_ track: Track, from url: String) async throws {
         
-        let localMp3Url = track.localFileUrl(withExtension: "mp3")
+        let localMp3Url = track.localFileUrl(withExtension: Track.FileExtension.mp3)
         guard !FileManager.default.fileExists(atPath: localMp3Url.path), !downloadsInProgress.keys.contains(track)
         else {
             //TODO: Throw error?
@@ -337,7 +337,7 @@ extension SC: URLSessionTaskDelegate {
         
         try trackData.write(to: localMp3Url)
         let trackJsonData = try JSONEncoder().encode(track)
-        let localJsonUrl = track.localFileUrl(withExtension: "json")
+        let localJsonUrl = track.localFileUrl(withExtension: Track.FileExtension.json)
         try trackJsonData.write(to: localJsonUrl)
         
         var trackWithLocalFileUrl = track
@@ -369,17 +369,17 @@ extension SC: URLSessionTaskDelegate {
         // Get id of downloaded tracks from device's documents directory
         let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         let downloadedTrackIds = try FileManager.default.contentsOfDirectory(atPath: documentsURL.path)
-            .filter { $0.lowercased().contains("mp3") } // Get all mp3 files
-            .map { $0.replacingOccurrences(of: ".mp3", with: "") } // Remove mp3 extension so only id remains
+            .filter { $0.lowercased().contains(Track.FileExtension.mp3) } // Get all mp3 files
+            .map { $0.replacingOccurrences(of: ".\(Track.FileExtension.mp3)", with: "") } // Remove mp3 extension so only id remains
         
         // Load track for each id, set local mp3 file url for track
         var loadedTracks = [Track]()
         for id in downloadedTrackIds {
-            let trackJsonURL = documentsURL.appendingPathComponent("\(id).json")
+            let trackJsonURL = documentsURL.appendingPathComponent("\(id).\(Track.FileExtension.json)")
             let trackJsonData = try Data(contentsOf: trackJsonURL)
             var downloadedTrack = try JSONDecoder().decode(Track.self, from: trackJsonData)
             
-            let downloadedTrackLocalMp3Url = downloadedTrack.localFileUrl(withExtension: "mp3").absoluteString
+            let downloadedTrackLocalMp3Url = downloadedTrack.localFileUrl(withExtension: Track.FileExtension.mp3).absoluteString
             downloadedTrack.localFileUrl = downloadedTrackLocalMp3Url
             
             loadedTracks.append(downloadedTrack)

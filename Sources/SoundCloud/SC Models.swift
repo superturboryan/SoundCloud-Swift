@@ -213,6 +213,14 @@ public extension Track {
     }
 }
 
+public extension Track {
+    struct FileExtension {
+        private init() {}
+        public static let mp3 = "mp3"
+        public static let json = "json"
+    }
+}
+
 extension Track: Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(id)
