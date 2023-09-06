@@ -18,7 +18,7 @@ public class SC: NSObject, ObservableObject {
     @Published public private(set) var isLoggedIn: Bool = true // Prevents LoginView from appearing every app load
     
     @Published public var loadedPlaylists: [Int : Playlist] = [:]
-    @Published public var loadedTrackNowPlayingQueueIndex: Int = -1
+    @Published public private(set) var loadedTrackNowPlayingQueueIndex: Int = -1
     @Published public var loadedTrack: Track? {
         didSet {
             loadedTrackNowPlayingQueueIndex = loadedPlaylists[PlaylistType.nowPlaying.rawValue]?.tracks?.firstIndex(where: { $0 == loadedTrack }) ?? -1
@@ -35,10 +35,6 @@ public class SC: NSObject, ObservableObject {
     public var isLoadedTrackDownloaded: Bool {
         guard let loadedTrack else { return false }
         return downloadedTracks.contains(loadedTrack)
-    }
-    
-    public var nowPlayingPlaylist: Playlist? {
-        loadedPlaylists[PlaylistType.nowPlaying.rawValue]
     }
     
     // Use id to filter loadedPlaylists dictionary for my + liked playlists
@@ -207,6 +203,31 @@ public extension SC {
     
     private func getStreamInfoForTrack(_ id: Int) async throws -> StreamInfo {
         try await get(.streamInfoForTrack(id))
+    }
+}
+
+// MARK: - Queue helpers
+public extension SC {
+    public var nowPlayingPlaylist: Playlist? {
+        loadedPlaylists[PlaylistType.nowPlaying.rawValue]
+    }
+    
+    var nextTrackInNowPlayingQueue: Track? {
+        guard let queue = nowPlayingPlaylist?.tracks
+        else { return nil }
+        
+        let isEndOfQueue = loadedTrackNowPlayingQueueIndex == queue.count - 1
+        let nextTrackIndex = isEndOfQueue ? 0 : loadedTrackNowPlayingQueueIndex + 1
+        return queue[nextTrackIndex]
+    }
+    
+    var previousTrackInNowPlayingQueue: Track? {
+        guard let queue = nowPlayingPlaylist?.tracks,
+              loadedTrackNowPlayingQueueIndex > 0
+        else { return nil }
+        
+        let previousTrackIndex = loadedTrackNowPlayingQueueIndex - 1
+        return queue[previousTrackIndex]
     }
 }
 

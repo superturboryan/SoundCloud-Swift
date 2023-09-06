@@ -234,7 +234,7 @@ public let testUser = User(
     id: 0,
     permalinkUrl: "https://i1.sndcdn.com/avatars-0DxRBnyCNCI3zL1X-oeoRyw-large.jpg",
     uri: "",
-    username: "SuperTurboRyRy",
+    username: "Rinse FM",
     createdAt: "",
     firstName: "",
     lastName: "",
