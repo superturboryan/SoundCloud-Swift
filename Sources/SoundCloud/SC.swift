@@ -274,7 +274,7 @@ extension SC {
     
     private func refreshAuthTokens() async throws {
         let tokenResponse = try await get(.refreshToken(authTokens?.refreshToken ?? ""))
-        print("♻️  Refreshed tokens:"); dump(tokenResponse)
+        print("♻️ Refreshed tokens:"); dump(tokenResponse)
         authTokens = tokenResponse
     }
 }
@@ -312,9 +312,12 @@ private extension SC {
 // MARK: - Downloads
 extension SC: URLSessionTaskDelegate {
     private func downloadTrack(_ track: Track, from url: String) async throws {
-        
         let localMp3Url = track.localFileUrl(withExtension: Track.FileExtension.mp3)
-        guard !FileManager.default.fileExists(atPath: localMp3Url.path), !downloadsInProgress.keys.contains(track)
+        
+        // Checks before starting download
+        let localFileDoesNotExist = !FileManager.default.fileExists(atPath: localMp3Url.path)
+        let downloadNotAlreadyInProgress = !downloadsInProgress.keys.contains(track)
+        guard localFileDoesNotExist, downloadNotAlreadyInProgress
         else {
             //TODO: Throw error?
             print("😳 Track already exists or is being downloaded!")
@@ -327,11 +330,11 @@ extension SC: URLSessionTaskDelegate {
         var request = URLRequest(url: URL(string: url)!)
         request.allHTTPHeaderFields = try await authHeader
         
-        // ‼️ Response does not contain ID for track
+        // ‼️ Response does not contain ID for track (only encrypted ID)
         // Add track ID to request header to know which track is being downloaded in delegate
         request.addValue("\(track.id)", forHTTPHeaderField: "track_id")
         
-        //TODO: Catch errors
+        //TODO: Catch errors, check response
         let (trackData, _) = try await URLSession.shared.data(for: request, delegate: self)
         downloadsInProgress.removeValue(forKey: track)
         
