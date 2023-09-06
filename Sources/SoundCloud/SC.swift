@@ -148,21 +148,21 @@ public extension SC {
         }
     }
     
-    func loadTracksForPlaylist(_ id: Int) async throws {
+    func loadTracksForPlaylist(with id: Int) async throws {
         if let userPlaylistType = PlaylistType(rawValue: id) {
             switch userPlaylistType {
             case .likes: try await loadMyLikedTracksPlaylistWithTracks()
             case .recentlyPosted: try await loadRecentlyPostedPlaylistWithTracks()
             // These playlists are not reloaded here
-            case .nowPlaying, .downloads: break
+            case .nowPlaying, .downloads: print("⚠️ Playlist NOT reloaded, use specific reload method"); break
             }
         } else {
-            loadedPlaylists[id]?.tracks = try await getTracksForPlaylist(id)
+            loadedPlaylists[id]?.tracks = try await getTracksForPlaylist(with: id)
         }
     }
     
     func download(_ track: Track) async throws {
-        let streamInfo = try await getStreamInfoForTrack(track.id)
+        let streamInfo = try await getStreamInfoForTrack(with: track.id)
         try await downloadTrack(track, from: streamInfo.httpMp3128Url)
     }
      
@@ -188,11 +188,11 @@ public extension SC {
     }
     
     // MARK: - Private API Helpers
-    private func getTracksForPlaylist(_ id: Int) async throws -> [Track] {
+    private func getTracksForPlaylist(with id: Int) async throws -> [Track] {
         try await get(.tracksForPlaylist(id))
     }
     
-    private func getStreamInfoForTrack(_ id: Int) async throws -> StreamInfo {
+    private func getStreamInfoForTrack(with id: Int) async throws -> StreamInfo {
         try await get(.streamInfoForTrack(id))
     }
     
@@ -228,12 +228,16 @@ public extension SC {
 
 // MARK: - Queue helpers
 public extension SC {
-    var nowPlayingPlaylist: Playlist? {
-        loadedPlaylists[PlaylistType.nowPlaying.rawValue]
+    func setNowPlayingQueue(with tracks: [Track]) {
+        loadedPlaylists[PlaylistType.nowPlaying.rawValue]?.tracks = tracks
+    }
+    
+    var nowPlayingQueue: [Track]? {
+        loadedPlaylists[PlaylistType.nowPlaying.rawValue]!.tracks
     }
     
     var nextTrackInNowPlayingQueue: Track? {
-        guard let queue = nowPlayingPlaylist?.tracks
+        guard let queue = nowPlayingQueue
         else { return nil }
         
         let isEndOfQueue = loadedTrackNowPlayingQueueIndex == queue.count - 1
@@ -242,7 +246,7 @@ public extension SC {
     }
     
     var previousTrackInNowPlayingQueue: Track? {
-        guard let queue = nowPlayingPlaylist?.tracks,
+        guard let queue = nowPlayingQueue,
               loadedTrackNowPlayingQueueIndex > 0
         else { return nil }
         
