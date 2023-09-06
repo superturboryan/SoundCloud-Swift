@@ -14,7 +14,7 @@ import SwiftUI
 public class SC: NSObject, ObservableObject {
     
     // TODO: Make all @Published use private(set)
-    @Published public var me: User? = nil
+    @Published public var myUser: User? = nil
     @Published public private(set) var isLoggedIn: Bool = true // Prevents LoginView from appearing every app load
     
     @Published public var loadedPlaylists: [Int : Playlist] = [:]
@@ -64,9 +64,7 @@ public class SC: NSObject, ObservableObject {
     }}
 
     private var subscriptions = Set<AnyCancellable>()
-    
-// MARK: - Setup
-    
+        
     /// Use this initializer to optionally inject persistence  service to use when interacting with the SoundCloud API.
     ///
     /// If you need to assign the SC instance to a **SwiftUI ObservableObject** variable, you can use a closure to inject
@@ -87,13 +85,6 @@ public class SC: NSObject, ObservableObject {
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         
         if let authTokens { print("✅💾🔐 Loaded saved auth tokens: \(authTokens.accessToken)") }
-    }
-    
-    private func loadDefaultPlaylists() {
-        loadedPlaylists[PlaylistType.nowPlaying.rawValue] = Playlist(id: PlaylistType.nowPlaying.rawValue, user: me!, title: PlaylistType.nowPlaying.title, tracks: [])
-        loadedPlaylists[PlaylistType.downloads.rawValue] = Playlist(id: PlaylistType.downloads.rawValue, user: me!, title: PlaylistType.downloads.title, tracks: [])
-        loadedPlaylists[PlaylistType.likes.rawValue] = Playlist(id: PlaylistType.likes.rawValue, permalinkUrl: me!.permalinkUrl + "/likes", user: me!, title: PlaylistType.likes.title, tracks: [])
-        loadedPlaylists[PlaylistType.recentlyPosted.rawValue] = Playlist(id: PlaylistType.recentlyPosted.rawValue, permalinkUrl: me!.permalinkUrl + "/following", user: me!, title: PlaylistType.recentlyPosted.title, tracks: [])
     }
 }
 
@@ -120,7 +111,7 @@ public extension SC {
     func loadLibrary() async throws {
         
         try await loadMyProfile()
-        loadDefaultPlaylists()
+        loadDefaultPlaylists() // ⚠️ Must call loadMyProfile first!
         try loadDownloadedTracks()
         
         try? await loadMyPlaylistsWithoutTracks()
@@ -130,7 +121,7 @@ public extension SC {
     }
     
     func loadMyProfile() async throws {
-        me = try await get(.me())
+        myUser = try await get(.me())
     }
     
     func loadMyLikedTracksPlaylistWithTracks() async throws {
@@ -204,11 +195,40 @@ public extension SC {
     private func getStreamInfoForTrack(_ id: Int) async throws -> StreamInfo {
         try await get(.streamInfoForTrack(id))
     }
+    
+    private func loadDefaultPlaylists() {
+        loadedPlaylists[PlaylistType.nowPlaying.rawValue] = Playlist(
+            id: PlaylistType.nowPlaying.rawValue,
+            user: myUser!,
+            title: PlaylistType.nowPlaying.title,
+            tracks: []
+        )
+        loadedPlaylists[PlaylistType.downloads.rawValue] = Playlist(
+            id: PlaylistType.downloads.rawValue,
+            user: myUser!,
+            title: PlaylistType.downloads.title,
+            tracks: []
+        )
+        loadedPlaylists[PlaylistType.likes.rawValue] = Playlist(
+            id: PlaylistType.likes.rawValue,
+            permalinkUrl: myUser!.permalinkUrl + "/likes",
+            user: myUser!,
+            title: PlaylistType.likes.title,
+            tracks: []
+        )
+        loadedPlaylists[PlaylistType.recentlyPosted.rawValue] = Playlist(
+            id: PlaylistType.recentlyPosted.rawValue,
+            permalinkUrl: myUser!.permalinkUrl + "/following",
+            user: myUser!,
+            title: PlaylistType.recentlyPosted.title,
+            tracks: []
+        )
+    }
 }
 
 // MARK: - Queue helpers
 public extension SC {
-    public var nowPlayingPlaylist: Playlist? {
+    var nowPlayingPlaylist: Playlist? {
         loadedPlaylists[PlaylistType.nowPlaying.rawValue]
     }
     
@@ -252,7 +272,7 @@ extension SC {
         return tokenResponse
     }
     
-    public func refreshAuthTokens() async throws {
+    private func refreshAuthTokens() async throws {
         let tokenResponse = try await get(.refreshToken(authTokens?.refreshToken ?? ""))
         print("♻️  Refreshed tokens:"); dump(tokenResponse)
         authTokens = tokenResponse
