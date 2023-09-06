@@ -21,7 +21,9 @@ public class SC: NSObject, ObservableObject {
     @Published public private(set) var loadedTrackNowPlayingQueueIndex: Int = -1
     @Published public var loadedTrack: Track? {
         didSet {
-            loadedTrackNowPlayingQueueIndex = loadedPlaylists[PlaylistType.nowPlaying.rawValue]?.tracks?.firstIndex(where: { $0 == loadedTrack }) ?? -1
+            loadedTrackNowPlayingQueueIndex = loadedPlaylists[PlaylistType.nowPlaying.rawValue]?
+                .tracks?
+                .firstIndex(where: { $0 == loadedTrack }) ?? -1
         }
     }
     
@@ -54,16 +56,18 @@ public class SC: NSObject, ObservableObject {
         }
     }
     
-    private let decoder = JSONDecoder()
-    
     public var authHeader: [String : String] { get async throws {
-        // TODO: Fix weird unwrap logic
-        if authTokens?.isExpired ?? false {
+        guard let authTokens
+        else { throw Error.failedLoadingPersistedTokens }
+        
+        if authTokens.isExpired {
+            print("⚠️ Auth tokens expired at: \(authTokens.expiryDate!)")
             try await refreshAuthTokens()
         }
-        return ["Authorization" : "Bearer " + (authTokens?.accessToken ?? "")]
+        return ["Authorization" : "Bearer " + (authTokens.accessToken)]
     }}
-
+    
+    private let decoder = JSONDecoder()
     private var subscriptions = Set<AnyCancellable>()
         
     /// Use this initializer to optionally inject persistence  service to use when interacting with the SoundCloud API.
@@ -85,7 +89,7 @@ public class SC: NSObject, ObservableObject {
         
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         
-        if let authTokens { print("✅💾🔐 Loaded saved auth tokens: \(authTokens.accessToken)") }
+        if let authTokens { print("✅💾🔐 SC.init: Loaded saved auth tokens: \(authTokens.accessToken)") }
     }
 }
 
@@ -99,7 +103,7 @@ public extension SC {
             authTokens = newAuthTokens
             isLoggedIn = true
         } catch {
-            print("❌ 🔊 ☁️ \(error.localizedDescription)")
+            print("❌ 🔊 ☁️ SC.login: \(error.localizedDescription)")
         }
     }
     
@@ -154,7 +158,7 @@ public extension SC {
             case .likes: try await loadMyLikedTracksPlaylistWithTracks()
             case .recentlyPosted: try await loadRecentlyPostedPlaylistWithTracks()
             // These playlists are not reloaded here
-            case .nowPlaying, .downloads: print("⚠️ Playlist NOT reloaded, use specific reload method"); break
+            case .nowPlaying, .downloads: print("⚠️ SC.loadTracksForPlaylist: NOT reloaded, use specific reload method"); break
             }
         } else {
             loadedPlaylists[id]?.tracks = try await getTracksForPlaylist(with: id)
@@ -384,7 +388,7 @@ extension SC: URLSessionTaskDelegate {
         for id in downloadedTrackIds {
             let trackJsonURL = documentsURL.appendingPathComponent("\(id).\(Track.FileExtension.json)")
             let trackJsonData = try Data(contentsOf: trackJsonURL)
-            var downloadedTrack = try JSONDecoder().decode(Track.self, from: trackJsonData)
+            var downloadedTrack = try decoder.decode(Track.self, from: trackJsonData)
             
             let downloadedTrackLocalMp3Url = downloadedTrack.localFileUrl(withExtension: Track.FileExtension.mp3).absoluteString
             downloadedTrack.localFileUrl = downloadedTrackLocalMp3Url
