@@ -8,22 +8,6 @@
 import Foundation
 import SwiftUI
 
-public enum PlaylistType: Int, CaseIterable {
-    case nowPlaying = 1
-    case downloads
-    case likes
-    case recentlyPosted // By people current user follows
-    
-    public var title: String {
-        switch self {
-        case .nowPlaying: return "Now playing"
-        case .downloads: return "Downloads"
-        case .likes:  return "Likes"
-        case .recentlyPosted: return "Recently posted"
-        }
-    }
-}
-
 public struct OAuthTokenResponse: Codable {
     public let accessToken: String
     public let expiresIn: Int
@@ -158,6 +142,22 @@ extension Playlist {
     
     public var artworkUrlWithTrackAndUserFallback: URL {
         URL(string: artworkUrl ?? tracks?.first?.artworkUrl ?? user.avatarUrl)!
+    }
+}
+
+public enum PlaylistType: Int, CaseIterable {
+    case nowPlaying = 1
+    case downloads
+    case likes
+    case recentlyPosted // By people current user follows
+    
+    public var title: String {
+        switch self {
+        case .nowPlaying: return "Now playing"
+        case .downloads: return "Downloads"
+        case .likes:  return "Likes"
+        case .recentlyPosted: return "Recently posted"
+        }
     }
 }
 

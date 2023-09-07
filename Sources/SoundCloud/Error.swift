@@ -7,9 +7,12 @@
 
 import Foundation
 
-extension SC {
-    public enum Error: LocalizedError {
+public extension SC {
+    enum Error: LocalizedError {
         case failedLoadingPersistedTokens
         case trackDownloadNotInProgress
+        case userNotAuthorized
+        case networkError(StatusCode)
     }
 }
+

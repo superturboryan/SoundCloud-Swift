@@ -59,7 +59,7 @@ final public class SC: NSObject, ObservableObject {
     
     public var authHeader: [String : String] { get async throws {
         guard let authTokens
-        else { throw Error.failedLoadingPersistedTokens }
+        else { throw Error.userNotAuthorized }
         
         if authTokens.isExpired {
             print("⚠️ Auth tokens expired at: \(authTokens.expiryDate!)")
@@ -299,10 +299,17 @@ private extension SC {
     }
     
     func fetchData<T: Decodable>(from request: URLRequest) async throws -> T {
-        // TODO: Check response
-        let (data, _) = try await URLSession.shared.data(for: request)
-        let decodedObject = try decoder.decode(T.self, from: data)
-        return decodedObject
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        let statusCodeInt = (response as! HTTPURLResponse).statusCode
+        let statusCode = StatusCode(rawValue: statusCodeInt)!
+        
+        if statusCode == .unauthorized { throw Error.userNotAuthorized }
+        else if statusCode.errorOccurred { throw Error.networkError(statusCode) }
+        else {
+            let decodedObject = try decoder.decode(T.self, from: data)
+            return decodedObject
+        }
     }
     
     func authorized<T>(_ scRequest: Request<T>) async throws -> URLRequest {
