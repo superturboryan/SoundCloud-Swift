@@ -7,19 +7,6 @@
 
 import Foundation
 
-var apiURL = "https://api.soundcloud.com/"
-
-// TODO: 🫨 Inject these in init instead of reading from info.plist here in module!
-var clientId: String { Bundle.main.object(forInfoDictionaryKey: "SC_CLIENT_ID") as! String }
-var clientSecret: String { Bundle.main.object(forInfoDictionaryKey: "SC_CLIENT_SECRET") as! String }
-var redirectURI: String { Bundle.main.object(forInfoDictionaryKey: "SC_REDIRECT_URI") as! String }
-
-let authorizeURL = apiURL
-    + "connect"
-    + "?client_id=\(clientId)"
-    + "&redirect_uri=\(redirectURI)"
-    + "&response_type=code"
-
 extension SC {
     
     struct Request<T: Decodable> {
@@ -27,8 +14,8 @@ extension SC {
         var api: API
         
         enum API {
-            case accessToken(_ accessCode: String)
-            case refreshAccessToken(_ refreshToken: String)
+            case accessToken(_ accessCode: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String)
+            case refreshAccessToken(_ refreshToken: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String)
             case me
             case myLikedTracks
             case myFollowingsRecentlyPosted
@@ -41,12 +28,12 @@ extension SC {
             case unlikeTrack(_ id: Int)
         }
         
-        static func accessToken(_ code: String) -> Request<OAuthTokenResponse> {
-            Request<OAuthTokenResponse>(api: .accessToken(code))
+        static func accessToken(_ code: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String) -> Request<OAuthTokenResponse> {
+            Request<OAuthTokenResponse>(api: .accessToken(code, clientId, clientSecret, redirectURI))
         }
         
-        static func refreshToken(_ refreshToken: String) -> Request<OAuthTokenResponse> {
-            Request<OAuthTokenResponse>(api: .refreshAccessToken(refreshToken))
+        static func refreshToken(_ refreshToken: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String) -> Request<OAuthTokenResponse> {
+            Request<OAuthTokenResponse>(api: .refreshAccessToken(refreshToken, clientId, clientSecret, redirectURI))
         }
         
         static func me() -> Request<User> {
@@ -110,7 +97,7 @@ extension SC.Request {
     var queryParameters: [String : String]? {
         switch api {
 
-        case .accessToken(let accessCode): return [
+        case let .accessToken(accessCode, clientId, clientSecret, redirectURI): return [
             "code" : accessCode,
             "grant_type" : "authorization_code",
             "client_id" : clientId,
@@ -118,7 +105,7 @@ extension SC.Request {
             "redirect_uri" : redirectURI
         ]
             
-        case .refreshAccessToken(let refreshToken): return [
+        case let .refreshAccessToken(refreshToken, clientId, clientSecret, redirectURI): return [
             "refresh_token" : refreshToken,
             "grant_type" : "refresh_token",
             "client_id" : clientId,

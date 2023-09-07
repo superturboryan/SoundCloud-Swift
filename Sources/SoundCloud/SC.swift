@@ -70,6 +70,12 @@ final public class SC: NSObject, ObservableObject {
     
     private let decoder = JSONDecoder()
     private var subscriptions = Set<AnyCancellable>()
+    
+    // TODO: Bundle in a config object?
+    private let apiURL: String
+    private let clientId: String
+    private let clientSecret: String
+    private let redirectURI: String
         
     /// Use this initializer to optionally inject persistence  service to use when interacting with the SoundCloud API.
     ///
@@ -82,10 +88,23 @@ final public class SC: NSObject, ObservableObject {
     /// }() // 👀 Don't forget to execute the closure!
     /// ```
     ///  - Parameter tokenService: Serivce to use for persisting OAuthTokens. **Defaults to Keychain**
+    ///  - Parameter apiURL: Base URL to use for API requests. **Defaults to http://api.soundcloud.com**
+    ///  - Parameter clientID: Client ID to use when authorizing with API and requesting tokens.
+    ///  - Parameter clientSecret: Client secret to use when authorizing with API and requesting tokens.
+    ///  - Parameter redirectURI: URI to use when redirecting from OAuth login page to app. This URI should take the form
+    ///  `(app URLScheme)://(callback path)`.
     public init(
-        tokenService: AuthTokenPersisting = KeychainService()
+        tokenService: AuthTokenPersisting = KeychainService(),
+        apiURL: String = "https://api.soundcloud.com/",
+        clientId: String,
+        clientSecret: String,
+        redirectURI: String
     ) {
         self.tokenService = tokenService
+        self.apiURL = apiURL
+        self.clientId = clientId
+        self.clientSecret = clientSecret
+        self.redirectURI = redirectURI
         super.init()
         
         decoder.keyDecodingStrategy = .convertFromSnakeCase
@@ -265,26 +284,34 @@ public extension SC {
 // MARK: - Authentication
 extension SC {
     private func getAuthCode() async throws -> String {
+        let authorizeURL = apiURL
+        + "connect"
+        + "?client_id=\(clientId)"
+        + "&redirect_uri=\(redirectURI)"
+        + "&response_type=code"
+        
         #if os(iOS)
-        try await ASWebAuthenticationSession.getAuthCode(
+        return try await ASWebAuthenticationSession.getAuthCode(
             from: authorizeURL,
+            with: redirectURI,
             ephemeralSession: false
         )
         #else
-        try await ASWebAuthenticationSession.getAuthCode(
-            from: authorizeURL
+        return try await ASWebAuthenticationSession.getAuthCode(
+            from: authorizeURL,
+            with: redirectURI
         )
         #endif
     }
     
     private func getNewAuthTokens(using authCode: String) async throws -> (OAuthTokenResponse) {
-        let tokenResponse = try await get(.accessToken(authCode))
+        let tokenResponse = try await get(.accessToken(authCode, clientId, clientSecret, redirectURI))
         print("✅ Received new tokens:"); dump(tokenResponse)
         return tokenResponse
     }
     
     private func refreshAuthTokens() async throws {
-        let tokenResponse = try await get(.refreshToken(authTokens?.refreshToken ?? ""))
+        let tokenResponse = try await get(.refreshToken(authTokens!.refreshToken, clientId, clientSecret, redirectURI))
         print("♻️ Refreshed tokens:"); dump(tokenResponse)
         authTokens = tokenResponse
     }

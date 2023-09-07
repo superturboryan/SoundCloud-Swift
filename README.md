@@ -3,44 +3,42 @@
 
 `SoundCloud` is a Swift Package 📦 that implements the **[SoundCloud Public API Specification (v1.0.0) ](https://developers.soundcloud.com/docs/api/)**. 
 
-It handles the logic for authenticating with a SoundCloud account using the OAuth 2.0 standard, and provides an API for making authorized requests for streams and track, artist, playlist data from SoundCloud.
+It handles the logic for authenticating with a SoundCloud account using the OAuth 2.0 standard, and provides an API for making authorized requests for streaming content and acessing track, artist, playlist data from SoundCloud.
 
 ## Installation
-To use SoundCloud in a project, add the following line to the dependencies in the Package.swift file:
+Add the following line to your project's dependencies in the Package.swift file:
 
 ```swift
 .package(url: "https://github.com/superturboryan/SoundCloud-api"),
 ```
 
-Include "SoundCloud" as a dependency for your executable target:
+and include "SoundCloud" as a dependency for your executable target:
 
 ```swift
-.target(name: "<target>", dependencies: ["SoundCloud"]),
+.target(name: "Your App", dependencies: ["SoundCloud", ...]),
 ```
-
-Finally, `import SoundCloud` wherever you want to use it! 
 
 ## Setup
-[Define a custom URL scheme for your app](https://developer.apple.com/documentation/xcode/defining-a-custom-url-scheme-for-your-app), you will need to provide a URL scheme so that the OAuth login page knows how to open your app when it receives the OAuth tokens callback.
-
-Add entries for `SC_CLIENT_ID`, `SC_CLIENT_SECRET`, and `SC_REDIRECT_URI` to the project's info.plist:
-
-```
-<key>SC_CLIENT_ID</key>
-<string>$(SC_CLIENT_ID)</string>
-<key>SC_CLIENT_SECRET</key>
-<string>$(SC_CLIENT_SECRET)</string>
-<key>SC_REDIRECT_URI</key>
-<string>$(SC_REDIRECT_URI)</string>
-```
+[Define a custom URL scheme for your app](https://developer.apple.com/documentation/xcode/defining-a-custom-url-scheme-for-your-app), you will need to provide a URL scheme so that the OAuth login page knows how to open your app when it receives the OAuth tokens callback.     
+  
+The redirect URI used when creating the SC instance must also be paired with the client ID and client secret for your [SoundCloud registered apps](https://soundcloud.com/you/apps).
 
 ## Usage
 To login using your SoundCloud account:
 
 ```swift
-@StateObject var sc = SC()
+import SoundCloud
+
+@StateObject var sc = SC(clientId: ...)  
+  
 ...
-await sc.login()
+    
+do {
+    try await sc.login()
+} catch {
+    // Handle login error
+}
+
 ```
 
 To get the liked tracks for the current user:

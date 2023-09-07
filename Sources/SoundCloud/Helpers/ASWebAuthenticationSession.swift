@@ -19,6 +19,7 @@ public extension ASWebAuthenticationSession {
     /// - Returns: Authorization code from callback URL
     @MainActor static func getAuthCode(
         from url: String,
+        with redirectURI: String,
         context: ASWebAuthenticationPresentationContextProviding = ApplicationWindowContextProvider(),
         ephemeralSession: Bool // Use cookies
     ) async throws -> String {
@@ -49,6 +50,7 @@ public extension ASWebAuthenticationSession {
     #if os(watchOS)
     @MainActor static func getAuthCode(
         from url: String,
+        with redirectURI: String,
         ephemeralSession: Bool = false
     ) async throws -> String {
         try await withCheckedThrowingContinuation { continuation in
