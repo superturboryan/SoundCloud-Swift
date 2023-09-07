@@ -202,6 +202,8 @@ public extension SC {
     }
     
     private func loadDefaultPlaylists() {
+        loadedPlaylists.removeAll()
+        
         loadedPlaylists[PlaylistType.nowPlaying.rawValue] = Playlist(
             id: PlaylistType.nowPlaying.rawValue,
             user: myUser!,
