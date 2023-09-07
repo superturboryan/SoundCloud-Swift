@@ -10,7 +10,7 @@ import Combine
 import SwiftUI
 
 @MainActor
-public class SC: NSObject, ObservableObject {
+final public class SC: NSObject, ObservableObject {
     
     // TODO: Make all @Published use private(set)
     @Published public var myUser: User? = nil

@@ -39,7 +39,7 @@ public extension ASWebAuthenticationSession {
         }
     }
     
-    class ApplicationWindowContextProvider: NSObject, ASWebAuthenticationPresentationContextProviding {
+    final class ApplicationWindowContextProvider: NSObject, ASWebAuthenticationPresentationContextProviding {
         public func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
             return UIApplication.shared.keyWindow!
         }

@@ -152,7 +152,6 @@ public struct Playlist: Decodable, Identifiable, Equatable {
 }
 
 extension Playlist {
-    
     public var durationInSeconds: Int {
         (tracks ?? []).reduce(into: 0, { $0 += $1.durationInSeconds})
     }
@@ -213,7 +212,7 @@ public extension Track {
     }
 }
 
-public extension Track {
+internal extension Track {
     struct FileExtension {
         private init() {}
         public static let mp3 = "mp3"
