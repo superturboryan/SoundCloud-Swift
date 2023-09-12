@@ -333,7 +333,7 @@ public var testDefaultLoadedPlaylists: [Int : Playlist] {
 public let testFreeSubscription = Subscription(product: Subscription.Product(id: "free", name: "Free"))
 
 @MainActor
-public var testSC = SC(clientId: "", clientSecret: "", redirectURI: "")
+public var testSC = SoundCloud(clientId: "", clientSecret: "", redirectURI: "")
 /*
  API image sizes:
  

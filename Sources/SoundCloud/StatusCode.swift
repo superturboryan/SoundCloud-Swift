@@ -7,7 +7,7 @@
 
 import Foundation
 
-public extension SC {
+public extension SoundCloud {
     enum StatusCode: Int {
         case success = 200
         case found = 302

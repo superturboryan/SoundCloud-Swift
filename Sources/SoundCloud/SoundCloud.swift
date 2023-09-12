@@ -10,7 +10,7 @@ import Combine
 import SwiftUI
 
 @MainActor
-final public class SC: NSObject, ObservableObject {
+final public class SoundCloud: NSObject, ObservableObject {
     
     // TODO: Make all @Published use private(set)
     @Published public var myUser: User? = nil
@@ -87,18 +87,18 @@ final public class SC: NSObject, ObservableObject {
     ///    return SC(tokenService: dependency)
     /// }() // 👀 Don't forget to execute the closure!
     /// ```
-    ///  - Parameter tokenService: Serivce to use for persisting OAuthTokens. **Defaults to Keychain**
     ///  - Parameter apiURL: Base URL to use for API requests. **Defaults to http://api.soundcloud.com**
     ///  - Parameter clientID: Client ID to use when authorizing with API and requesting tokens.
     ///  - Parameter clientSecret: Client secret to use when authorizing with API and requesting tokens.
     ///  - Parameter redirectURI: URI to use when redirecting from OAuth login page to app. This URI should take the form
     ///  `(app URLScheme)://(callback path)`.
+    ///  - Parameter tokenService: Serivce to use for persisting OAuthTokens. **Defaults to Keychain**
     public init(
-        tokenService: AuthTokenPersisting = KeychainService(),
         apiURL: String = "https://api.soundcloud.com/",
         clientId: String,
         clientSecret: String,
-        redirectURI: String
+        redirectURI: String,
+        tokenService: AuthTokenPersisting = KeychainService()
     ) {
         self.tokenService = tokenService
         self.apiURL = apiURL
@@ -114,7 +114,7 @@ final public class SC: NSObject, ObservableObject {
 }
 
 // MARK: - Public API
-public extension SC {
+public extension SoundCloud {
     func login() async {
         //TODO: Handle try! errors
         do {
@@ -253,7 +253,7 @@ public extension SC {
 }
 
 // MARK: - Queue helpers
-public extension SC {
+public extension SoundCloud {
     func setNowPlayingQueue(with tracks: [Track]) {
         loadedPlaylists[PlaylistType.nowPlaying.rawValue]?.tracks = tracks
     }
@@ -282,7 +282,7 @@ public extension SC {
 }
 
 // MARK: - Authentication
-extension SC {
+extension SoundCloud {
     private func getAuthCode() async throws -> String {
         let authorizeURL = apiURL
         + "connect"
@@ -318,7 +318,7 @@ extension SC {
 }
 
 // MARK: - API request
-private extension SC {
+private extension SoundCloud {
     
     @discardableResult
     func get<T: Decodable>(_ request: Request<T>) async throws -> T {
@@ -355,7 +355,7 @@ private extension SC {
 }
 
 // MARK: - Downloads
-extension SC: URLSessionTaskDelegate {
+extension SoundCloud: URLSessionTaskDelegate {
     private func downloadTrack(_ track: Track, from url: String) async throws {
         let localMp3Url = track.localFileUrl(withExtension: Track.FileExtension.mp3)
         

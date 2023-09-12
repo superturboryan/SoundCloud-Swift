@@ -7,7 +7,7 @@
 
 import Foundation
 
-public extension SC {
+public extension SoundCloud {
     enum Error: LocalizedError {
         case failedLoadingPersistedTokens
         case trackDownloadNotInProgress

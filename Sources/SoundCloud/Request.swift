@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension SC {
+extension SoundCloud {
     
     struct Request<T: Decodable> {
         
@@ -75,7 +75,7 @@ extension SC {
 }
 
 // MARK: - Request Parameters
-extension SC.Request {
+extension SoundCloud.Request {
     
     var path: String {
         switch api {
@@ -133,7 +133,7 @@ extension SC.Request {
 }
 
 // MARK: - Helpers
-extension SC.Request {
+extension SoundCloud.Request {
     var shouldUseAuthHeader: Bool {
         switch api {
         case .accessToken, .refreshAccessToken: return false
