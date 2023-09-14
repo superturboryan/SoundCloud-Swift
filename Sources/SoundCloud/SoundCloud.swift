@@ -44,15 +44,15 @@ final public class SoundCloud: NSObject, ObservableObject {
     
     private var downloadTasks: [Track : URLSessionTask] = [:]
     
-    private var tokenService: AuthTokenPersisting
+    private var tokenPersistenceService: AuthTokenPersisting
     private var authTokens: OAuthTokenResponse? {
-        get { tokenService.authTokens }
+        get { tokenPersistenceService.authTokens }
         set {
             if let newValue {
-                tokenService.save(newValue)
+                tokenPersistenceService.save(newValue)
                 print("✅ 💾 🔑 New tokens saved to persistence")
             } else {
-                tokenService.delete()
+                tokenPersistenceService.delete()
             }
         }
     }
@@ -98,9 +98,9 @@ final public class SoundCloud: NSObject, ObservableObject {
         clientId: String,
         clientSecret: String,
         redirectURI: String,
-        tokenService: AuthTokenPersisting = KeychainService()
+        tokenPersistenceService: AuthTokenPersisting = KeychainService()
     ) {
-        self.tokenService = tokenService
+        self.tokenPersistenceService = tokenPersistenceService
         self.apiURL = apiURL
         self.clientId = clientId
         self.clientSecret = clientSecret
@@ -175,10 +175,14 @@ public extension SoundCloud {
     func loadTracksForPlaylist(with id: Int) async throws {
         if let userPlaylistType = PlaylistType(rawValue: id) {
             switch userPlaylistType {
-            case .likes: try await loadMyLikedTracksPlaylistWithTracks()
-            case .recentlyPosted: try await loadRecentlyPostedPlaylistWithTracks()
+            case .likes:
+                try await loadMyLikedTracksPlaylistWithTracks()
+            case .recentlyPosted:
+                try await loadRecentlyPostedPlaylistWithTracks()
             // These playlists are not reloaded here
-            case .nowPlaying, .downloads: print("⚠️ SC.loadTracksForPlaylist: NOT reloaded, use specific reload method"); break
+            case .nowPlaying, .downloads:
+                print("⚠️ SC.loadTracksForPlaylist has no effect. Playlist type reloads automatically")
+                break
             }
         } else {
             loadedPlaylists[id]?.tracks = try await getTracksForPlaylist(with: id)
