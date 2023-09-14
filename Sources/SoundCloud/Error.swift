@@ -12,7 +12,8 @@ public extension SoundCloud {
         case failedLoadingPersistedTokens
         case trackDownloadNotInProgress
         case userNotAuthorized
-        case networkError(StatusCode)
+        case network(StatusCode)
+        case decoding
     }
 }
 

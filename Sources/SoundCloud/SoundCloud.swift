@@ -58,14 +58,14 @@ final public class SoundCloud: NSObject, ObservableObject {
     }
     
     public var authHeader: [String : String] { get async throws {
-        guard let authTokens
+        guard let savedAuthTokens = authTokens
         else { throw Error.userNotAuthorized }
         
-        if authTokens.isExpired {
-            print("⚠️ Auth tokens expired at: \(authTokens.expiryDate!)")
+        if savedAuthTokens.isExpired {
+            print("⚠️ Auth tokens expired at: \(savedAuthTokens.expiryDate!)")
             try await refreshAuthTokens()
         }
-        return ["Authorization" : "Bearer " + (authTokens.accessToken)]
+        return ["Authorization" : "Bearer " + (authTokens!.accessToken)]
     }}
     
     private let decoder = JSONDecoder()
@@ -330,17 +330,20 @@ private extension SoundCloud {
     }
     
     func fetchData<T: Decodable>(from request: URLRequest) async throws -> T {
-        
         let (data, response) = try await URLSession.shared.data(for: request)
         let statusCodeInt = (response as! HTTPURLResponse).statusCode
         let statusCode = StatusCode(rawValue: statusCodeInt)!
         
-        if statusCode == .unauthorized { throw Error.userNotAuthorized }
-        else if statusCode.errorOccurred { throw Error.networkError(statusCode) }
-        else {
-            let decodedObject = try decoder.decode(T.self, from: data)
-            return decodedObject
+        guard statusCode != .unauthorized else {
+            throw Error.userNotAuthorized
         }
+        guard !statusCode.errorOccurred else {
+            throw Error.network(statusCode)
+        }
+        guard let decodedObject = try? decoder.decode(T.self, from: data) else {
+            throw Error.decoding
+        }
+        return decodedObject
     }
     
     func authorized<T>(_ scRequest: Request<T>) async throws -> URLRequest {
