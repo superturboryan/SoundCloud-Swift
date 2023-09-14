@@ -8,12 +8,12 @@
 import AuthenticationServices
 import Foundation
 
+#if os(iOS)
 public extension ASWebAuthenticationSession {
-    
-    #if os(iOS)
     /// Async-await wrapper for ASWebAuthenticationSession. Presents a webpage for authenticating using SSO and returns the authorization code after the user successfully signs in
     /// - Parameters:
     ///   - from: Authentication URL to present for SSO
+    ///   - with: URI for OAuth web page to use to redirect back to your app. Should take the form "<your app scheme>://<path>"
     ///   - context: Delegate object that specifies how to present web page. Defaults to UIApplication.shared.keyWindow
     ///   - ephemeralSession: 🍪❓
     /// - Returns: Authorization code from callback URL
@@ -45,9 +45,17 @@ public extension ASWebAuthenticationSession {
             return UIApplication.shared.keyWindow!
         }
     }
-    #endif
+}
+#endif
     
-    #if os(watchOS)
+#if os(watchOS)
+public extension ASWebAuthenticationSession {
+    /// Async-await wrapper for ASWebAuthenticationSession. Presents a webpage for authenticating using SSO and returns the authorization code after the user successfully signs in
+    /// - Parameters:
+    ///   - from: Authentication URL to present for SSO
+    ///   - with: URI for OAuth web page to use to redirect back to your app. Should take the form "<your app scheme>://<path>"
+    ///   - ephemeralSession: 🍪❓
+    /// - Returns: Authorization code from callback URL
     @MainActor static func getAuthCode(
         from url: String,
         with redirectURI: String,
@@ -68,5 +76,5 @@ public extension ASWebAuthenticationSession {
             session.start()
         }
     }
-    #endif
 }
+#endif
