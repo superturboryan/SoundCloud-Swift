@@ -40,6 +40,7 @@ final public class SoundCloud: NSObject, ObservableObject {
     private var downloadTasks: [Track : URLSessionTask] = [:]
     
     private let tokenPersistenceService = KeychainService<OAuthTokenResponse>()
+    private let userPersistenceService = UserDefaultsService<User>()
     
     public var isLoadedTrackDownloaded: Bool {
         guard let loadedTrack else { return false }
@@ -123,6 +124,7 @@ public extension SoundCloud {
     
     func logout() {
         tokenPersistenceService.delete()
+        userPersistenceService.delete()
         isLoggedIn = false
     }
     
@@ -139,7 +141,13 @@ public extension SoundCloud {
     }
     
     func loadMyProfile() async throws {
-        myUser = try await get(.me())
+        if let savedUser = userPersistenceService.get() {
+            myUser = savedUser
+        } else {
+            let loadedUser = try await get(.me())
+            myUser = loadedUser
+            userPersistenceService.save(loadedUser)
+        }
     }
     
     func loadMyLikedTracksPlaylistWithTracks() async throws {
