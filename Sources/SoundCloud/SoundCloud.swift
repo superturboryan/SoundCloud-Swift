@@ -356,13 +356,15 @@ private extension SoundCloud {
     }
     
     func authorized<T>(_ scRequest: Request<T>) async throws -> URLRequest {
-        let urlWithPath = URL(string: apiURL + scRequest.path)!
-        var components = URLComponents(url: urlWithPath, resolvingAgainstBaseURL: false)!
+        guard let urlWithPath = URL(string: apiURL + scRequest.path),
+              var components = URLComponents(url: urlWithPath, resolvingAgainstBaseURL: false)
+        else {
+            throw Error.invalidURL
+        }
         components.queryItems = scRequest.queryParameters?.map { URLQueryItem(name: $0, value: $1) }
         
         var request = URLRequest(url: components.url!)
         request.httpMethod = scRequest.httpMethod
-        
         if scRequest.shouldUseAuthHeader {
             request.allHTTPHeaderFields = try await authHeader // Will refresh tokens if necessary
         }

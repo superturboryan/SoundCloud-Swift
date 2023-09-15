@@ -23,7 +23,7 @@ public extension SoundCloud {
         
         var errorOccurred: Bool {
             switch self {
-            case .success, .found, .serviceUnavailable, .internalServerError:
+            case .success, .found:
                 return false
             default:
                 return true

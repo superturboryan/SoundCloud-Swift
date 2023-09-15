@@ -13,6 +13,7 @@ public extension SoundCloud {
         case userNotAuthorized
         case network(StatusCode)
         case decoding
+        case invalidURL
         case noInternet
         case refreshingExpiredAuthTokens
         case removingDownloadedTrack
