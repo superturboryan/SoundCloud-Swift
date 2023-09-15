@@ -29,7 +29,8 @@ To login using your SoundCloud account:
 ```swift
 import SoundCloud
 
-@StateObject var sc = SC(clientId: ...)  
+let config = SoundCloudConfig(apiURL: ...)
+@StateObject var sc = SoundCloud(config)  
   
 ...
     
@@ -44,7 +45,7 @@ do {
 To get the liked tracks for the current user:
 
 ```swift
-try await sc.getMyLikedTracks()
+let likedTracks = try await sc.getMyLikedTracks()
 ```
 
 

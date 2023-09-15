@@ -9,25 +9,6 @@ import AuthenticationServices
 import Combine
 import SwiftUI
 
-///  Object containing properties to configure SoundCloud instance with.
-///
-///  - Parameter apiURL: Base URL to use for API requests. **Defaults to http://api.soundcloud.com**
-///  - Parameter clientID: Client ID to use when authorizing with API and requesting tokens.
-///  - Parameter clientSecret: Client secret to use when authorizing with API and requesting tokens.
-///  - Parameter redirectURI: URI to use when redirecting from OAuth login page to app. This URI should take the form
-public struct SoundCloudConfig {
-    public let apiURL: String
-    public let clientId: String
-    public let clientSecret: String
-    public let redirectURI: String
-    public init(apiURL: String, clientId: String, clientSecret: String, redirectURI: String) {
-        self.apiURL = apiURL
-        self.clientId = clientId
-        self.clientSecret = clientSecret
-        self.redirectURI = redirectURI
-    }
-}
-
 @MainActor
 final public class SoundCloud: NSObject, ObservableObject {
     
@@ -91,29 +72,10 @@ final public class SoundCloud: NSObject, ObservableObject {
     
     private let config: SoundCloudConfig
         
-    /// Use this initializer to optionally inject persistence  service to use when interacting with the SoundCloud API.
-    ///
-    /// If you need to assign the SC instance to a **SwiftUI ObservableObject** variable, you can use a closure to inject
-    /// the dependencies and then return the SC instance:
-    /// ```swift
-    /// @StateObject var sc: SC = { () -> SC in
-    ///    let dependency = KeychainService()
-    ///    return SC(tokenService: dependency)
-    /// }() // 👀 Don't forget to execute the closure!
-    /// ```
-    ///  - Parameter apiURL: Base URL to use for API requests. **Defaults to http://api.soundcloud.com**
-    ///  - Parameter clientID: Client ID to use when authorizing with API and requesting tokens.
-    ///  - Parameter clientSecret: Client secret to use when authorizing with API and requesting tokens.
-    ///  - Parameter redirectURI: URI to use when redirecting from OAuth login page to app. This URI should take the form
-    ///  `(app URLScheme)://(callback path)`.
-    public init(
-        _ config: SoundCloudConfig
-    ) {
+    public init(_ config: SoundCloudConfig) {
         self.config = config
         super.init()
-        
         decoder.keyDecodingStrategy = .convertFromSnakeCase
-        
         if let authTokens = tokenPersistenceService.get() {
             print("✅💾🔐 SC.init: Loaded saved auth tokens: \(authTokens.accessToken)")
         }
