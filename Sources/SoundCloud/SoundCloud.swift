@@ -63,7 +63,11 @@ final public class SoundCloud: NSObject, ObservableObject {
         
         if savedAuthTokens.isExpired {
             print("⚠️ Auth tokens expired at: \(savedAuthTokens.expiryDate!)")
-            try await refreshAuthTokens()
+            do {
+                try await refreshAuthTokens()
+            } catch {
+                throw Error.refreshingExpiredAuthTokens
+            }
         }
         return ["Authorization" : "Bearer " + (authTokens!.accessToken)]
     }}
@@ -197,10 +201,13 @@ public extension SoundCloud {
     func removeDownload(_ trackToRemove: Track) throws {
         let trackMp3Url = trackToRemove.localFileUrl(withExtension: Track.FileExtension.mp3)
         let trackJsonUrl = trackToRemove.localFileUrl(withExtension: Track.FileExtension.json)
-        try FileManager.default.removeItem(at: trackMp3Url)
-        try FileManager.default.removeItem(at: trackJsonUrl)
-        
-        downloadedTracks.removeAll(where: { $0.id == trackToRemove.id })
+        do {
+            try FileManager.default.removeItem(at: trackMp3Url)
+            try FileManager.default.removeItem(at: trackJsonUrl)
+            downloadedTracks.removeAll(where: { $0.id == trackToRemove.id })
+        } catch {
+            throw Error.removingDownloadedTrack
+        }
     }
     
     func likeTrack(_ likedTrack: Track) async throws {
@@ -330,7 +337,9 @@ private extension SoundCloud {
     }
     
     func fetchData<T: Decodable>(from request: URLRequest) async throws -> T {
-        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let (data, response) = try? await URLSession.shared.data(for: request) else {
+            throw Error.noInternet // Is no internet the only case here?
+        }
         let statusCodeInt = (response as! HTTPURLResponse).statusCode
         let statusCode = StatusCode(rawValue: statusCodeInt)!
         
