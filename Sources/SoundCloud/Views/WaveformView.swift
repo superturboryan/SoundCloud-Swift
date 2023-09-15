@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+#if os(watchOS) || os(iOS)
+
 public struct WaveformView: View {
     
     @Binding var progress: CGFloat
@@ -66,3 +68,5 @@ struct SwiftUIView_Previews: PreviewProvider {
 //            .frame(height: 30)
     }
 }
+
+#endif

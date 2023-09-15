@@ -127,13 +127,13 @@ public extension SoundCloud {
     func loadMyLikedTracksPlaylistWithTracks() async throws {
         let response = try await get(.myLikedTracks())
         loadedPlaylists[PlaylistType.likes.rawValue]?.tracks = response.collection
-        loadedPlaylists[PlaylistType.likes.rawValue]?.nextHref = response.nextHref
+        loadedPlaylists[PlaylistType.likes.rawValue]?.nextPageUrl = response.nextHref
     }
     
     func loadNextPageOfTracksForPlaylist(_ playlist: Playlist) async throws {
-        let response = try await getCollectionOfTracksForHref(playlist.nextHref!)
+        let response = try await getCollectionOfTracksForHref(playlist.nextPageUrl!)
         loadedPlaylists[playlist.id]?.tracks! += response.collection
-        loadedPlaylists[playlist.id]?.nextHref = response.nextHref
+        loadedPlaylists[playlist.id]?.nextPageUrl = response.nextHref
     }
     
     func loadRecentlyPostedPlaylistWithTracks() async throws {

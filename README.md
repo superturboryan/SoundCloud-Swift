@@ -1,5 +1,5 @@
 # SoundCloud
-<img src="https://img.shields.io/badge/platforms-iOS%2013%20%7C%20macOS 10.15%20%7C%20watchOS%207-333333.svg" alt="SoundCloud supports iOS, macOS, and watchOS"/> <a href="https://github.com/apple/swift-package-manager" target="_blank"><img src="https://img.shields.io/badge/Swift%20Package%20Manager-compatible-brightgreen.svg" alt="SoundCloud supports Swift Package Manager (SPM)"></a>
+<img src="https://img.shields.io/badge/platforms-iOS%2013%20%7C%20watchOS%207-333333.svg" alt="SoundCloud supports iOS, macOS, and watchOS"/> <a href="https://github.com/apple/swift-package-manager" target="_blank"><img src="https://img.shields.io/badge/Swift%20Package%20Manager-compatible-brightgreen.svg" alt="SoundCloud supports Swift Package Manager (SPM)"></a>
 
 `SoundCloud` is a Swift Package 📦 that implements the **[SoundCloud Public API Specification (v1.0.0) ](https://developers.soundcloud.com/docs/api/)**. 
 

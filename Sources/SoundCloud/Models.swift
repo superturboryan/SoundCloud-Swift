@@ -86,7 +86,7 @@ public struct Playlist: Decodable, Identifiable, Equatable {
     public let artworkUrl: String?
     public let tracksUri: String
     public var tracks: [Track]? { didSet { trackCount = tracks?.count ?? 0 } }
-    public var nextHref: String?
+    public var nextPageUrl: String?
     public init(
         id: Int,
         genre: String = "",
@@ -144,7 +144,7 @@ extension Playlist {
     }
     
     public var hasNextPage: Bool {
-        nextHref != nil
+        nextPageUrl != nil
     }
 }
 
