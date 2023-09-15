@@ -14,7 +14,6 @@ internal struct UserDefaultsService<T: Codable>: ValuePersisting {
     internal func get() -> T? {
         guard
             let valueData = service.object(forKey: codingKey) as? Data,
-            // TODO: Throw!
             let value = try? JSONDecoder().decode(T.self, from: valueData)
         else {
             return nil

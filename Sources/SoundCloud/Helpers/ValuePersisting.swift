@@ -7,6 +7,8 @@
 
 internal protocol ValuePersisting {
     associatedtype ValueType: Codable
+    
+    // TODO: Throws
     func get() -> ValueType?
     func save(_ value: ValueType) -> Void
     func delete()

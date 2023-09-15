@@ -15,7 +15,6 @@ internal struct KeychainService<T: Codable>: ValuePersisting {
     internal func get() -> T? {
         guard
             let valueData = service.getData(codingKey),
-            // TODO: Throws
             let value = try? JSONDecoder().decode(T.self, from: valueData)
         else {
             return nil
@@ -24,7 +23,6 @@ internal struct KeychainService<T: Codable>: ValuePersisting {
     }
     
     internal func save(_ value: T) {
-        // TODO: Throws
         let valueData = try! JSONEncoder().encode(value)
         service.set(valueData, forKey: codingKey)
     }

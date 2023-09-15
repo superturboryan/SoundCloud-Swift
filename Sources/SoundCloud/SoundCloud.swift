@@ -9,6 +9,25 @@ import AuthenticationServices
 import Combine
 import SwiftUI
 
+///  Object containing properties to configure SoundCloud instance with.
+///
+///  - Parameter apiURL: Base URL to use for API requests. **Defaults to http://api.soundcloud.com**
+///  - Parameter clientID: Client ID to use when authorizing with API and requesting tokens.
+///  - Parameter clientSecret: Client secret to use when authorizing with API and requesting tokens.
+///  - Parameter redirectURI: URI to use when redirecting from OAuth login page to app. This URI should take the form
+public struct SoundCloudConfig {
+    public let apiURL: String
+    public let clientId: String
+    public let clientSecret: String
+    public let redirectURI: String
+    public init(apiURL: String, clientId: String, clientSecret: String, redirectURI: String) {
+        self.apiURL = apiURL
+        self.clientId = clientId
+        self.clientSecret = clientSecret
+        self.redirectURI = redirectURI
+    }
+}
+
 @MainActor
 final public class SoundCloud: NSObject, ObservableObject {
     
@@ -70,11 +89,7 @@ final public class SoundCloud: NSObject, ObservableObject {
     private let decoder = JSONDecoder()
     private var subscriptions = Set<AnyCancellable>()
     
-    // TODO: Bundle in a config object?
-    private let apiURL: String
-    private let clientId: String
-    private let clientSecret: String
-    private let redirectURI: String
+    private let config: SoundCloudConfig
         
     /// Use this initializer to optionally inject persistence  service to use when interacting with the SoundCloud API.
     ///
@@ -92,15 +107,9 @@ final public class SoundCloud: NSObject, ObservableObject {
     ///  - Parameter redirectURI: URI to use when redirecting from OAuth login page to app. This URI should take the form
     ///  `(app URLScheme)://(callback path)`.
     public init(
-        apiURL: String = "https://api.soundcloud.com/",
-        clientId: String,
-        clientSecret: String,
-        redirectURI: String
+        _ config: SoundCloudConfig
     ) {
-        self.apiURL = apiURL
-        self.clientId = clientId
-        self.clientSecret = clientSecret
-        self.redirectURI = redirectURI
+        self.config = config
         super.init()
         
         decoder.keyDecodingStrategy = .convertFromSnakeCase
@@ -304,35 +313,35 @@ public extension SoundCloud {
 // MARK: - Authentication
 extension SoundCloud {
     private func getAuthCode() async throws -> String {
-        let authorizeURL = apiURL
+        let authorizeURL = config.apiURL
         + "connect"
-        + "?client_id=\(clientId)"
-        + "&redirect_uri=\(redirectURI)"
+        + "?client_id=\(config.clientId)"
+        + "&redirect_uri=\(config.redirectURI)"
         + "&response_type=code"
         
         #if os(iOS)
         return try await ASWebAuthenticationSession.getAuthCode(
             from: authorizeURL,
-            with: redirectURI,
+            with: config.redirectURI,
             ephemeralSession: false
         )
         #else
         return try await ASWebAuthenticationSession.getAuthCode(
             from: authorizeURL,
-            with: redirectURI
+            with: config.redirectURI
         )
         #endif
     }
     
     private func getNewAuthTokens(using authCode: String) async throws -> (OAuthTokenResponse) {
-        let tokenResponse = try await get(.accessToken(authCode, clientId, clientSecret, redirectURI))
+        let tokenResponse = try await get(.accessToken(authCode, config.clientId, config.clientSecret, config.redirectURI))
         print("✅ Received new tokens:"); dump(tokenResponse)
         return tokenResponse
     }
     
     private func refreshAuthTokens() async throws {
         let persistedRefreshToken = tokenPersistenceService.get()?.refreshToken ?? ""
-        let newTokens = try await get(.refreshToken(persistedRefreshToken, clientId, clientSecret, redirectURI))
+        let newTokens = try await get(.refreshToken(persistedRefreshToken, config.clientId, config.clientSecret, config.redirectURI))
         print("♻️ Refreshed tokens:"); dump(newTokens)
         persistAuthTokensWithCreationDate(newTokens)
     }
@@ -372,7 +381,7 @@ private extension SoundCloud {
     }
     
     func authorized<T>(_ scRequest: Request<T>) async throws -> URLRequest {
-        guard let urlWithPath = URL(string: apiURL + scRequest.path),
+        guard let urlWithPath = URL(string: config.apiURL + scRequest.path),
               var components = URLComponents(url: urlWithPath, resolvingAgainstBaseURL: false)
         else {
             throw Error.invalidURL
