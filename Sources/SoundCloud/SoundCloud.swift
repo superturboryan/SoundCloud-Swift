@@ -33,43 +33,34 @@ final public class SoundCloud: NSObject, ObservableObject {
         }
     }
     
-    public var isLoadedTrackDownloaded: Bool {
-        guard let loadedTrack else { return false }
-        return downloadedTracks.contains(loadedTrack)
-    }
-    
     // Use id to filter loadedPlaylists dictionary for my + liked playlists
     public var myPlaylistIds: [Int] = []
     public var myLikedPlaylistIds: [Int] = []
     
     private var downloadTasks: [Track : URLSessionTask] = [:]
     
-    private var tokenPersistenceService: AuthTokenPersisting
-    private var authTokens: OAuthTokenResponse? {
-        get { tokenPersistenceService.authTokens }
-        set {
-            if let newValue {
-                tokenPersistenceService.save(newValue)
-                print("✅ 💾 🔑 New tokens saved to persistence")
-            } else {
-                tokenPersistenceService.delete()
-            }
-        }
+    private let tokenPersistenceService = KeychainService<OAuthTokenResponse>()
+    
+    public var isLoadedTrackDownloaded: Bool {
+        guard let loadedTrack else { return false }
+        return downloadedTracks.contains(loadedTrack)
     }
     
     public var authHeader: [String : String] { get async throws {
-        guard let savedAuthTokens = authTokens
+        guard let savedAuthTokens = tokenPersistenceService.get()
         else { throw Error.userNotAuthorized }
         
         if savedAuthTokens.isExpired {
-            print("⚠️ Auth tokens expired at: \(savedAuthTokens.expiryDate!)")
+            print("⚠️ Auth tokens expired at: \(savedAuthTokens.expiryDate != nil ? "\(savedAuthTokens.expiryDate!)" : "Unknown")")
             do {
                 try await refreshAuthTokens()
             } catch {
                 throw Error.refreshingExpiredAuthTokens
             }
         }
-        return ["Authorization" : "Bearer " + (authTokens!.accessToken)]
+        
+        let validAuthTokens = tokenPersistenceService.get()!
+        return ["Authorization" : "Bearer " + (validAuthTokens.accessToken)]
     }}
     
     private let decoder = JSONDecoder()
@@ -96,15 +87,12 @@ final public class SoundCloud: NSObject, ObservableObject {
     ///  - Parameter clientSecret: Client secret to use when authorizing with API and requesting tokens.
     ///  - Parameter redirectURI: URI to use when redirecting from OAuth login page to app. This URI should take the form
     ///  `(app URLScheme)://(callback path)`.
-    ///  - Parameter tokenService: Serivce to use for persisting OAuthTokens. **Defaults to Keychain**
     public init(
         apiURL: String = "https://api.soundcloud.com/",
         clientId: String,
         clientSecret: String,
-        redirectURI: String,
-        tokenPersistenceService: AuthTokenPersisting = KeychainService()
+        redirectURI: String
     ) {
-        self.tokenPersistenceService = tokenPersistenceService
         self.apiURL = apiURL
         self.clientId = clientId
         self.clientSecret = clientSecret
@@ -113,7 +101,9 @@ final public class SoundCloud: NSObject, ObservableObject {
         
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         
-        if let authTokens { print("✅💾🔐 SC.init: Loaded saved auth tokens: \(authTokens.accessToken)") }
+        if let authTokens = tokenPersistenceService.get() {
+            print("✅💾🔐 SC.init: Loaded saved auth tokens: \(authTokens.accessToken)")
+        }
     }
 }
 
@@ -124,7 +114,7 @@ public extension SoundCloud {
         do {
             let authCode = try await getAuthCode()
             let newAuthTokens = try await getNewAuthTokens(using: authCode)
-            authTokens = newAuthTokens
+            persistAuthTokensWithCreationDate(newAuthTokens)
             isLoggedIn = true
         } catch {
             print("❌ 🔊 ☁️ SC.login: \(error.localizedDescription)")
@@ -132,7 +122,7 @@ public extension SoundCloud {
     }
     
     func logout() {
-        authTokens = nil
+        tokenPersistenceService.delete()
         isLoggedIn = false
     }
     
@@ -322,9 +312,16 @@ extension SoundCloud {
     }
     
     private func refreshAuthTokens() async throws {
-        let tokenResponse = try await get(.refreshToken(authTokens!.refreshToken, clientId, clientSecret, redirectURI))
-        print("♻️ Refreshed tokens:"); dump(tokenResponse)
-        authTokens = tokenResponse
+        let persistedRefreshToken = tokenPersistenceService.get()?.refreshToken ?? ""
+        let newTokens = try await get(.refreshToken(persistedRefreshToken, clientId, clientSecret, redirectURI))
+        print("♻️ Refreshed tokens:"); dump(newTokens)
+        persistAuthTokensWithCreationDate(newTokens)
+    }
+    
+    private func persistAuthTokensWithCreationDate(_ tokens: OAuthTokenResponse) {
+        var tokensWithDate = tokens
+        tokensWithDate.expiryDate = tokens.expiresIn.dateWithSecondsAdded(to: Date())
+        tokenPersistenceService.save(tokensWithDate)
     }
 }
 

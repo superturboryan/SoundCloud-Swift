@@ -23,7 +23,6 @@ extension OAuthTokenResponse {
         expiryDate == nil ? true : expiryDate! < Date()
     }
     public static var empty: Self { OAuthTokenResponse(accessToken: "", expiresIn: 0, refreshToken: "", scope: "", tokenType: "") }
-    public static let codingKey = "\(OAuthTokenResponse.self)"
 }
 
 public struct Subscription: Codable, Equatable {

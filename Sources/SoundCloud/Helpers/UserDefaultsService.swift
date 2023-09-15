@@ -1,21 +1,20 @@
 //
-//  File.swift
+//  UserDefaultsService.swift
 //  
 //
-//  Created by Ryan Forsyth on 2023-08-30.
+//  Created by Ryan Forsyth on 2023-09-15.
 //
 
 import Foundation
-import KeychainSwift
 
-internal struct KeychainService<T: Codable>: ValuePersisting {
+internal struct UserDefaultsService<T: Codable>: ValuePersisting {
     internal typealias ValueType = T
-    private let service = KeychainSwift()
+    private let service = UserDefaults.standard
 
     internal func get() -> T? {
         guard
-            let valueData = service.getData(codingKey),
-            // TODO: Throws
+            let valueData = service.object(forKey: codingKey) as? Data,
+            // TODO: Throw!
             let value = try? JSONDecoder().decode(T.self, from: valueData)
         else {
             return nil
@@ -24,12 +23,12 @@ internal struct KeychainService<T: Codable>: ValuePersisting {
     }
     
     internal func save(_ value: T) {
-        // TODO: Throws
         let valueData = try! JSONEncoder().encode(value)
         service.set(valueData, forKey: codingKey)
     }
     
     internal func delete() {
-        service.delete(codingKey)
+        service.set(nil, forKey: codingKey)
+        service.removeObject(forKey: codingKey) // Double check with UD?
     }
 }
