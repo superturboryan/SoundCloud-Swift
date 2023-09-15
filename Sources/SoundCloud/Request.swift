@@ -40,8 +40,8 @@ extension SoundCloud {
             Request<User>(api: .me)
         }
         
-        static func myLikedTracks() -> Request<[Track]> {
-            Request<[Track]>(api: .myLikedTracks)
+        static func myLikedTracks() -> Request<TrackCollectionResponse> {
+            Request<TrackCollectionResponse>(api: .myLikedTracks)
         }
         
         static func myFollowingsRecentlyPosted() -> Request<[Track]> {
@@ -111,6 +111,16 @@ extension SoundCloud.Request {
             "client_id" : clientId,
             "client_secret" : clientSecret,
             "redirect_uri" : redirectURI
+        ]
+            
+        case .myLikedTracks: return [
+            "limit" : "20", // Page size
+            "access" : "playable",
+            "linked_partitioning" : "true"
+        ]
+            
+        case .tracksForPlaylist: return [
+            "access" : "playable"
         ]
             
         default: return nil

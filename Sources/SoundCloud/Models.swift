@@ -86,7 +86,7 @@ public struct Playlist: Decodable, Identifiable, Equatable {
     public let artworkUrl: String?
     public let tracksUri: String
     public var tracks: [Track]? { didSet { trackCount = tracks?.count ?? 0 } }
-    
+    public var nextHref: String?
     public init(
         id: Int,
         genre: String = "",
@@ -142,6 +142,10 @@ extension Playlist {
     public var artworkUrlWithTrackAndUserFallback: URL {
         URL(string: artworkUrl ?? tracks?.first?.artworkUrl ?? user.avatarUrl)!
     }
+    
+    public var hasNextPage: Bool {
+        nextHref != nil
+    }
 }
 
 public enum PlaylistType: Int, CaseIterable {
@@ -158,6 +162,11 @@ public enum PlaylistType: Int, CaseIterable {
         case .recentlyPosted: return "Recently posted"
         }
     }
+}
+
+internal struct TrackCollectionResponse: Decodable {
+    let collection: [Track]
+    let nextHref: String?
 }
 
 public struct Track: Codable, Identifiable {

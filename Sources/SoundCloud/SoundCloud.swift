@@ -47,6 +47,9 @@ final public class SoundCloud: NSObject, ObservableObject {
         return downloadedTracks.contains(loadedTrack)
     }
     
+    ///  Returns a dictionary with valid OAuth access token to be used as URLRequest header.
+    ///
+    ///  **This getter will attempt to refresh the access token first if it is expired**, throwing an error if it fails to refresh the token.
     public var authHeader: [String : String] { get async throws {
         guard let savedAuthTokens = tokenPersistenceService.get()
         else { throw Error.userNotAuthorized }
@@ -151,7 +154,15 @@ public extension SoundCloud {
     }
     
     func loadMyLikedTracksPlaylistWithTracks() async throws {
-        loadedPlaylists[PlaylistType.likes.rawValue]?.tracks = try await get(.myLikedTracks())
+        let response = try await get(.myLikedTracks())
+        loadedPlaylists[PlaylistType.likes.rawValue]?.tracks = response.collection
+        loadedPlaylists[PlaylistType.likes.rawValue]?.nextHref = response.nextHref
+    }
+    
+    func loadNextPageOfTracksForPlaylist(_ playlist: Playlist) async throws {
+        let response = try await getCollectionOfTracksForHref(playlist.nextHref!)
+        loadedPlaylists[playlist.id]?.tracks! += response.collection
+        loadedPlaylists[playlist.id]?.nextHref = response.nextHref
     }
     
     func loadRecentlyPostedPlaylistWithTracks() async throws {
@@ -374,6 +385,19 @@ private extension SoundCloud {
             request.allHTTPHeaderFields = try await authHeader // Will refresh tokens if necessary
         }
         return request
+    }
+    
+    // Hacky way to get data from Href without making new api enum case
+    private func getCollectionOfTracksForHref(_ url: String) async throws -> TrackCollectionResponse {
+        var authorizedURLRequest = URLRequest(url: URL(string: url)!)
+        authorizedURLRequest.allHTTPHeaderFields = try await authHeader
+        guard let (data, _) = try? await URLSession.shared.data(for: authorizedURLRequest) else {
+            throw Error.noInternet // Is no internet the only case here?
+        }
+        guard let collectionResponse = try? decoder.decode(TrackCollectionResponse.self, from: data) else {
+            throw Error.decoding
+        }
+        return collectionResponse
     }
 }
 
