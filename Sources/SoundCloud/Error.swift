@@ -11,6 +11,7 @@ public extension SoundCloud {
     enum Error: LocalizedError {
         case loggingIn
         case trackDownloadNotInProgress
+        case downloadAlreadyExists
         case userNotAuthorized
         case network(StatusCode)
         case decoding

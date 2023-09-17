@@ -380,9 +380,7 @@ extension SoundCloud: URLSessionTaskDelegate {
         let downloadNotAlreadyInProgress = !downloadsInProgress.keys.contains(track)
         guard localFileDoesNotExist, downloadNotAlreadyInProgress
         else {
-            //TODO: Throw error?
-            print("😳 Track already exists or is being downloaded!")
-            return
+            throw Error.downloadAlreadyExists
         }
         
         // Set empty progress for track so didCreateTask can know which track it's starting download for
@@ -395,8 +393,21 @@ extension SoundCloud: URLSessionTaskDelegate {
         // Add track ID to request header to know which track is being downloaded in delegate
         request.addValue("\(track.id)", forHTTPHeaderField: "track_id")
         
-        //TODO: Catch errors, check response
-        let (trackData, _) = try await URLSession.shared.data(for: request, delegate: self)
+        
+        guard let (trackData, response) = try? await URLSession.shared.data(for: request, delegate: self) else {
+            throw Error.noInternet
+        }
+        
+        let statusCodeInt = (response as! HTTPURLResponse).statusCode
+        let statusCode = StatusCode(rawValue: statusCodeInt)!
+        
+        guard statusCode != .unauthorized else {
+            throw Error.userNotAuthorized
+        }
+        guard !statusCode.errorOccurred else {
+            throw Error.network(statusCode)
+        }
+
         downloadsInProgress.removeValue(forKey: track)
         
         try trackData.write(to: localMp3Url)
