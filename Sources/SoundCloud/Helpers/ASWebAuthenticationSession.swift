@@ -32,7 +32,11 @@ public extension ASWebAuthenticationSession {
                     continuation.resume(throwing: error)
                     return
                 }
-                continuation.resume(returning: url!.queryParameters!["code"]!)
+                guard let code = url?.queryParameters?["code"] else {
+                    continuation.resume(throwing: SoundCloud.Error.loggingIn)
+                    return
+                }
+                continuation.resume(returning: code)
             }
             session.presentationContextProvider = context
             session.prefersEphemeralWebBrowserSession = ephemeralSession
@@ -70,7 +74,11 @@ public extension ASWebAuthenticationSession {
                     continuation.resume(throwing: error)
                     return
                 }
-                continuation.resume(returning: url!.queryParameters!["code"]!)
+                guard let code = url?.queryParameters?["code"] else {
+                    continuation.resume(throwing: SoundCloud.Error.loggingIn)
+                    return
+                }
+                continuation.resume(returning: code)
             }
             session.prefersEphemeralWebBrowserSession = ephemeralSession
             session.start()
