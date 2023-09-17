@@ -12,9 +12,8 @@ import SwiftUI
 @MainActor
 final public class SoundCloud: NSObject, ObservableObject {
     
-    // TODO: Make all @Published use private(set)
     @Published public var myUser: User? = nil
-    @Published public private(set) var isLoggedIn: Bool = true // Prevents LoginView from appearing every app load
+    @Published public private(set) var isLoggedIn: Bool = true
     
     @Published public var loadedPlaylists: [Int : Playlist] = [:]
     @Published public private(set) var loadedTrackNowPlayingQueueIndex: Int = -1
@@ -84,15 +83,14 @@ final public class SoundCloud: NSObject, ObservableObject {
 
 // MARK: - Public API
 public extension SoundCloud {
-    func login() async {
-        //TODO: Handle try! errors
+    func login() async throws {
         do {
             let authCode = try await getAuthCode()
             let newAuthTokens = try await getNewAuthTokens(using: authCode)
             persistAuthTokensWithCreationDate(newAuthTokens)
             isLoggedIn = true
         } catch {
-            print("❌ 🔊 ☁️ SC.login: \(error.localizedDescription)")
+            throw Error.loggingIn
         }
     }
     
