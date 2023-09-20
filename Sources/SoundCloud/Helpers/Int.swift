@@ -20,7 +20,7 @@ public extension Int {
         let minutes = String(format: "%02d", ((self % 3600) / 60))
         let seconds = String(format: "%02d", ((self % 3600) % 60))
         var result = minutes + ":" + seconds
-        if self > 3600 {
+        if self >= 3600 {
             let hours = String(format: "%02d", (self / 3600))
             result = hours + ":" + result
         }
