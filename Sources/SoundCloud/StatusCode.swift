@@ -20,6 +20,7 @@ public extension SoundCloud {
         case tooManyRequests = 429
         case internalServerError = 500
         case serviceUnavailable = 503
+        case unknown = 0
         
         var errorOccurred: Bool {
             switch self {
