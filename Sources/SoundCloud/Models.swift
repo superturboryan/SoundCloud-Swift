@@ -135,12 +135,14 @@ public struct Playlist: Decodable, Identifiable, Equatable {
 }
 
 extension Playlist {
+    var largerArtworkUrl: String? { artworkUrl?.replacingOccurrences(of: "large.jpg", with: "t500x500.jpg") }
+    
     public var durationInSeconds: Int {
         (tracks ?? []).reduce(into: 0, { $0 += $1.durationInSeconds})
     }
     
-    public var artworkUrlWithTrackAndUserFallback: URL {
-        URL(string: artworkUrl ?? tracks?.first?.artworkUrl ?? user.avatarUrl)!
+    public var largerArtworkUrlWithTrackAndUserFallback: URL {
+        URL(string: largerArtworkUrl ?? tracks?.first?.largerArtworkUrl ?? user.avatarUrl)!
     }
     
     public var hasNextPage: Bool {
@@ -156,10 +158,10 @@ public enum PlaylistType: Int, CaseIterable {
     
     public var title: String {
         switch self {
-        case .nowPlaying: return "Now playing"
-        case .downloads: return "Downloads"
-        case .likes:  return "Likes"
-        case .recentlyPosted: return "Recently posted"
+        case .nowPlaying: return String(localized: "Now playing", bundle: .module, comment: "Noun")
+        case .downloads: return String(localized:"Downloads", bundle: .module, comment: "Plural noun")
+        case .likes:  return String(localized:"Likes", bundle: .module, comment: "Plural noun")
+        case .recentlyPosted: return String(localized:"Recently posted", bundle: .module)
         }
     }
 }

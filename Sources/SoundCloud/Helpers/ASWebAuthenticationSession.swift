@@ -33,7 +33,7 @@ public extension ASWebAuthenticationSession {
                     return
                 }
                 guard let code = url?.queryParameters?["code"] else {
-                    continuation.resume(throwing: SoundCloud.Error.loggingIn)
+                    continuation.resume(throwing: Error.noCode)
                     return
                 }
                 continuation.resume(returning: code)
@@ -71,11 +71,16 @@ public extension ASWebAuthenticationSession {
                 callbackURLScheme: String(redirectURI.split(separator: ":").first!)
             ) { url, error in
                 if let error {
+                    let code = (error as NSError).code
+                    if code == ASWebAuthenticationSessionError.canceledLogin.rawValue {
+                        continuation.resume(throwing: Error.cancelledLogin)
+                        return
+                    }
                     continuation.resume(throwing: error)
                     return
                 }
                 guard let code = url?.queryParameters?["code"] else {
-                    continuation.resume(throwing: SoundCloud.Error.loggingIn)
+                    continuation.resume(throwing: Error.noCode)
                     return
                 }
                 continuation.resume(returning: code)
@@ -86,3 +91,10 @@ public extension ASWebAuthenticationSession {
     }
 }
 #endif
+
+public extension ASWebAuthenticationSession {
+    enum Error: LocalizedError {
+        case noCode
+        case cancelledLogin
+    }
+}

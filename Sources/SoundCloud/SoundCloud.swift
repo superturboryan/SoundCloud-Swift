@@ -89,6 +89,8 @@ public extension SoundCloud {
             let newAuthTokens = try await getNewAuthTokens(using: authCode)
             persistAuthTokensWithCreationDate(newAuthTokens)
             isLoggedIn = true
+        } catch(ASWebAuthenticationSession.Error.cancelledLogin) {
+            // Do nothing in this case
         } catch {
             throw Error.loggingIn
         }
@@ -248,7 +250,7 @@ public extension SoundCloud {
     }
     
     var nowPlayingQueue: [Track]? {
-        loadedPlaylists[PlaylistType.nowPlaying.rawValue]!.tracks
+        loadedPlaylists[PlaylistType.nowPlaying.rawValue]?.tracks
     }
     
     var nextTrackInNowPlayingQueue: Track? {
@@ -326,8 +328,7 @@ private extension SoundCloud {
             throw Error.noInternet // Is no internet the only case here?
         }
         let statusCodeInt = (response as! HTTPURLResponse).statusCode
-        let statusCode = StatusCode(rawValue: statusCodeInt)!
-        
+        let statusCode = StatusCode(rawValue: statusCodeInt) ?? .unknown
         guard statusCode != .unauthorized else {
             throw Error.userNotAuthorized
         }
@@ -358,7 +359,10 @@ private extension SoundCloud {
     
     // Hacky way to get data from Href without making new api enum case
     private func getCollectionOfTracksForHref(_ url: String) async throws -> TrackCollectionResponse {
-        var authorizedURLRequest = URLRequest(url: URL(string: url)!)
+        guard let url = URL(string: url) else {
+            throw Error.invalidURL
+        }
+        var authorizedURLRequest = URLRequest(url: url)
         authorizedURLRequest.allHTTPHeaderFields = try await authHeader
         guard let (data, _) = try? await URLSession.shared.data(for: authorizedURLRequest) else {
             throw Error.noInternet // Is no internet the only case here?
@@ -373,51 +377,43 @@ private extension SoundCloud {
 // MARK: - Downloads
 extension SoundCloud: URLSessionTaskDelegate {
     private func downloadTrack(_ track: Track, from url: String) async throws {
-        let localMp3Url = track.localFileUrl(withExtension: Track.FileExtension.mp3)
-        
         // Checks before starting download
+        let localMp3Url = track.localFileUrl(withExtension: Track.FileExtension.mp3)
         let localFileDoesNotExist = !FileManager.default.fileExists(atPath: localMp3Url.path)
         let downloadNotAlreadyInProgress = !downloadsInProgress.keys.contains(track)
-        guard localFileDoesNotExist, downloadNotAlreadyInProgress
-        else {
+        guard localFileDoesNotExist, downloadNotAlreadyInProgress else {
             throw Error.downloadAlreadyExists
         }
-        
         // Set empty progress for track so didCreateTask can know which track it's starting download for
         downloadsInProgress[track] = Progress(totalUnitCount: 0)
-        
+        // Setup request
         var request = URLRequest(url: URL(string: url)!)
         request.allHTTPHeaderFields = try await authHeader
-        
         // ‼️ Response does not contain ID for track (only encrypted ID)
         // Add track ID to request header to know which track is being downloaded in delegate
         request.addValue("\(track.id)", forHTTPHeaderField: "track_id")
-        
-        
+        // Make request for track data
         guard let (trackData, response) = try? await URLSession.shared.data(for: request, delegate: self) else {
             throw Error.noInternet
         }
-        
         let statusCodeInt = (response as! HTTPURLResponse).statusCode
-        let statusCode = StatusCode(rawValue: statusCodeInt)!
-        
+        let statusCode = StatusCode(rawValue: statusCodeInt) ?? .unknown
         guard statusCode != .unauthorized else {
             throw Error.userNotAuthorized
         }
         guard !statusCode.errorOccurred else {
             throw Error.network(statusCode)
         }
-
         downloadsInProgress.removeValue(forKey: track)
-        
+        // Save track data as mp3
         try trackData.write(to: localMp3Url)
+        // Save track metadata as track json object
         let trackJsonData = try JSONEncoder().encode(track)
         let localJsonUrl = track.localFileUrl(withExtension: Track.FileExtension.json)
         try trackJsonData.write(to: localJsonUrl)
-        
+        // Create copy of track with local file url added
         var trackWithLocalFileUrl = track
         trackWithLocalFileUrl.localFileUrl = localMp3Url.absoluteString
-        
         downloadedTracks.append(trackWithLocalFileUrl)
     }
     
@@ -427,9 +423,8 @@ extension SoundCloud: URLSessionTaskDelegate {
             let trackId = Int(task.originalRequest?.value(forHTTPHeaderField: "track_id") ?? ""),
             let trackBeingDownloaded = downloadsInProgress.keys.first(where: { $0.id == trackId })
         else { return }
-        
+        // Keep reference to task in case we need to cancel
         downloadTasks[trackBeingDownloaded] = task
-            
         // Assign task's progress to track being downloaded
         task.publisher(for: \.progress)
             .receive(on: DispatchQueue.main)
@@ -442,15 +437,13 @@ extension SoundCloud: URLSessionTaskDelegate {
             .store(in: &subscriptions)
     }
     
-    public func removeDownloadInProgress(for track: Track) throws {
-        guard
-            downloadsInProgress.keys.contains(track),
-            let task = downloadTasks[track]
-        else { throw Error.trackDownloadNotInProgress }
-        
-        downloadsInProgress.removeValue(forKey: track)
+    public func cancelDownloadInProgress(for track: Track) throws {
+        guard downloadsInProgress.keys.contains(track), let task = downloadTasks[track] else {
+            throw Error.trackDownloadNotInProgress
+        }
         task.cancel()
         downloadTasks.removeValue(forKey: track)
+        downloadsInProgress.removeValue(forKey: track)
     }
     
     private func loadDownloadedTracks() throws {
