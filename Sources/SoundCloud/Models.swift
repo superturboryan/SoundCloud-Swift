@@ -140,7 +140,7 @@ extension Playlist {
     }
     
     public var artworkUrlWithTrackAndUserFallback: URL {
-        URL(string: artworkUrl ?? tracks?.first?.artworkUrl ?? user.avatarUrl)!
+        URL(string: artworkUrl ?? tracks?.first?.largerArtworkUrl ?? user.avatarUrl)!
     }
     
     public var hasNextPage: Bool {
@@ -156,10 +156,10 @@ public enum PlaylistType: Int, CaseIterable {
     
     public var title: String {
         switch self {
-        case .nowPlaying: return "Now playing"
-        case .downloads: return "Downloads"
-        case .likes:  return "Likes"
-        case .recentlyPosted: return "Recently posted"
+        case .nowPlaying: return String(localized: "Now playing", bundle: .module)
+        case .downloads: return String(localized:"Downloads", bundle: .module)
+        case .likes:  return String(localized:"Likes", bundle: .module)
+        case .recentlyPosted: return String(localized:"Recently posted", bundle: .module)
         }
     }
 }

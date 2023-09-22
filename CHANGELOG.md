@@ -1,6 +1,14 @@
 # Changelog
 
+## 0.0.2 (pending)
+
+### Dependencies  
+🔨 Swift tools version **5.9**⭐️
+📦 KeychainSwift 20.0.0
+
+
 ## 0.0.1 (initial release)  
 
 ### Dependencies  
-📦 KeychainSwift 12.1.6
+🔨 Swift tools version 5.8
+📦 KeychainSwift 20.0.0
