@@ -2,7 +2,14 @@
   "sourceLanguage" : "en",
   "strings" : {
     "Downloads" : {
+      "comment" : "Plural noun",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Downloads"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -13,6 +20,12 @@
     },
     "Free" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kostenlos"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -22,7 +35,14 @@
       }
     },
     "Likes" : {
+      "comment" : "Plural noun",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Likes"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -32,7 +52,14 @@
       }
     },
     "Now playing" : {
+      "comment" : "Noun",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Läuft jetzt"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -43,6 +70,12 @@
     },
     "Recently posted" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neue Tracks"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
