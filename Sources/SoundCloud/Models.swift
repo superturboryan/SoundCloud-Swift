@@ -135,12 +135,14 @@ public struct Playlist: Decodable, Identifiable, Equatable {
 }
 
 extension Playlist {
+    var largerArtworkUrl: String? { artworkUrl?.replacingOccurrences(of: "large.jpg", with: "t500x500.jpg") }
+    
     public var durationInSeconds: Int {
         (tracks ?? []).reduce(into: 0, { $0 += $1.durationInSeconds})
     }
     
-    public var artworkUrlWithTrackAndUserFallback: URL {
-        URL(string: artworkUrl ?? tracks?.first?.largerArtworkUrl ?? user.avatarUrl)!
+    public var largerArtworkUrlWithTrackAndUserFallback: URL {
+        URL(string: largerArtworkUrl ?? tracks?.first?.largerArtworkUrl ?? user.avatarUrl)!
     }
     
     public var hasNextPage: Bool {
