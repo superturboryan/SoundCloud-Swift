@@ -21,8 +21,8 @@ public extension Image {
         Image("disconnect_sc", bundle: .module)
     }
     
-    static var scLogo: Image {
-        Image("sc_logo", bundle: .module)
+    static var scLogoVertical: Image {
+        Image("sc_logo_vertical", bundle: .module)
     }
     
     internal static var testWaveForm: Image {
