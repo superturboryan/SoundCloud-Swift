@@ -89,6 +89,8 @@ public extension SoundCloud {
             let newAuthTokens = try await getNewAuthTokens(using: authCode)
             persistAuthTokensWithCreationDate(newAuthTokens)
             isLoggedIn = true
+        } catch(ASWebAuthenticationSession.Error.cancelledLogin) {
+            // Do nothing in this case
         } catch {
             throw Error.loggingIn
         }
