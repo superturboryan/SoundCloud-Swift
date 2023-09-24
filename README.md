@@ -21,7 +21,7 @@ and include "SoundCloud" as a dependency for your executable target:
 ## Setup
 [Define a custom URL scheme for your app](https://developer.apple.com/documentation/xcode/defining-a-custom-url-scheme-for-your-app), you will need to provide a redirect URI using the scheme so that the OAuth web page knows how to open your app when it receives the tokens callback.     
   
-The redirect URI used when creating the SC instance must also be paired with the client ID and client secret for your [SoundCloud registered apps](https://soundcloud.com/you/apps).
+The redirect URI used when creating the SC instance must also be paired with the client ID and client secret for your [SoundCloud registered app](https://soundcloud.com/you/apps).
 
 ## Usage
 To login using your SoundCloud account:
