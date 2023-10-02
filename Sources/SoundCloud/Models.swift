@@ -166,8 +166,8 @@ public enum PlaylistType: Int, CaseIterable {
     }
 }
 
-internal struct TrackCollectionResponse: Decodable {
-    let collection: [Track]
+internal struct CollectionResponse<T: Decodable>: Decodable {
+    let collection: [T]
     let nextHref: String?
 }
 

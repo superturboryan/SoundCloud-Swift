@@ -40,8 +40,8 @@ extension SoundCloud {
             Request<User>(api: .me)
         }
         
-        static func myLikedTracks() -> Request<TrackCollectionResponse> {
-            Request<TrackCollectionResponse>(api: .myLikedTracks)
+        static func myLikedTracks() -> Request<CollectionResponse<Track>> {
+            Request<CollectionResponse<Track>>(api: .myLikedTracks)
         }
         
         static func myFollowingsRecentlyPosted() -> Request<[Track]> {

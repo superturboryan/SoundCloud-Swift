@@ -358,7 +358,7 @@ private extension SoundCloud {
     }
     
     // Hacky way to get data from Href without making new api enum case
-    private func getCollectionOfTracksForHref(_ url: String) async throws -> TrackCollectionResponse {
+    private func getCollectionOfTracksForHref(_ url: String) async throws -> CollectionResponse<Track> {
         guard let url = URL(string: url) else {
             throw Error.invalidURL
         }
@@ -367,7 +367,7 @@ private extension SoundCloud {
         guard let (data, _) = try? await URLSession.shared.data(for: authorizedURLRequest) else {
             throw Error.noInternet // Is no internet the only case here?
         }
-        guard let collectionResponse = try? decoder.decode(TrackCollectionResponse.self, from: data) else {
+        guard let collectionResponse = try? decoder.decode(CollectionResponse<Track>.self, from: data) else {
             throw Error.decoding
         }
         return collectionResponse
