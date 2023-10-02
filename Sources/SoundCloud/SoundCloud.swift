@@ -25,7 +25,7 @@ final public class SoundCloud: NSObject, ObservableObject {
         }
     }
     
-    @Published public private(set) var usersImFollowing: CollectionResponse<User>? = nil
+    @Published public var usersImFollowing: CollectionResponse<User>? = nil
     
     @Published public var downloadsInProgress: [Track : Progress] = [:]
     @Published public var downloadedTracks: [Track] = [] { // Tracks with streamURL set to local mp3 url
@@ -135,7 +135,7 @@ public extension SoundCloud {
     }
     
     func loadNextPageOfTracksForPlaylist(_ playlist: Playlist) async throws {
-        let response = try await getCollectionOfTracksForHref(playlist.nextPageUrl!)
+        let response: CollectionResponse<Track> = try await getCollectionForHref(playlist.nextPageUrl)
         loadedPlaylists[playlist.id]?.tracks! += response.collection
         loadedPlaylists[playlist.id]?.nextPageUrl = response.nextHref
     }
@@ -178,10 +178,11 @@ public extension SoundCloud {
     }
     
     func loadUsersImFollowing() async throws {
-        let response = try await get(.usersImFollowing())
         if usersImFollowing == nil {
+            let response = try await get(.usersImFollowing())
             usersImFollowing = response
         } else {
+            let response: CollectionResponse<User> = try await getCollectionForHref(usersImFollowing?.nextHref)
             usersImFollowing?.collection += response.collection
             usersImFollowing?.nextHref = response.nextHref
         }
@@ -371,9 +372,8 @@ private extension SoundCloud {
         return request
     }
     
-    // Hacky way to get data from Href without making new api enum case
-    private func getCollectionOfTracksForHref(_ url: String) async throws -> CollectionResponse<Track> {
-        guard let url = URL(string: url) else {
+    private func getCollectionForHref<T: Decodable>(_ url: String?) async throws -> CollectionResponse<T> {
+        guard let url = URL(string: url ?? "") else {
             throw Error.invalidURL
         }
         var authorizedURLRequest = URLRequest(url: url)
@@ -381,7 +381,7 @@ private extension SoundCloud {
         guard let (data, _) = try? await URLSession.shared.data(for: authorizedURLRequest) else {
             throw Error.noInternet // Is no internet the only case here?
         }
-        guard let collectionResponse = try? decoder.decode(CollectionResponse<Track>.self, from: data) else {
+        guard let collectionResponse = try? decoder.decode(CollectionResponse<T>.self, from: data) else {
             throw Error.decoding
         }
         return collectionResponse

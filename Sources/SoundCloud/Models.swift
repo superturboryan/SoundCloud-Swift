@@ -58,6 +58,12 @@ public struct User: Codable, Equatable {
     public let subscriptions: [Subscription]
 }
 
+extension User: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+}
+
 public extension User {
     var subscription: String {
         (subscriptions.first?.product.name) ?? "Free"
@@ -167,10 +173,10 @@ public enum PlaylistType: Int, CaseIterable {
 }
 
 public struct CollectionResponse<T: Decodable>: Decodable {
-    var collection: [T]
-    var nextHref: String?
+    public var collection: [T]
+    public var nextHref: String?
     
-    var hasNextPage: Bool { nextHref != nil }
+    public var hasNextPage: Bool { nextHref != nil }
 }
 
 public struct Track: Codable, Identifiable {
@@ -248,29 +254,31 @@ internal struct Status: Decodable {
 }
 
 // MARK: - Test objects
-public let testUser = User(
-    avatarUrl: "https://i1.sndcdn.com/avatars-0DxRBnyCNCI3zL1X-oeoRyw-large.jpg",
-    id: 0,
-    permalinkUrl: "https://i1.sndcdn.com/avatars-0DxRBnyCNCI3zL1X-oeoRyw-large.jpg",
-    uri: "",
-    username: "Rinse FM",
-    createdAt: "",
-    firstName: "",
-    lastName: "",
-    fullName: "",
-    city: "",
-    country: "",
-    description: "",
-    trackCount: 0,
-    repostsCount: 0,
-    followersCount: 0,
-    followingsCount: 0,
-    commentsCount: 0,
-    online: false,
-    likesCount: 0,
-    playlistCount: 0,
-    subscriptions: [testFreeSubscription]
-)
+public func testUser() -> User {
+    User(
+        avatarUrl: "https://i1.sndcdn.com/avatars-0DxRBnyCNCI3zL1X-oeoRyw-large.jpg",
+        id: Int.random(in: 0..<1000),
+        permalinkUrl: "https://i1.sndcdn.com/avatars-0DxRBnyCNCI3zL1X-oeoRyw-large.jpg",
+        uri: "",
+        username: "Rinse FM",
+        createdAt: "",
+        firstName: "",
+        lastName: "",
+        fullName: "",
+        city: "",
+        country: "",
+        description: "",
+        trackCount: 0,
+        repostsCount: 0,
+        followersCount: 0,
+        followingsCount: 0,
+        commentsCount: 0,
+        online: false,
+        likesCount: 0,
+        playlistCount: 0,
+        subscriptions: [testFreeSubscription]
+    )
+}
 
 public func testPlaylist(empty: Bool) -> Playlist {
     Playlist (
@@ -284,7 +292,7 @@ public func testPlaylist(empty: Bool) -> Playlist {
         trackCount: 7,
         lastModified: "023/08/10 20:27:42 +0000",
         license: "",
-        user: testUser,
+        user: testUser(),
         likesCount: 20,
         sharing: "",
         createdAt: "2023/03/20 17:08:42 +0000",
@@ -312,7 +320,7 @@ public func testTrack() -> Track {
         description: "",
         license: "",
         uri: "https://api.soundcloud.com/tracks/1586682955",
-        user: testUser,
+        user: testUser(),
         permalinkUrl: "https://soundcloud.com",
         artworkUrl: "https://i1.sndcdn.com/artworks-5Ahdjl0532u9N1a2-zoAq3w-large.jpg",
         streamUrl: "https://api.soundcloud.com/tracks/1586682955/stream",
@@ -335,10 +343,11 @@ public func testTrackBinding() -> Binding<Track> {
 
 public var testDefaultLoadedPlaylists: [Int : Playlist] {
     var loadedPlaylists = [Int : Playlist]()
-    loadedPlaylists[PlaylistType.nowPlaying.rawValue] = Playlist(id: PlaylistType.nowPlaying.rawValue, user: testUser, title: PlaylistType.nowPlaying.title, tracks: [])
-    loadedPlaylists[PlaylistType.downloads.rawValue] = Playlist(id: PlaylistType.downloads.rawValue, user: testUser, title: PlaylistType.downloads.title, tracks: [])
-    loadedPlaylists[PlaylistType.likes.rawValue] = Playlist(id: PlaylistType.likes.rawValue, permalinkUrl: testUser.permalinkUrl + "/likes", user: testUser, title: PlaylistType.likes.title, tracks: [])
-    loadedPlaylists[PlaylistType.recentlyPosted.rawValue] = Playlist(id: PlaylistType.recentlyPosted.rawValue, permalinkUrl: testUser.permalinkUrl + "/following", user: testUser, title: PlaylistType.recentlyPosted.title, tracks: [])
+    let user = testUser()
+    loadedPlaylists[PlaylistType.nowPlaying.rawValue] = Playlist(id: PlaylistType.nowPlaying.rawValue, user: user, title: PlaylistType.nowPlaying.title, tracks: [])
+    loadedPlaylists[PlaylistType.downloads.rawValue] = Playlist(id: PlaylistType.downloads.rawValue, user: user, title: PlaylistType.downloads.title, tracks: [])
+    loadedPlaylists[PlaylistType.likes.rawValue] = Playlist(id: PlaylistType.likes.rawValue, permalinkUrl: user.permalinkUrl + "/likes", user: user, title: PlaylistType.likes.title, tracks: [])
+    loadedPlaylists[PlaylistType.recentlyPosted.rawValue] = Playlist(id: PlaylistType.recentlyPosted.rawValue, permalinkUrl: user.permalinkUrl + "/following", user: user, title: PlaylistType.recentlyPosted.title, tracks: [])
     return loadedPlaylists
 }
 
