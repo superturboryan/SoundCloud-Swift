@@ -27,6 +27,8 @@ extension SoundCloud {
             
             case likeTrack(_ id: Int)
             case unlikeTrack(_ id: Int)
+            
+            case collectionForHref(_ href: String)
         }
         
         static func accessToken(_ code: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String) -> Request<OAuthTokenResponse> {
@@ -76,6 +78,10 @@ extension SoundCloud {
         static func unlikeTrack(_ id: Int) -> Request<Status> {
             Request<Status>(api: .unlikeTrack(id))
         }
+        
+        static func collectionForHref<U: Decodable>(_ href: String) -> Request<CollectionResponse<U>> {
+            Request<CollectionResponse<U>>(api: .collectionForHref(href))
+        }
     }
 }
 
@@ -97,6 +103,8 @@ extension SoundCloud.Request {
         case .usersImFollowing: return "me/followings"
             
         case .likeTrack(let id), .unlikeTrack(let id): return "likes/tracks/\(id)"
+            
+        case .collectionForHref(let href): return href
         }
     }
     
@@ -165,6 +173,13 @@ extension SoundCloud.Request {
     var isToRefresh: Bool {
         switch api {
             case .refreshAccessToken: return true
+            default: return false
+        }
+    }
+    
+    var isForCollectionHref: Bool {
+        switch api {
+            case .collectionForHref: return true
             default: return false
         }
     }

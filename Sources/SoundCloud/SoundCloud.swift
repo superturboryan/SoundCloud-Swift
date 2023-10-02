@@ -135,7 +135,7 @@ public extension SoundCloud {
     }
     
     func loadNextPageOfTracksForPlaylist(_ playlist: Playlist) async throws {
-        let response: CollectionResponse<Track> = try await getCollectionForHref(playlist.nextPageUrl)
+        let response: CollectionResponse<Track> = try await get(.collectionForHref(playlist.nextPageUrl ?? ""))
         loadedPlaylists[playlist.id]?.tracks! += response.collection
         loadedPlaylists[playlist.id]?.nextPageUrl = response.nextHref
     }
@@ -182,7 +182,7 @@ public extension SoundCloud {
             let response = try await get(.usersImFollowing())
             usersImFollowing = response
         } else {
-            let response: CollectionResponse<User> = try await getCollectionForHref(usersImFollowing?.nextHref)
+            let response: CollectionResponse<User> = try await get(.collectionForHref(usersImFollowing?.nextHref ?? ""))
             usersImFollowing?.collection += response.collection
             usersImFollowing?.nextHref = response.nextHref
         }
@@ -365,26 +365,14 @@ private extension SoundCloud {
         components.queryItems = scRequest.queryParameters?.map { URLQueryItem(name: $0, value: $1) }
         
         var request = URLRequest(url: components.url!)
+        if scRequest.isForCollectionHref {
+            request = URLRequest(url: URL(string: scRequest.path)!)
+        }
         request.httpMethod = scRequest.httpMethod
         if scRequest.shouldUseAuthHeader {
             request.allHTTPHeaderFields = try await authHeader // Will refresh tokens if necessary
         }
         return request
-    }
-    
-    private func getCollectionForHref<T: Decodable>(_ url: String?) async throws -> CollectionResponse<T> {
-        guard let url = URL(string: url ?? "") else {
-            throw Error.invalidURL
-        }
-        var authorizedURLRequest = URLRequest(url: url)
-        authorizedURLRequest.allHTTPHeaderFields = try await authHeader
-        guard let (data, _) = try? await URLSession.shared.data(for: authorizedURLRequest) else {
-            throw Error.noInternet // Is no internet the only case here?
-        }
-        guard let collectionResponse = try? decoder.decode(CollectionResponse<T>.self, from: data) else {
-            throw Error.decoding
-        }
-        return collectionResponse
     }
 }
 
