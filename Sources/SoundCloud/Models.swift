@@ -166,9 +166,11 @@ public enum PlaylistType: Int, CaseIterable {
     }
 }
 
-internal struct CollectionResponse<T: Decodable>: Decodable {
-    let collection: [T]
-    let nextHref: String?
+public struct CollectionResponse<T: Decodable>: Decodable {
+    var collection: [T]
+    var nextHref: String?
+    
+    var hasNextPage: Bool { nextHref != nil }
 }
 
 public struct Track: Codable, Identifiable {

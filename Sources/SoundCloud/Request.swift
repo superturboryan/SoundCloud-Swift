@@ -23,6 +23,7 @@ extension SoundCloud {
             case myPlaylists
             case tracksForPlaylist(_ id: Int)
             case streamInfoForTrack(_ id: Int)
+            case usersImFollowing
             
             case likeTrack(_ id: Int)
             case unlikeTrack(_ id: Int)
@@ -64,6 +65,10 @@ extension SoundCloud {
             Request<StreamInfo>(api: .streamInfoForTrack(id))
         }
         
+        static func usersImFollowing() -> Request<CollectionResponse<User>> {
+            Request<CollectionResponse<User>>(api: .usersImFollowing)
+        }
+        
         static func likeTrack(_ id: Int) -> Request<Status> {
             Request<Status>(api: .likeTrack(id))
         }
@@ -89,6 +94,7 @@ extension SoundCloud.Request {
         case .myPlaylists: return "me/playlists"
         case .tracksForPlaylist(let id): return "playlists/\(id)/tracks"
         case .streamInfoForTrack(let id): return "tracks/\(id)/streams"
+        case .usersImFollowing: return "me/followings"
             
         case .likeTrack(let id), .unlikeTrack(let id): return "likes/tracks/\(id)"
         }
@@ -121,6 +127,11 @@ extension SoundCloud.Request {
             
         case .tracksForPlaylist: return [
             "access" : "playable"
+        ]
+            
+        case .usersImFollowing: return [
+            "limit" : "20", // Page size
+            "linked_partitioning" : "true"
         ]
             
         default: return nil

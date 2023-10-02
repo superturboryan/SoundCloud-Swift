@@ -25,6 +25,8 @@ final public class SoundCloud: NSObject, ObservableObject {
         }
     }
     
+    @Published public private(set) var usersImFollowing: CollectionResponse<User>? = nil
+    
     @Published public var downloadsInProgress: [Track : Progress] = [:]
     @Published public var downloadedTracks: [Track] = [] { // Tracks with streamURL set to local mp3 url
         didSet {
@@ -112,6 +114,8 @@ public extension SoundCloud {
         try? await loadMyLikedPlaylistsWithoutTracks()
         try? await loadMyLikedTracksPlaylistWithTracks()
         try? await loadRecentlyPostedPlaylistWithTracks()
+        
+        try? await loadUsersImFollowing()
     }
     
     func loadMyProfile() async throws {
@@ -170,6 +174,16 @@ public extension SoundCloud {
             }
         } else {
             loadedPlaylists[id]?.tracks = try await getTracksForPlaylist(with: id)
+        }
+    }
+    
+    func loadUsersImFollowing() async throws {
+        let response = try await get(.usersImFollowing())
+        if usersImFollowing == nil {
+            usersImFollowing = response
+        } else {
+            usersImFollowing?.collection += response.collection
+            usersImFollowing?.nextHref = response.nextHref
         }
     }
     
