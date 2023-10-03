@@ -8,23 +8,23 @@
 import Foundation
 import SwiftUI
 
-public func testUser() -> User {
+public func testUser(_ id: Int = Int.random(in: 0..<1000)) -> User {
     User(
         avatarUrl: "https://i1.sndcdn.com/avatars-0DxRBnyCNCI3zL1X-oeoRyw-large.jpg",
-        id: Int.random(in: 0..<1000),
+        id: id,
         permalinkUrl: "https://i1.sndcdn.com/avatars-0DxRBnyCNCI3zL1X-oeoRyw-large.jpg",
         uri: "",
-        username: "Rinse FM",
+        username: "RIZ LA TEEF",
         createdAt: "",
         firstName: "",
         lastName: "",
         fullName: "",
-        city: "",
+        city: "Angel LDN",
         country: "",
         description: "",
-        trackCount: 0,
+        trackCount: 67,
         repostsCount: 0,
-        followersCount: 0,
+        followersCount: 2673,
         followingsCount: 0,
         commentsCount: 0,
         online: false,

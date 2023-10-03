@@ -15,7 +15,7 @@ public struct Track: Codable, Identifiable {
     public let sharing: String
     public let tagList: String
     public let streamable: Bool
-    public let genre: String
+    public let genre: String?
     public let title: String
     public let description: String?
     public let license: String
