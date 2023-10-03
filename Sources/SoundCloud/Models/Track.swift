@@ -37,12 +37,6 @@ public struct Track: Codable, Identifiable {
     public var localFileUrl: String? = nil // For downloaded tracks
 }
 
-extension Track: Equatable {
-    public static func ==(lhs: Track, rhs: Track) -> Bool {
-        lhs.id == rhs.id
-    }
-}
-
 public extension Track {
     var playbackUrl: String? { localFileUrl ?? streamUrl }
     var durationInSeconds: Int { duration / 1000 }
@@ -52,9 +46,21 @@ public extension Track {
         return Double(fileSizeInKb) / Double(1024)
     }
     
-    func localFileUrl(withExtension extensioN: String) -> URL {
+    func localFileUrl(withExtension extension: String) -> URL {
         let documentsUrl = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        return documentsUrl.appendingPathComponent("\(id).\(extensioN)")
+        return documentsUrl.appendingPathComponent("\(id).\(`extension`)")
+    }
+}
+
+extension Track: Equatable {
+    public static func ==(lhs: Track, rhs: Track) -> Bool {
+        lhs.id == rhs.id
+    }
+}
+
+extension Track: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
     }
 }
 
@@ -63,12 +69,6 @@ internal extension Track {
         private init() {}
         public static let mp3 = "mp3"
         public static let json = "json"
-    }
-}
-
-extension Track: Hashable {
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
     }
 }
 

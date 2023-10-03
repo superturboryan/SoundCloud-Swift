@@ -30,7 +30,7 @@ public func testUser() -> User {
         online: false,
         likesCount: 0,
         playlistCount: 0,
-        subscriptions: [testFreeSubscription]
+        subscriptions: [testNextProSubscription]
     )
 }
 
@@ -106,6 +106,7 @@ public var testDefaultLoadedPlaylists: [Int : Playlist] {
 }
 
 public let testFreeSubscription = User.Subscription(product: User.Subscription.Product(id: "free", name: "Free"))
+public let testNextProSubscription = User.Subscription(product: User.Subscription.Product(id: "next_pro", name: "Next Pro"))
 
 @MainActor
 public var testSC = SoundCloud(SoundCloudConfig(apiURL: "", clientId: "", clientSecret: "", redirectURI: ""))

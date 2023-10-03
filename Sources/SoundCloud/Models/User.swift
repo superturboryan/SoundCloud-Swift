@@ -29,15 +29,19 @@ public struct User: Codable, Equatable {
     public let subscriptions: [Subscription]
 }
 
-extension User: Hashable {
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-    }
-}
-
 public extension User {
     var subscription: String {
         (subscriptions.first?.product.name) ?? "Free"
+    }
+    
+    var largerAvatarUrl: String {
+        avatarUrl.replacingOccurrences(of: "large.jpg", with: "t500x500.jpg")
+    }
+}
+
+extension User: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
     }
 }
 

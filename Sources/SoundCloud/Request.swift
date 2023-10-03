@@ -163,7 +163,7 @@ extension SoundCloud.Request {
         ]
 
         case .usersImFollowing: return [
-            "limit" : "20", // Page size
+            "limit" : "1000", // Page size
             "linked_partitioning" : "true"
         ]
             
