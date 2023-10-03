@@ -131,13 +131,13 @@ public extension SoundCloud {
     func loadMyLikedTracksPlaylistWithTracks() async throws {
         let response = try await get(.myLikedTracks())
         loadedPlaylists[PlaylistType.likes.rawValue]?.tracks = response.items
-        loadedPlaylists[PlaylistType.likes.rawValue]?.nextPageUrl = response.nextHref
+        loadedPlaylists[PlaylistType.likes.rawValue]?.nextPageUrl = response.nextPage
     }
     
     func loadNextPageOfTracksForPlaylist(_ playlist: Playlist) async throws {
         let response: Page<Track> = try await get(.collectionForHref(playlist.nextPageUrl ?? ""))
         loadedPlaylists[playlist.id]?.tracks! += response.items
-        loadedPlaylists[playlist.id]?.nextPageUrl = response.nextHref
+        loadedPlaylists[playlist.id]?.nextPageUrl = response.nextPage
     }
     
     func loadRecentlyPostedPlaylistWithTracks() async throws {
@@ -182,9 +182,9 @@ public extension SoundCloud {
             let response = try await get(.usersImFollowing())
             usersImFollowing = response
         } else {
-            let response: Page<User> = try await get(.collectionForHref(usersImFollowing?.nextHref ?? ""))
+            let response: Page<User> = try await get(.collectionForHref(usersImFollowing?.nextPage ?? ""))
             usersImFollowing?.items += response.items
-            usersImFollowing?.nextHref = response.nextHref
+            usersImFollowing?.nextPage = response.nextPage
         }
     }
     

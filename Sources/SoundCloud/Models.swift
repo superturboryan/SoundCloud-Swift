@@ -174,14 +174,14 @@ public enum PlaylistType: Int, CaseIterable {
 
 public struct Page<T: Decodable>: Decodable {
     public var items: [T]
-    public var nextHref: String?
+    public var nextPage: String?
     
     enum CodingKeys: String, CodingKey {
         case items = "collection"
-        case nextHref
+        case nextPage = "nextHref"
     }
 
-    public var hasNextPage: Bool { nextHref != nil }
+    public var hasNextPage: Bool { nextPage != nil }
 }
 
 public struct Track: Codable, Identifiable {
