@@ -52,8 +52,9 @@ final public class SoundCloud: NSObject, ObservableObject {
     ///
     ///  **This getter will attempt to refresh the access token first if it is expired**, throwing an error if it fails to refresh the token.
     public var authHeader: [String : String] { get async throws {
-        guard let savedAuthTokens = tokenPersistenceService.get()
-        else { throw Error.userNotAuthorized }
+        guard let savedAuthTokens = tokenPersistenceService.get() else {
+            throw Error.userNotAuthorized
+        }
         
         if savedAuthTokens.isExpired {
             print("⚠️ Auth tokens expired at: \(savedAuthTokens.expiryDate != nil ? "\(savedAuthTokens.expiryDate!)" : "Unknown")")
@@ -110,12 +111,12 @@ public extension SoundCloud {
         loadDefaultPlaylists() // ⚠️ Must call loadMyProfile first!
         try loadDownloadedTracks()
         
-        try? await loadMyPlaylistsWithoutTracks()
-        try? await loadMyLikedPlaylistsWithoutTracks()
-        try? await loadMyLikedTracksPlaylistWithTracks()
-        try? await loadRecentlyPostedPlaylistWithTracks()
+        try await loadMyPlaylistsWithoutTracks()
+        try await loadMyLikedPlaylistsWithoutTracks()
+        try await loadMyLikedTracksPlaylistWithTracks()
+        try await loadRecentlyPostedPlaylistWithTracks()
         
-        try? await loadUsersImFollowing()
+        try await loadUsersImFollowing()
     }
     
     func loadMyProfile() async throws {
