@@ -34,12 +34,12 @@ extension SoundCloud {
             case collectionForHref(_ href: String)
         }
         
-        static func accessToken(_ code: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String) -> Request<OAuthTokenResponse> {
-            Request<OAuthTokenResponse>(api: .accessToken(code, clientId, clientSecret, redirectURI))
+        static func accessToken(_ code: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String) -> Request<TokenResponse> {
+            Request<TokenResponse>(api: .accessToken(code, clientId, clientSecret, redirectURI))
         }
         
-        static func refreshToken(_ refreshToken: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String) -> Request<OAuthTokenResponse> {
-            Request<OAuthTokenResponse>(api: .refreshAccessToken(refreshToken, clientId, clientSecret, redirectURI))
+        static func refreshToken(_ refreshToken: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String) -> Request<TokenResponse> {
+            Request<TokenResponse>(api: .refreshAccessToken(refreshToken, clientId, clientSecret, redirectURI))
         }
         
         static func me() -> Request<User> {

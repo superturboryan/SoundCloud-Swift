@@ -8,22 +8,7 @@
 import Foundation
 import SwiftUI
 
-public struct OAuthTokenResponse: Codable {
-    public let accessToken: String
-    public let expiresIn: Int
-    public let refreshToken: String
-    public let scope: String
-    public let tokenType: String
-    
-    internal var expiryDate: Date? = nil // Set when persisting object
-}
 
-extension OAuthTokenResponse {
-    public var isExpired: Bool {
-        expiryDate == nil ? true : expiryDate! < Date()
-    }
-    public static var empty: Self { OAuthTokenResponse(accessToken: "", expiresIn: 0, refreshToken: "", scope: "", tokenType: "") }
-}
 
 public struct Subscription: Codable, Equatable {
     public let product: Product

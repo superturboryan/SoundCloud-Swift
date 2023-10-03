@@ -40,7 +40,7 @@ final public class SoundCloud: NSObject, ObservableObject {
     
     private var downloadTasks: [Track : URLSessionTask] = [:]
     
-    private let tokenPersistenceService = KeychainService<OAuthTokenResponse>()
+    private let tokenPersistenceService = KeychainService<TokenResponse>()
     private let userPersistenceService = UserDefaultsService<User>()
     
     public var isLoadedTrackDownloaded: Bool {
@@ -318,7 +318,7 @@ extension SoundCloud {
         #endif
     }
     
-    private func getNewAuthTokens(using authCode: String) async throws -> (OAuthTokenResponse) {
+    private func getNewAuthTokens(using authCode: String) async throws -> (TokenResponse) {
         let tokenResponse = try await get(.accessToken(authCode, config.clientId, config.clientSecret, config.redirectURI))
         print("✅ Received new tokens:"); dump(tokenResponse)
         return tokenResponse
@@ -331,7 +331,7 @@ extension SoundCloud {
         persistAuthTokensWithCreationDate(newTokens)
     }
     
-    private func persistAuthTokensWithCreationDate(_ tokens: OAuthTokenResponse) {
+    private func persistAuthTokensWithCreationDate(_ tokens: TokenResponse) {
         var tokensWithDate = tokens
         tokensWithDate.expiryDate = tokens.expiresIn.dateWithSecondsAdded(to: Date())
         tokenPersistenceService.save(tokensWithDate)
