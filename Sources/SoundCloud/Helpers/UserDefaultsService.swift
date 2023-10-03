@@ -10,6 +10,12 @@ import Foundation
 internal struct UserDefaultsService<T: Codable>: ValuePersisting {
     internal typealias ValueType = T
     private let service = UserDefaults.standard
+    
+    internal var codingKey: String
+    
+    init(_ codingKey: String) {
+        self.codingKey = codingKey
+    }
 
     internal func get() -> T? {
         guard

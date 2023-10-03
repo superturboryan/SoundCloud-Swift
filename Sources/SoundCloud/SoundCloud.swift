@@ -40,8 +40,8 @@ final public class SoundCloud: NSObject, ObservableObject {
     
     private var downloadTasks: [Track : URLSessionTask] = [:]
     
-    private let tokenPersistenceService = KeychainService<TokenResponse>()
-    private let userPersistenceService = UserDefaultsService<User>()
+    private let tokenPersistenceService = KeychainService<TokenResponse>("OAuthTokenResponse")
+    private let userPersistenceService = UserDefaultsService<User>("\(User.self)")
     
     public var isLoadedTrackDownloaded: Bool {
         guard let loadedTrack else { return false }
