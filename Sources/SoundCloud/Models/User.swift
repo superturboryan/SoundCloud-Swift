@@ -42,3 +42,14 @@ public extension User {
         (subscriptions.first?.product.name) ?? "Free"
     }
 }
+
+public extension User {
+    struct Subscription: Codable, Equatable {
+        public let product: Product
+
+        public struct Product: Codable, Equatable {
+            public let id: String
+            public let name: String
+        }
+    }
+}

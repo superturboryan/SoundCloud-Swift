@@ -8,17 +8,6 @@
 import Foundation
 import SwiftUI
 
-
-
-public struct Subscription: Codable, Equatable {
-    public let product: Product
-    
-    public struct Product: Codable, Equatable {
-        public let id: String
-        public let name: String
-    }
-}
-
 public struct Playlist: Decodable, Identifiable, Equatable {
     public let id: Int
     public let genre: String
@@ -293,7 +282,7 @@ public var testDefaultLoadedPlaylists: [Int : Playlist] {
     return loadedPlaylists
 }
 
-public let testFreeSubscription = Subscription(product: Subscription.Product(id: "free", name: "Free"))
+public let testFreeSubscription = User.Subscription(product: User.Subscription.Product(id: "free", name: "Free"))
 
 @MainActor
 public var testSC = SoundCloud(SoundCloudConfig(apiURL: "", clientId: "", clientSecret: "", redirectURI: ""))
