@@ -24,6 +24,7 @@ extension SoundCloud {
             case myPlaylists
             case tracksForPlaylist(_ id: Int)
             case tracksForUser(_ id: Int, _ limit: Int = 20)
+            case likedTracksForUser(_ id: Int, _ limit: Int = 20)
             case streamInfoForTrack(_ id: Int)
             case usersImFollowing
             
@@ -69,6 +70,10 @@ extension SoundCloud {
             Request<CollectionResponse<Track>>(api: .tracksForUser(id, limit))
         }
         
+        static func likedTracksForUser(_ id: Int, _ limit: Int = 20) -> Request<CollectionResponse<Track>> {
+            Request<CollectionResponse<Track>>(api: .likedTracksForUser(id, limit))
+        }
+
         static func streamInfoForTrack(_ id: Int) -> Request<StreamInfo> {
             Request<StreamInfo>(api: .streamInfoForTrack(id))
         }
@@ -105,7 +110,8 @@ extension SoundCloud.Request {
         case .myLikedPlaylists: return "me/likes/playlists"
         case .myPlaylists: return "me/playlists"
         case .tracksForPlaylist(let id): return "playlists/\(id)/tracks"
-        case .tracksForUser(let id): return "users/\(id)/tracks"
+        case .tracksForUser(let id, _): return "users/\(id)/tracks"
+        case .likedTracksForUser(let id, _): return "users/\(id)/likes/tracks"
         case .streamInfoForTrack(let id): return "tracks/\(id)/streams"
         case .usersImFollowing: return "me/followings"
             
@@ -135,7 +141,7 @@ extension SoundCloud.Request {
         ]
             
         case .myLikedTracks: return [
-            "limit" : "20", // Page size
+            "limit" : "20",
             "access" : "playable",
             "linked_partitioning" : "true"
         ]
@@ -144,12 +150,18 @@ extension SoundCloud.Request {
             "access" : "playable"
         ]
             
-        case .tracksForUser: return [
+        case let .tracksForUser(_, limit): return [
             "access" : "playable",
-            "limit" : "20",
+            "limit" : "\(limit)",
             "linked_partitioning" : "true"
         ]
             
+        case let .likedTracksForUser(_, limit): return [
+            "access" : "playable",
+            "limit" : "\(limit)",
+            "linked_partitioning" : "true"
+        ]
+
         case .usersImFollowing: return [
             "limit" : "20", // Page size
             "linked_partitioning" : "true"
