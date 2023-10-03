@@ -1,25 +1,13 @@
 //
-//  SoundCloudAPI Models.swift
-//  SC Demo
+//  Test Models.swift
+//  WatchCloud
 //
-//  Created by Ryan Forsyth on 2023-08-11.
+//  Created by Ryan Forsyth on 2023-10-03.
 //
 
 import Foundation
 import SwiftUI
 
-
-
-internal struct StreamInfo: Decodable {
-    public let httpMp3128Url: String
-    public let hlsMp3128Url: String
-}
-
-internal struct Status: Decodable {
-    public let status: String
-}
-
-// MARK: - Test objects
 public func testUser() -> User {
     User(
         avatarUrl: "https://i1.sndcdn.com/avatars-0DxRBnyCNCI3zL1X-oeoRyw-large.jpg",
