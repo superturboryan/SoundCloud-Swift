@@ -4,6 +4,7 @@
 //
 //  Created by Ryan Forsyth on 2023-08-12.
 //
+// https://developers.soundcloud.com/docs/api/explorer/open-api#/
 
 import Foundation
 
@@ -22,6 +23,7 @@ extension SoundCloud {
             case myLikedPlaylists
             case myPlaylists
             case tracksForPlaylist(_ id: Int)
+            case tracksForUser(_ id: Int, _ limit: Int = 20)
             case streamInfoForTrack(_ id: Int)
             case usersImFollowing
             
@@ -63,6 +65,10 @@ extension SoundCloud {
             Request<[Track]>(api: .tracksForPlaylist(id))
         }
         
+        static func tracksForUser(_ id: Int, _ limit: Int = 20) -> Request<CollectionResponse<Track>> {
+            Request<CollectionResponse<Track>>(api: .tracksForUser(id, limit))
+        }
+        
         static func streamInfoForTrack(_ id: Int) -> Request<StreamInfo> {
             Request<StreamInfo>(api: .streamInfoForTrack(id))
         }
@@ -99,6 +105,7 @@ extension SoundCloud.Request {
         case .myLikedPlaylists: return "me/likes/playlists"
         case .myPlaylists: return "me/playlists"
         case .tracksForPlaylist(let id): return "playlists/\(id)/tracks"
+        case .tracksForUser(let id): return "users/\(id)/tracks"
         case .streamInfoForTrack(let id): return "tracks/\(id)/streams"
         case .usersImFollowing: return "me/followings"
             
@@ -135,6 +142,12 @@ extension SoundCloud.Request {
             
         case .tracksForPlaylist: return [
             "access" : "playable"
+        ]
+            
+        case .tracksForUser: return [
+            "access" : "playable",
+            "limit" : "20",
+            "linked_partitioning" : "true"
         ]
             
         case .usersImFollowing: return [
@@ -177,7 +190,7 @@ extension SoundCloud.Request {
         }
     }
     
-    var isForCollectionHref: Bool {
+    var isForHref: Bool {
         switch api {
             case .collectionForHref: return true
             default: return false

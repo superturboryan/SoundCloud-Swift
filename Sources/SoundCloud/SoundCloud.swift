@@ -217,6 +217,10 @@ public extension SoundCloud {
         loadedPlaylists[PlaylistType.likes.rawValue]?.tracks?.removeAll(where: { $0.id == unlikedTrack.id })
     }
     
+    func getTracksForUser(_ id: Int, _ limit: Int = 20) async throws -> CollectionResponse<Track> {
+        try await get(.tracksForUser(id, limit))
+    }
+
     // MARK: - Private API Helpers
     private func getTracksForPlaylist(with id: Int) async throws -> [Track] {
         try await get(.tracksForPlaylist(id))
@@ -365,9 +369,10 @@ private extension SoundCloud {
         components.queryItems = scRequest.queryParameters?.map { URLQueryItem(name: $0, value: $1) }
         
         var request = URLRequest(url: components.url!)
-        if scRequest.isForCollectionHref {
+        if scRequest.isForHref {
             request = URLRequest(url: URL(string: scRequest.path)!)
         }
+
         request.httpMethod = scRequest.httpMethod
         if scRequest.shouldUseAuthHeader {
             request.allHTTPHeaderFields = try await authHeader // Will refresh tokens if necessary
