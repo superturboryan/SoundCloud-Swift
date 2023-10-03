@@ -5,8 +5,8 @@
 //  Created by Ryan Forsyth on 2023-10-03.
 //
 
-public struct Page<T: Decodable>: Decodable {
-    public var items: [T]
+public struct Page<ItemType: Decodable>: Decodable {
+    public var items: [ItemType]
     public var nextPage: String?
     
     enum CodingKeys: String, CodingKey {
