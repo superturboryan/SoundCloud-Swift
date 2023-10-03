@@ -46,8 +46,8 @@ extension SoundCloud {
             Request<User>(api: .me)
         }
         
-        static func myLikedTracks() -> Request<CollectionResponse<Track>> {
-            Request<CollectionResponse<Track>>(api: .myLikedTracks)
+        static func myLikedTracks() -> Request<Page<Track>> {
+            Request<Page<Track>>(api: .myLikedTracks)
         }
         
         static func myFollowingsRecentlyPosted() -> Request<[Track]> {
@@ -66,20 +66,20 @@ extension SoundCloud {
             Request<[Track]>(api: .tracksForPlaylist(id))
         }
         
-        static func tracksForUser(_ id: Int, _ limit: Int = 20) -> Request<CollectionResponse<Track>> {
-            Request<CollectionResponse<Track>>(api: .tracksForUser(id, limit))
+        static func tracksForUser(_ id: Int, _ limit: Int = 20) -> Request<Page<Track>> {
+            Request<Page<Track>>(api: .tracksForUser(id, limit))
         }
         
-        static func likedTracksForUser(_ id: Int, _ limit: Int = 20) -> Request<CollectionResponse<Track>> {
-            Request<CollectionResponse<Track>>(api: .likedTracksForUser(id, limit))
+        static func likedTracksForUser(_ id: Int, _ limit: Int = 20) -> Request<Page<Track>> {
+            Request<Page<Track>>(api: .likedTracksForUser(id, limit))
         }
 
         static func streamInfoForTrack(_ id: Int) -> Request<StreamInfo> {
             Request<StreamInfo>(api: .streamInfoForTrack(id))
         }
         
-        static func usersImFollowing() -> Request<CollectionResponse<User>> {
-            Request<CollectionResponse<User>>(api: .usersImFollowing)
+        static func usersImFollowing() -> Request<Page<User>> {
+            Request<Page<User>>(api: .usersImFollowing)
         }
         
         static func likeTrack(_ id: Int) -> Request<Status> {
@@ -90,8 +90,8 @@ extension SoundCloud {
             Request<Status>(api: .unlikeTrack(id))
         }
         
-        static func collectionForHref<U: Decodable>(_ href: String) -> Request<CollectionResponse<U>> {
-            Request<CollectionResponse<U>>(api: .collectionForHref(href))
+        static func collectionForHref<U: Decodable>(_ href: String) -> Request<Page<U>> {
+            Request<Page<U>>(api: .collectionForHref(href))
         }
     }
 }

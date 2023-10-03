@@ -25,7 +25,7 @@ final public class SoundCloud: NSObject, ObservableObject {
         }
     }
     
-    @Published public var usersImFollowing: CollectionResponse<User>? = nil
+    @Published public var usersImFollowing: Page<User>? = nil
     
     @Published public var downloadsInProgress: [Track : Progress] = [:]
     @Published public var downloadedTracks: [Track] = [] { // Tracks with streamURL set to local mp3 url
@@ -130,13 +130,13 @@ public extension SoundCloud {
     
     func loadMyLikedTracksPlaylistWithTracks() async throws {
         let response = try await get(.myLikedTracks())
-        loadedPlaylists[PlaylistType.likes.rawValue]?.tracks = response.collection
+        loadedPlaylists[PlaylistType.likes.rawValue]?.tracks = response.items
         loadedPlaylists[PlaylistType.likes.rawValue]?.nextPageUrl = response.nextHref
     }
     
     func loadNextPageOfTracksForPlaylist(_ playlist: Playlist) async throws {
-        let response: CollectionResponse<Track> = try await get(.collectionForHref(playlist.nextPageUrl ?? ""))
-        loadedPlaylists[playlist.id]?.tracks! += response.collection
+        let response: Page<Track> = try await get(.collectionForHref(playlist.nextPageUrl ?? ""))
+        loadedPlaylists[playlist.id]?.tracks! += response.items
         loadedPlaylists[playlist.id]?.nextPageUrl = response.nextHref
     }
     
@@ -182,8 +182,8 @@ public extension SoundCloud {
             let response = try await get(.usersImFollowing())
             usersImFollowing = response
         } else {
-            let response: CollectionResponse<User> = try await get(.collectionForHref(usersImFollowing?.nextHref ?? ""))
-            usersImFollowing?.collection += response.collection
+            let response: Page<User> = try await get(.collectionForHref(usersImFollowing?.nextHref ?? ""))
+            usersImFollowing?.items += response.items
             usersImFollowing?.nextHref = response.nextHref
         }
     }
@@ -217,11 +217,11 @@ public extension SoundCloud {
         loadedPlaylists[PlaylistType.likes.rawValue]?.tracks?.removeAll(where: { $0.id == unlikedTrack.id })
     }
     
-    func getTracksForUser(_ id: Int, _ limit: Int = 20) async throws -> CollectionResponse<Track> {
+    func getTracksForUser(_ id: Int, _ limit: Int = 20) async throws -> Page<Track> {
         try await get(.tracksForUser(id, limit))
     }
 
-    func getLikedTracksForUser(_ id: Int, _ limit: Int = 20) async throws -> CollectionResponse<Track> {
+    func getLikedTracksForUser(_ id: Int, _ limit: Int = 20) async throws -> Page<Track> {
         try await get(.likedTracksForUser(id, limit))
     }
 

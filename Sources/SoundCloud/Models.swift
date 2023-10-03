@@ -172,10 +172,15 @@ public enum PlaylistType: Int, CaseIterable {
     }
 }
 
-public struct CollectionResponse<T: Decodable>: Decodable {
-    public var collection: [T]
+public struct Page<T: Decodable>: Decodable {
+    public var items: [T]
     public var nextHref: String?
     
+    enum CodingKeys: String, CodingKey {
+        case items = "collection"
+        case nextHref
+    }
+
     public var hasNextPage: Bool { nextHref != nil }
 }
 
