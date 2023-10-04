@@ -31,6 +31,9 @@ extension SoundCloud {
             case likeTrack(_ id: Int)
             case unlikeTrack(_ id: Int)
             
+            case followUser(_ id: Int)
+            case unfollowUser(_ id: Int)
+
             case collectionForHref(_ href: String)
         }
         
@@ -90,6 +93,14 @@ extension SoundCloud {
             Request<Status>(api: .unlikeTrack(id))
         }
         
+        static func followUser(_ id: Int) -> Request<User> {
+            Request<User>(api: .followUser(id))
+        }
+
+        static func unfollowUser(_ id: Int) -> Request<Status> {
+            Request<Status>(api: .unfollowUser(id))
+        }
+
         static func collectionForHref<U: Decodable>(_ href: String) -> Request<Page<U>> {
             Request<Page<U>>(api: .collectionForHref(href))
         }
@@ -102,22 +113,41 @@ extension SoundCloud.Request {
     var path: String {
         switch api {
         
-        case .accessToken: return "oauth2/token"
-        case .refreshAccessToken: return "oauth2/token"
-        case .me: return "me"
-        case .myLikedTracks: return "me/likes/tracks"
-        case .myFollowingsRecentlyPosted: return "me/followings/tracks"
-        case .myLikedPlaylists: return "me/likes/playlists"
-        case .myPlaylists: return "me/playlists"
-        case .tracksForPlaylist(let id): return "playlists/\(id)/tracks"
-        case .tracksForUser(let id, _): return "users/\(id)/tracks"
-        case .likedTracksForUser(let id, _): return "users/\(id)/likes/tracks"
-        case .streamInfoForTrack(let id): return "tracks/\(id)/streams"
-        case .usersImFollowing: return "me/followings"
+        case .accessToken: 
+            return "oauth2/token"
+        case .refreshAccessToken: 
+            return "oauth2/token"
+        case .me: 
+            return "me"
+        case .myLikedTracks: 
+            return "me/likes/tracks"
+        case .myFollowingsRecentlyPosted: 
+            return "me/followings/tracks"
+        case .myLikedPlaylists:
+            return "me/likes/playlists"
+        case .myPlaylists:
+            return "me/playlists"
+        case .tracksForPlaylist(let id):
+            return "playlists/\(id)/tracks"
+        case .tracksForUser(let id, _):
+            return "users/\(id)/tracks"
+        case .likedTracksForUser(let id, _):
+            return "users/\(id)/likes/tracks"
+        case .streamInfoForTrack(let id):
+            return "tracks/\(id)/streams"
+        case .usersImFollowing:
+            return "me/followings"
+
+        case .likeTrack(let id), 
+             .unlikeTrack(let id):
+            return "likes/tracks/\(id)"
             
-        case .likeTrack(let id), .unlikeTrack(let id): return "likes/tracks/\(id)"
+        case .followUser(let id), 
+             .unfollowUser(let id):
+            return "me/followings/\(id)"
             
-        case .collectionForHref(let href): return href
+        case .collectionForHref(let href): 
+            return href
         }
     }
     
@@ -179,7 +209,12 @@ extension SoundCloud.Request {
              .likeTrack:
             return "POST"
         
-        case .unlikeTrack: return "DELETE"
+        case .unlikeTrack,
+             .unfollowUser:
+            return "DELETE"
+
+        case .followUser:
+            return "PUT"
         
         default: return "GET"
         }

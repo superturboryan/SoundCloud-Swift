@@ -226,6 +226,17 @@ public extension SoundCloud {
         try await get(.likedTracksForUser(id, limit))
     }
 
+    func followUser(_ user: User) async throws {
+        #warning("Investigate behaviour when following user twice in a row")
+        try await get(.followUser(user.id))
+        usersImFollowing?.items.insert(user, at: 0)
+    }
+
+    func unfollowUser(_ user: User) async throws {
+        try await get(.unfollowUser(user.id))
+        usersImFollowing?.items.removeAll(where: { $0 == user })
+    }
+
     // MARK: - Private API Helpers
     private func getTracksForPlaylist(with id: Int) async throws -> [Track] {
         try await get(.tracksForPlaylist(id))
