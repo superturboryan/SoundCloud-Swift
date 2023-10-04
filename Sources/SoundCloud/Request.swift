@@ -163,11 +163,11 @@ extension SoundCloud.Request {
             return "me/followings/\(id)"
             
         case .searchTracks:
-            return "/tracks"
+            return "tracks"
         case .searchPlaylists:
-            return "/playlists"
+            return "playlists"
         case .searchUsers:
-            return "/users"
+            return "users"
             
         case .collectionForHref(let href): 
             return href
