@@ -248,6 +248,10 @@ public extension SoundCloud {
     func searchUsers(_ query: String) async throws -> Page<User> {
         try await get(.searchUsers(query))
     }
+    
+    func pageOfItems<ItemType>(for href: String) async throws -> Page<ItemType> {
+        try await get(.collectionForHref(href))
+    }
 
     // MARK: - Private API Helpers
     private func getTracksForPlaylist(with id: Int) async throws -> [Track] {
