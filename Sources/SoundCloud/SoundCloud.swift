@@ -236,6 +236,18 @@ public extension SoundCloud {
         try await get(.unfollowUser(user.id))
         usersImFollowing?.items.removeAll(where: { $0 == user })
     }
+    
+    func searchTracks(_ query: String) async throws -> Page<Track> {
+        try await get(.searchTracks(query))
+    }
+    
+    func searchPlaylists(_ query: String) async throws -> Page<Playlist> {
+        try await get(.searchPlaylists(query))
+    }
+    
+    func searchUsers(_ query: String) async throws -> Page<User> {
+        try await get(.searchUsers(query))
+    }
 
     // MARK: - Private API Helpers
     private func getTracksForPlaylist(with id: Int) async throws -> [Track] {

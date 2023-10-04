@@ -33,6 +33,10 @@ extension SoundCloud {
             
             case followUser(_ id: Int)
             case unfollowUser(_ id: Int)
+            
+            case searchTracks(_ query: String)
+            case searchPlaylists(_ query: String)
+            case searchUsers(_ query: String)
 
             case collectionForHref(_ href: String)
         }
@@ -100,6 +104,18 @@ extension SoundCloud {
         static func unfollowUser(_ id: Int) -> Request<Status> {
             Request<Status>(api: .unfollowUser(id))
         }
+        
+        static func searchTracks(_ query: String) -> Request<Page<Track>> {
+            Request<Page<Track>>(api: .searchTracks(query))
+        }
+        
+        static func searchPlaylists(_ query: String) -> Request<Page<Playlist>> {
+            Request<Page<Playlist>>(api: .searchPlaylists(query))
+        }
+        
+        static func searchUsers(_ query: String) -> Request<Page<User>> {
+            Request<Page<User>>(api: .searchUsers(query))
+        }
 
         static func collectionForHref<U: Decodable>(_ href: String) -> Request<Page<U>> {
             Request<Page<U>>(api: .collectionForHref(href))
@@ -145,6 +161,13 @@ extension SoundCloud.Request {
         case .followUser(let id), 
              .unfollowUser(let id):
             return "me/followings/\(id)"
+            
+        case .searchTracks:
+            return "/tracks"
+        case .searchPlaylists:
+            return "/playlists"
+        case .searchUsers:
+            return "/users"
             
         case .collectionForHref(let href): 
             return href
@@ -194,6 +217,26 @@ extension SoundCloud.Request {
 
         case .usersImFollowing: return [
             "limit" : "1000", // Page size
+            "linked_partitioning" : "true"
+        ]
+            
+        case .searchTracks(let query): return [
+            "q" : query,
+            "access" : "playable",
+            "limit" : "20",
+            "linked_partitioning" : "true"
+        ]
+            
+        case .searchPlaylists(let query): return [
+            "q" : query,
+            "show_tracks" : "true",
+            "limit" : "20",
+            "linked_partitioning" : "true"
+        ]
+            
+        case .searchUsers(let query): return [
+            "q" : query,
+            "limit" : "20",
             "linked_partitioning" : "true"
         ]
             

@@ -21,7 +21,15 @@ public func testUser(_ id: Int = Int.random(in: 0..<1000)) -> User {
         fullName: "",
         city: "Angel LDN",
         country: "",
-        description: "",
+        description: """
+        DJ
+
+        Always looking to cut dubplates and promote new tunes/producers, so feel free to send me tunes on here or to rizlateef111@gmail.com
+
+        Bookings: nikki@synchronicity.agency
+
+        Label: @southlondonpressings
+        """,
         trackCount: 67,
         repostsCount: 0,
         followersCount: 2673,
