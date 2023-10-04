@@ -25,7 +25,7 @@ public extension SoundCloud {
         
         var errorOccurred: Bool {
             switch self {
-            case .success, .found:
+            case .success, .created, .found:
                 return false
             default:
                 return true
