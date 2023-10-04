@@ -38,7 +38,7 @@ extension SoundCloud {
             case searchPlaylists(_ query: String)
             case searchUsers(_ query: String)
 
-            case collectionForHref(_ href: String)
+            case nextPage(_ href: String)
         }
         
         static func accessToken(_ code: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String) -> Request<TokenResponse> {
@@ -117,8 +117,8 @@ extension SoundCloud {
             Request<Page<User>>(api: .searchUsers(query))
         }
 
-        static func collectionForHref<U: Decodable>(_ href: String) -> Request<Page<U>> {
-            Request<Page<U>>(api: .collectionForHref(href))
+        static func getNextPage<ItemType: Decodable>(_ href: String) -> Request<Page<ItemType>> {
+            Request<Page<ItemType>>(api: .nextPage(href))
         }
     }
 }
@@ -169,7 +169,7 @@ extension SoundCloud.Request {
         case .searchUsers:
             return "users"
             
-        case .collectionForHref(let href): 
+        case .nextPage(let href): 
             return href
         }
     }
@@ -282,7 +282,7 @@ extension SoundCloud.Request {
     
     var isForHref: Bool {
         switch api {
-            case .collectionForHref: return true
+            case .nextPage: return true
             default: return false
         }
     }

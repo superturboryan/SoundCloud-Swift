@@ -136,9 +136,9 @@ public extension SoundCloud {
     }
     
     func loadNextPageOfTracksForPlaylist(_ playlist: Playlist) async throws {
-        let response: Page<Track> = try await get(.collectionForHref(playlist.nextPageUrl ?? ""))
-        loadedPlaylists[playlist.id]?.tracks! += response.items
-        loadedPlaylists[playlist.id]?.nextPageUrl = response.nextPage
+        let next: Page<Track> = try await get(.getNextPage(playlist.nextPageUrl ?? ""))
+        loadedPlaylists[playlist.id]?.tracks! += next.items
+        loadedPlaylists[playlist.id]?.nextPageUrl = next.nextPage
     }
     
     func loadRecentlyPostedPlaylistWithTracks() async throws {
@@ -183,9 +183,8 @@ public extension SoundCloud {
             let response = try await get(.usersImFollowing())
             usersImFollowing = response
         } else {
-            let response: Page<User> = try await get(.collectionForHref(usersImFollowing?.nextPage ?? ""))
-            usersImFollowing?.items += response.items
-            usersImFollowing?.nextPage = response.nextPage
+            let nextPage: Page<User> = try await get(.getNextPage(usersImFollowing?.nextPage ?? ""))
+            usersImFollowing?.update(with: nextPage)
         }
     }
     
@@ -250,7 +249,7 @@ public extension SoundCloud {
     }
     
     func pageOfItems<ItemType>(for href: String) async throws -> Page<ItemType> {
-        try await get(.collectionForHref(href))
+        try await get(.getNextPage(href))
     }
 
     // MARK: - Private API Helpers
