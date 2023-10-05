@@ -174,7 +174,9 @@ public extension SoundCloud {
                 break
             }
         } else {
-            loadedPlaylists[id]?.tracks = try await getTracksForPlaylist(with: id)
+            let page = try await getTracksForPlaylist(with: id)
+            loadedPlaylists[id]?.tracks = page.items
+            loadedPlaylists[id]?.nextPageUrl = page.nextPage
         }
     }
     
@@ -241,7 +243,11 @@ public extension SoundCloud {
     }
     
     func searchPlaylists(_ query: String) async throws -> Page<Playlist> {
-        try await get(.searchPlaylists(query))
+        let page = try await get(.searchPlaylists(query))
+        for playlist in page.items where !loadedPlaylists.keys.contains(playlist.id) {
+            loadedPlaylists[playlist.id] = playlist
+        }
+        return page
     }
     
     func searchUsers(_ query: String) async throws -> Page<User> {
@@ -252,11 +258,11 @@ public extension SoundCloud {
         try await get(.getNextPage(href))
     }
 
-    // MARK: - Private API Helpers
-    private func getTracksForPlaylist(with id: Int) async throws -> [Track] {
+    func getTracksForPlaylist(with id: Int) async throws -> Page<Track> {
         try await get(.tracksForPlaylist(id))
     }
     
+    // MARK: - Private API Helpers
     private func getStreamInfoForTrack(with id: Int) async throws -> StreamInfo {
         try await get(.streamInfoForTrack(id))
     }
