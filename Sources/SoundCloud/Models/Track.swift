@@ -14,7 +14,7 @@ public struct Track: Codable, Identifiable {
     public let commentCount: Int?
     public let sharing: String
     public let tagList: String
-    public let streamable: Bool
+    public let streamable: Bool?
     public let genre: String?
     public let title: String
     public let description: String?
@@ -26,7 +26,7 @@ public struct Track: Codable, Identifiable {
     public var streamUrl: String?
     public let downloadUrl: String?
     public let waveformUrl: String
-    public let availableCountryCodes: String?
+    public let availableCountryCodes: [String]?
     public var userFavorite: Bool
     public let userPlaybackCount: Int
     public let playbackCount: Int?

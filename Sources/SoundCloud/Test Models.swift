@@ -42,7 +42,7 @@ public func testUser(_ id: Int = Int.random(in: 0..<1000)) -> User {
     )
 }
 
-public func testPlaylist(empty: Bool) -> Playlist {
+public func testPlaylist(empty: Bool = false) -> Playlist {
     Playlist (
         id: 1587600994,
         genre: "",
@@ -88,7 +88,7 @@ public func testTrack() -> Track {
         streamUrl: "https://api.soundcloud.com/tracks/1586682955/stream",
         downloadUrl: "",
         waveformUrl: "https://wave.sndcdn.com/ycxIIzLADTvQ_m.png",
-        availableCountryCodes: "",
+        availableCountryCodes: ["ca"],
         userFavorite: false,
         userPlaybackCount: 0,
         playbackCount: 0,
