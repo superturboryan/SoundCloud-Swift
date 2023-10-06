@@ -18,8 +18,8 @@ extension SoundCloud {
             case accessToken(_ accessCode: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String)
             case refreshAccessToken(_ refreshToken: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String)
             case me
-            case myLikedTracks
-            case myFollowingsRecentlyPosted
+            case myLikedTracks(_ limit: Int)
+            case myFollowingsRecentlyPosted(_ limit: Int)
             case myLikedPlaylists
             case myPlaylists
             case tracksForPlaylist(_ id: Int, _ limit: Int)
@@ -53,12 +53,12 @@ extension SoundCloud {
             Request<User>(api: .me)
         }
         
-        static func myLikedTracks() -> Request<Page<Track>> {
-            Request<Page<Track>>(api: .myLikedTracks)
+        static func myLikedTracks(_ limit: Int = 100) -> Request<Page<Track>> {
+            Request<Page<Track>>(api: .myLikedTracks(limit))
         }
         
-        static func myFollowingsRecentlyPosted() -> Request<[Track]> {
-            Request<[Track]>(api: .myFollowingsRecentlyPosted)
+        static func myFollowingsRecentlyPosted(_ limit: Int = 100) -> Request<[Track]> {
+            Request<[Track]>(api: .myFollowingsRecentlyPosted(limit))
         }
         
         static func myLikedPlaylists() -> Request<[Playlist]> {
@@ -69,7 +69,7 @@ extension SoundCloud {
             Request<[Playlist]>(api: .myPlaylists)
         }
         
-        static func tracksForPlaylist(_ id: Int, _ limit: Int = 20) -> Request<Page<Track>> {
+        static func tracksForPlaylist(_ id: Int, _ limit: Int = 1000) -> Request<Page<Track>> {
             Request<Page<Track>>(api: .tracksForPlaylist(id, limit))
         }
         
@@ -193,10 +193,15 @@ extension SoundCloud.Request {
             "redirect_uri" : redirectURI
         ]
             
-        case .myLikedTracks: return [
-            "limit" : "20",
+        case .myLikedTracks(let limit): return [
+            "limit" : "\(limit)",
             "access" : "playable",
             "linked_partitioning" : "true"
+        ]
+        
+        case .myFollowingsRecentlyPosted(let limit): return [
+            "limit" : "\(limit)",
+            "access" : "playable",
         ]
             
         case let .tracksForPlaylist(_, limit): return [
