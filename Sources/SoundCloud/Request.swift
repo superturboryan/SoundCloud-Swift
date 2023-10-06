@@ -231,7 +231,7 @@ extension SoundCloud.Request {
             
         case .searchPlaylists(let query): return [
             "q" : query,
-            "show_tracks" : "true",
+            "show_tracks" : "false",
             "limit" : "20",
             "linked_partitioning" : "true"
         ]

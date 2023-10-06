@@ -135,12 +135,6 @@ public extension SoundCloud {
         loadedPlaylists[PlaylistType.likes.rawValue]?.nextPageUrl = response.nextPage
     }
     
-    func loadNextPageOfTracksForPlaylist(_ playlist: Playlist) async throws {
-        let next: Page<Track> = try await get(.getNextPage(playlist.nextPageUrl ?? ""))
-        loadedPlaylists[playlist.id]?.tracks! += next.items
-        loadedPlaylists[playlist.id]?.nextPageUrl = next.nextPage
-    }
-    
     func loadRecentlyPostedPlaylistWithTracks() async throws {
         loadedPlaylists[PlaylistType.recentlyPosted.rawValue]?.tracks = try await get(.myFollowingsRecentlyPosted())
     }
