@@ -28,7 +28,7 @@ public struct Playlist: Decodable, Identifiable, Equatable {
     public let streamable: Bool?
     public let artworkUrl: String?
     public let tracksUri: String
-    public var tracks: [Track]? { didSet { trackCount = tracks?.count ?? 0 } }
+    public var tracks: [Track]? 
     public var nextPageUrl: String?
     public init(
         id: Int,
