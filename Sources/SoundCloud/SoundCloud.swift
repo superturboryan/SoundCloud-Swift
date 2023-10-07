@@ -35,8 +35,8 @@ final public class SoundCloud: NSObject, ObservableObject {
     }
     
     // Use id to filter loadedPlaylists dictionary for my + liked playlists
-    public var myPlaylistIds: [Int] = []
-    public var myLikedPlaylistIds: [Int] = []
+    @Published public var myPlaylistIds: [Int] = []
+    @Published public var myLikedPlaylistIds: [Int] = []
     
     private var downloadTasks: [Track : URLSessionTask] = [:]
     
@@ -211,6 +211,18 @@ public extension SoundCloud {
         try await get(.unlikeTrack(unlikedTrack.id))
         // 🚨 Hack for SC API cached responses -> Update loaded playlist manually
         loadedPlaylists[PlaylistType.likes.rawValue]?.tracks?.removeAll(where: { $0.id == unlikedTrack.id })
+    }
+    
+    func likePlaylist(_ playlist: Playlist) async throws {
+        try await get(.likePlaylist(playlist.id))
+        if !myLikedPlaylistIds.contains(playlist.id) {
+            myLikedPlaylistIds.insert(playlist.id, at: 0)
+        }
+    }
+    
+    func unlikePlaylist(_ playlist: Playlist) async throws {
+        try await get(.unlikePlaylist(playlist.id))
+        myLikedPlaylistIds.removeAll(where: { $0 == playlist.id })
     }
     
     func getTracksForUser(_ id: Int, _ limit: Int = 20) async throws -> Page<Track> {

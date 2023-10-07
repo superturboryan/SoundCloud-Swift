@@ -31,6 +31,9 @@ extension SoundCloud {
             case likeTrack(_ id: Int)
             case unlikeTrack(_ id: Int)
             
+            case likePlaylist(_ id: Int)
+            case unlikePlaylist(_ id: Int)
+            
             case followUser(_ id: Int)
             case unfollowUser(_ id: Int)
             
@@ -97,6 +100,14 @@ extension SoundCloud {
             Request<Status>(api: .unlikeTrack(id))
         }
         
+        static func likePlaylist(_ id: Int) -> Request<Status> {
+            Request<Status>(api: .likePlaylist(id))
+        }
+        
+        static func unlikePlaylist(_ id: Int) -> Request<Status> {
+            Request<Status>(api: .unlikePlaylist(id))
+        }
+        
         static func followUser(_ id: Int) -> Request<User> {
             Request<User>(api: .followUser(id))
         }
@@ -157,6 +168,10 @@ extension SoundCloud.Request {
         case .likeTrack(let id), 
              .unlikeTrack(let id):
             return "likes/tracks/\(id)"
+            
+        case .likePlaylist(let id),
+             .unlikePlaylist(let id):
+            return "likes/playlists/\(id)"
             
         case .followUser(let id), 
              .unfollowUser(let id):
@@ -256,10 +271,12 @@ extension SoundCloud.Request {
 
         case .accessToken,
              .refreshAccessToken,
-             .likeTrack:
+             .likeTrack,
+             .likePlaylist:
             return "POST"
         
         case .unlikeTrack,
+             .unlikePlaylist,
              .unfollowUser:
             return "DELETE"
 
