@@ -84,8 +84,8 @@ extension Playlist {
         (tracks ?? []).reduce(into: 0, { $0 += $1.durationInSeconds})
     }
     
-    public var largerArtworkUrlWithTrackAndUserFallback: URL {
-        URL(string: largerArtworkUrl ?? tracks?.first?.largerArtworkUrl ?? user.largerAvatarUrl)!
+    public var largerArtworkUrlWithTrackAndUserFallback: String {
+        largerArtworkUrl ?? tracks?.first?.largerArtworkUrl ?? user.largerAvatarUrl
     }
     
     public var hasNextPage: Bool {
