@@ -10,6 +10,7 @@ import Foundation
 public extension SoundCloud {
     enum Error: LocalizedError {
         case loggingIn
+        case cancelledLogin
         case trackDownloadNotInProgress
         case downloadAlreadyExists
         case userNotAuthorized
@@ -19,5 +20,6 @@ public extension SoundCloud {
         case noInternet
         case refreshingExpiredAuthTokens
         case removingDownloadedTrack
+        case tooManyRequests
     }
 }

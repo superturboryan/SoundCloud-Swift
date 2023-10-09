@@ -69,6 +69,13 @@ final public class SoundCloud: NSObject, ObservableObject {
         return ["Authorization" : "Bearer " + (validAuthTokens.accessToken)]
     }}
     
+    public var isSessionExpired: Bool {
+        guard let savedAuthTokens = tokenPersistenceService.get() else {
+            return false
+        }
+        return savedAuthTokens.isExpired
+    }
+    
     private let decoder = JSONDecoder()
     private var subscriptions = Set<AnyCancellable>()
     
@@ -93,7 +100,7 @@ public extension SoundCloud {
             persistAuthTokensWithCreationDate(newAuthTokens)
             isLoggedIn = true
         } catch(ASWebAuthenticationSession.Error.cancelledLogin) {
-            // Do nothing in this case
+            throw Error.cancelledLogin
         } catch {
             throw Error.loggingIn
         }
@@ -178,8 +185,8 @@ public extension SoundCloud {
         if usersImFollowing == nil {
             let response = try await get(.usersImFollowing())
             usersImFollowing = response
-        } else {
-            let nextPage: Page<User> = try await get(.getNextPage(usersImFollowing?.nextPage ?? ""))
+        } else if let nextPageUrl = usersImFollowing?.nextPage {
+            let nextPage: Page<User> = try await get(.getNextPage(nextPageUrl))
             usersImFollowing?.update(with: nextPage)
         }
     }
@@ -393,6 +400,9 @@ private extension SoundCloud {
         let statusCode = StatusCode(rawValue: statusCodeInt) ?? .unknown
         guard statusCode != .unauthorized else {
             throw Error.userNotAuthorized
+        }
+        guard statusCode != .tooManyRequests else {
+            throw Error.tooManyRequests
         }
         guard !statusCode.errorOccurred else {
             throw Error.network(statusCode)
