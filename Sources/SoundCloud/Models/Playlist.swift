@@ -104,7 +104,7 @@ public enum PlaylistType: Int, CaseIterable {
         case .nowPlaying: return String(localized: "Now playing", bundle: .module, comment: "Noun")
         case .downloads: return String(localized:"Downloads", bundle: .module, comment: "Plural noun")
         case .likes:  return String(localized:"Likes", bundle: .module, comment: "Plural noun")
-        case .recentlyPosted: return String(localized:"Recently posted", bundle: .module)
+        case .recentlyPosted: return String(localized:"Recently posted", bundle: .module, comment: "User playlist - Noun")
         }
     }
 }
