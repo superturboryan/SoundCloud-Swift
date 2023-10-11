@@ -5,6 +5,9 @@
 
 It handles the logic for authenticating with a SoundCloud account using the OAuth 2.0 standard, and provides an API for making authorized requests for streaming content and acessing track, artist, playlist data from SoundCloud.
 
+You can see the package in action:   
+[⌚️☁️ WatchCloud - SoundCloud for Apple Watch](https://apps.apple.com/gb/app/watchcloud/id6466678799)
+
 ## Installation
 Add the following line to your project's dependencies in the Package.swift file:
 

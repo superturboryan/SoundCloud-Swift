@@ -3,10 +3,20 @@
 ## 0.0.3 
 
 ### ✨ Features
-- 
+- Spanish, Arabic localized strings
+- APIs
+    - loadUsersImFollowing
+    - getTracksForUser
+    - getLikedTracksForUser
+    - follow + unfollow user
+    - search tracks, playlists, users (artists)
+    - generic page of items (for paginated responses)
+    - like + unlike playlist
 
 ### 🐞 Bug fixes
-- German "Neue Tracks" ➡️ "Neue Titel"
+- Translation errors
+- User avatar url uses large image size
+- Track.genre has to be optional
 
 
 ## 0.0.2 
