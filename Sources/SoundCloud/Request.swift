@@ -4,6 +4,7 @@
 //
 //  Created by Ryan Forsyth on 2023-08-12.
 //
+// https://developers.soundcloud.com/docs/api/explorer/open-api#/
 
 import Foundation
 
@@ -17,35 +18,50 @@ extension SoundCloud {
             case accessToken(_ accessCode: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String)
             case refreshAccessToken(_ refreshToken: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String)
             case me
-            case myLikedTracks
-            case myFollowingsRecentlyPosted
+            case myLikedTracks(_ limit: Int)
+            case myFollowingsRecentlyPosted(_ limit: Int)
             case myLikedPlaylists
             case myPlaylists
-            case tracksForPlaylist(_ id: Int)
+            case tracksForPlaylist(_ id: Int, _ limit: Int)
+            case tracksForUser(_ id: Int, _ limit: Int)
+            case likedTracksForUser(_ id: Int, _ limit: Int)
             case streamInfoForTrack(_ id: Int)
+            case usersImFollowing
             
             case likeTrack(_ id: Int)
             case unlikeTrack(_ id: Int)
+            
+            case likePlaylist(_ id: Int)
+            case unlikePlaylist(_ id: Int)
+            
+            case followUser(_ id: Int)
+            case unfollowUser(_ id: Int)
+            
+            case searchTracks(_ query: String)
+            case searchPlaylists(_ query: String)
+            case searchUsers(_ query: String)
+
+            case nextPage(_ href: String)
         }
         
-        static func accessToken(_ code: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String) -> Request<OAuthTokenResponse> {
-            Request<OAuthTokenResponse>(api: .accessToken(code, clientId, clientSecret, redirectURI))
+        static func accessToken(_ code: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String) -> Request<TokenResponse> {
+            Request<TokenResponse>(api: .accessToken(code, clientId, clientSecret, redirectURI))
         }
         
-        static func refreshToken(_ refreshToken: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String) -> Request<OAuthTokenResponse> {
-            Request<OAuthTokenResponse>(api: .refreshAccessToken(refreshToken, clientId, clientSecret, redirectURI))
+        static func refreshToken(_ refreshToken: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String) -> Request<TokenResponse> {
+            Request<TokenResponse>(api: .refreshAccessToken(refreshToken, clientId, clientSecret, redirectURI))
         }
         
         static func me() -> Request<User> {
             Request<User>(api: .me)
         }
         
-        static func myLikedTracks() -> Request<TrackCollectionResponse> {
-            Request<TrackCollectionResponse>(api: .myLikedTracks)
+        static func myLikedTracks(_ limit: Int = 100) -> Request<Page<Track>> {
+            Request<Page<Track>>(api: .myLikedTracks(limit))
         }
         
-        static func myFollowingsRecentlyPosted() -> Request<[Track]> {
-            Request<[Track]>(api: .myFollowingsRecentlyPosted)
+        static func myFollowingsRecentlyPosted(_ limit: Int = 100) -> Request<[Track]> {
+            Request<[Track]>(api: .myFollowingsRecentlyPosted(limit))
         }
         
         static func myLikedPlaylists() -> Request<[Playlist]> {
@@ -56,12 +72,24 @@ extension SoundCloud {
             Request<[Playlist]>(api: .myPlaylists)
         }
         
-        static func tracksForPlaylist(_ id: Int) -> Request<[Track]> {
-            Request<[Track]>(api: .tracksForPlaylist(id))
+        static func tracksForPlaylist(_ id: Int, _ limit: Int = 1000) -> Request<Page<Track>> {
+            Request<Page<Track>>(api: .tracksForPlaylist(id, limit))
         }
         
+        static func tracksForUser(_ id: Int, _ limit: Int = 20) -> Request<Page<Track>> {
+            Request<Page<Track>>(api: .tracksForUser(id, limit))
+        }
+        
+        static func likedTracksForUser(_ id: Int, _ limit: Int = 20) -> Request<Page<Track>> {
+            Request<Page<Track>>(api: .likedTracksForUser(id, limit))
+        }
+
         static func streamInfoForTrack(_ id: Int) -> Request<StreamInfo> {
             Request<StreamInfo>(api: .streamInfoForTrack(id))
+        }
+        
+        static func usersImFollowing() -> Request<Page<User>> {
+            Request<Page<User>>(api: .usersImFollowing)
         }
         
         static func likeTrack(_ id: Int) -> Request<Status> {
@@ -70,6 +98,38 @@ extension SoundCloud {
         
         static func unlikeTrack(_ id: Int) -> Request<Status> {
             Request<Status>(api: .unlikeTrack(id))
+        }
+        
+        static func likePlaylist(_ id: Int) -> Request<Status> {
+            Request<Status>(api: .likePlaylist(id))
+        }
+        
+        static func unlikePlaylist(_ id: Int) -> Request<Status> {
+            Request<Status>(api: .unlikePlaylist(id))
+        }
+        
+        static func followUser(_ id: Int) -> Request<User> {
+            Request<User>(api: .followUser(id))
+        }
+
+        static func unfollowUser(_ id: Int) -> Request<Status> {
+            Request<Status>(api: .unfollowUser(id))
+        }
+        
+        static func searchTracks(_ query: String) -> Request<Page<Track>> {
+            Request<Page<Track>>(api: .searchTracks(query))
+        }
+        
+        static func searchPlaylists(_ query: String) -> Request<Page<Playlist>> {
+            Request<Page<Playlist>>(api: .searchPlaylists(query))
+        }
+        
+        static func searchUsers(_ query: String) -> Request<Page<User>> {
+            Request<Page<User>>(api: .searchUsers(query))
+        }
+
+        static func getNextPage<ItemType: Decodable>(_ href: String) -> Request<Page<ItemType>> {
+            Request<Page<ItemType>>(api: .nextPage(href))
         }
     }
 }
@@ -80,17 +140,52 @@ extension SoundCloud.Request {
     var path: String {
         switch api {
         
-        case .accessToken: return "oauth2/token"
-        case .refreshAccessToken: return "oauth2/token"
-        case .me: return "me"
-        case .myLikedTracks: return "me/likes/tracks"
-        case .myFollowingsRecentlyPosted: return "me/followings/tracks"
-        case .myLikedPlaylists: return "me/likes/playlists"
-        case .myPlaylists: return "me/playlists"
-        case .tracksForPlaylist(let id): return "playlists/\(id)/tracks"
-        case .streamInfoForTrack(let id): return "tracks/\(id)/streams"
+        case .accessToken: 
+            return "oauth2/token"
+        case .refreshAccessToken: 
+            return "oauth2/token"
+        case .me: 
+            return "me"
+        case .myLikedTracks: 
+            return "me/likes/tracks"
+        case .myFollowingsRecentlyPosted: 
+            return "me/followings/tracks"
+        case .myLikedPlaylists:
+            return "me/likes/playlists"
+        case .myPlaylists:
+            return "me/playlists"
+        case .tracksForPlaylist(let id, _):
+            return "playlists/\(id)/tracks"
+        case .tracksForUser(let id, _):
+            return "users/\(id)/tracks"
+        case .likedTracksForUser(let id, _):
+            return "users/\(id)/likes/tracks"
+        case .streamInfoForTrack(let id):
+            return "tracks/\(id)/streams"
+        case .usersImFollowing:
+            return "me/followings"
+
+        case .likeTrack(let id), 
+             .unlikeTrack(let id):
+            return "likes/tracks/\(id)"
             
-        case .likeTrack(let id), .unlikeTrack(let id): return "likes/tracks/\(id)"
+        case .likePlaylist(let id),
+             .unlikePlaylist(let id):
+            return "likes/playlists/\(id)"
+            
+        case .followUser(let id), 
+             .unfollowUser(let id):
+            return "me/followings/\(id)"
+            
+        case .searchTracks:
+            return "tracks"
+        case .searchPlaylists:
+            return "playlists"
+        case .searchUsers:
+            return "users"
+            
+        case .nextPage(let href): 
+            return href
         }
     }
     
@@ -113,14 +208,58 @@ extension SoundCloud.Request {
             "redirect_uri" : redirectURI
         ]
             
-        case .myLikedTracks: return [
-            "limit" : "20", // Page size
+        case .myLikedTracks(let limit): return [
+            "limit" : "\(limit)",
             "access" : "playable",
             "linked_partitioning" : "true"
         ]
+        
+        case .myFollowingsRecentlyPosted(let limit): return [
+            "limit" : "\(limit)",
+            "access" : "playable",
+        ]
             
-        case .tracksForPlaylist: return [
-            "access" : "playable"
+        case let .tracksForPlaylist(_, limit): return [
+            "access" : "playable",
+            "limit" : "\(limit)",
+            "linked_partitioning" : "true"
+        ]
+            
+        case let .tracksForUser(_, limit): return [
+            "access" : "playable",
+            "limit" : "\(limit)",
+            "linked_partitioning" : "true"
+        ]
+            
+        case let .likedTracksForUser(_, limit): return [
+            "access" : "playable",
+            "limit" : "\(limit)",
+            "linked_partitioning" : "true"
+        ]
+
+        case .usersImFollowing: return [
+            "limit" : "1000", // Page size
+            "linked_partitioning" : "true"
+        ]
+            
+        case .searchTracks(let query): return [
+            "q" : query,
+            "access" : "playable",
+            "limit" : "20",
+            "linked_partitioning" : "true"
+        ]
+            
+        case .searchPlaylists(let query): return [
+            "q" : query,
+            "show_tracks" : "false",
+            "limit" : "20",
+            "linked_partitioning" : "true"
+        ]
+            
+        case .searchUsers(let query): return [
+            "q" : query,
+            "limit" : "20",
+            "linked_partitioning" : "true"
         ]
             
         default: return nil
@@ -132,10 +271,17 @@ extension SoundCloud.Request {
 
         case .accessToken,
              .refreshAccessToken,
-             .likeTrack:
+             .likeTrack,
+             .likePlaylist:
             return "POST"
         
-        case .unlikeTrack: return "DELETE"
+        case .unlikeTrack,
+             .unlikePlaylist,
+             .unfollowUser:
+            return "DELETE"
+
+        case .followUser:
+            return "PUT"
         
         default: return "GET"
         }
@@ -154,6 +300,13 @@ extension SoundCloud.Request {
     var isToRefresh: Bool {
         switch api {
             case .refreshAccessToken: return true
+            default: return false
+        }
+    }
+    
+    var isForHref: Bool {
+        switch api {
+            case .nextPage: return true
             default: return false
         }
     }

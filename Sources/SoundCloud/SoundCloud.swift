@@ -25,6 +25,8 @@ final public class SoundCloud: NSObject, ObservableObject {
         }
     }
     
+    @Published public var usersImFollowing: Page<User>? = nil
+    
     @Published public var downloadsInProgress: [Track : Progress] = [:]
     @Published public var downloadedTracks: [Track] = [] { // Tracks with streamURL set to local mp3 url
         didSet {
@@ -33,13 +35,13 @@ final public class SoundCloud: NSObject, ObservableObject {
     }
     
     // Use id to filter loadedPlaylists dictionary for my + liked playlists
-    public var myPlaylistIds: [Int] = []
-    public var myLikedPlaylistIds: [Int] = []
+    @Published public var myPlaylistIds: [Int] = []
+    @Published public var myLikedPlaylistIds: [Int] = []
     
     private var downloadTasks: [Track : URLSessionTask] = [:]
     
-    private let tokenPersistenceService = KeychainService<OAuthTokenResponse>()
-    private let userPersistenceService = UserDefaultsService<User>()
+    private let tokenPersistenceService = KeychainService<TokenResponse>("OAuthTokenResponse")
+    private let userPersistenceService = UserDefaultsService<User>("\(User.self)")
     
     public var isLoadedTrackDownloaded: Bool {
         guard let loadedTrack else { return false }
@@ -50,8 +52,9 @@ final public class SoundCloud: NSObject, ObservableObject {
     ///
     ///  **This getter will attempt to refresh the access token first if it is expired**, throwing an error if it fails to refresh the token.
     public var authHeader: [String : String] { get async throws {
-        guard let savedAuthTokens = tokenPersistenceService.get()
-        else { throw Error.userNotAuthorized }
+        guard let savedAuthTokens = tokenPersistenceService.get() else {
+            throw Error.userNotAuthorized
+        }
         
         if savedAuthTokens.isExpired {
             print("⚠️ Auth tokens expired at: \(savedAuthTokens.expiryDate != nil ? "\(savedAuthTokens.expiryDate!)" : "Unknown")")
@@ -65,6 +68,13 @@ final public class SoundCloud: NSObject, ObservableObject {
         let validAuthTokens = tokenPersistenceService.get()!
         return ["Authorization" : "Bearer " + (validAuthTokens.accessToken)]
     }}
+    
+    public var isSessionExpired: Bool {
+        guard let savedAuthTokens = tokenPersistenceService.get() else {
+            return false
+        }
+        return savedAuthTokens.isExpired
+    }
     
     private let decoder = JSONDecoder()
     private var subscriptions = Set<AnyCancellable>()
@@ -90,7 +100,7 @@ public extension SoundCloud {
             persistAuthTokensWithCreationDate(newAuthTokens)
             isLoggedIn = true
         } catch(ASWebAuthenticationSession.Error.cancelledLogin) {
-            // Do nothing in this case
+            throw Error.cancelledLogin
         } catch {
             throw Error.loggingIn
         }
@@ -108,10 +118,12 @@ public extension SoundCloud {
         loadDefaultPlaylists() // ⚠️ Must call loadMyProfile first!
         try loadDownloadedTracks()
         
-        try? await loadMyPlaylistsWithoutTracks()
-        try? await loadMyLikedPlaylistsWithoutTracks()
-        try? await loadMyLikedTracksPlaylistWithTracks()
-        try? await loadRecentlyPostedPlaylistWithTracks()
+        try await loadMyPlaylistsWithoutTracks()
+        try await loadMyLikedPlaylistsWithoutTracks()
+        try await loadMyLikedTracksPlaylistWithTracks()
+        try await loadRecentlyPostedPlaylistWithTracks()
+        
+        try await loadUsersImFollowing()
     }
     
     func loadMyProfile() async throws {
@@ -126,14 +138,8 @@ public extension SoundCloud {
     
     func loadMyLikedTracksPlaylistWithTracks() async throws {
         let response = try await get(.myLikedTracks())
-        loadedPlaylists[PlaylistType.likes.rawValue]?.tracks = response.collection
-        loadedPlaylists[PlaylistType.likes.rawValue]?.nextPageUrl = response.nextHref
-    }
-    
-    func loadNextPageOfTracksForPlaylist(_ playlist: Playlist) async throws {
-        let response = try await getCollectionOfTracksForHref(playlist.nextPageUrl!)
-        loadedPlaylists[playlist.id]?.tracks! += response.collection
-        loadedPlaylists[playlist.id]?.nextPageUrl = response.nextHref
+        loadedPlaylists[PlaylistType.likes.rawValue]?.tracks = response.items
+        loadedPlaylists[PlaylistType.likes.rawValue]?.nextPageUrl = response.nextPage
     }
     
     func loadRecentlyPostedPlaylistWithTracks() async throws {
@@ -169,7 +175,19 @@ public extension SoundCloud {
                 break
             }
         } else {
-            loadedPlaylists[id]?.tracks = try await getTracksForPlaylist(with: id)
+            let page = try await getTracksForPlaylist(with: id)
+            loadedPlaylists[id]?.tracks = page.items
+            loadedPlaylists[id]?.nextPageUrl = page.nextPage
+        }
+    }
+    
+    func loadUsersImFollowing() async throws {
+        if usersImFollowing == nil {
+            let response = try await get(.usersImFollowing())
+            usersImFollowing = response
+        } else if let nextPageUrl = usersImFollowing?.nextPage {
+            let nextPage: Page<User> = try await get(.getNextPage(nextPageUrl))
+            usersImFollowing?.update(with: nextPage)
         }
     }
     
@@ -202,11 +220,62 @@ public extension SoundCloud {
         loadedPlaylists[PlaylistType.likes.rawValue]?.tracks?.removeAll(where: { $0.id == unlikedTrack.id })
     }
     
-    // MARK: - Private API Helpers
-    private func getTracksForPlaylist(with id: Int) async throws -> [Track] {
+    func likePlaylist(_ playlist: Playlist) async throws {
+        try await get(.likePlaylist(playlist.id))
+        if !myLikedPlaylistIds.contains(playlist.id) {
+            myLikedPlaylistIds.insert(playlist.id, at: 0)
+        }
+    }
+    
+    func unlikePlaylist(_ playlist: Playlist) async throws {
+        try await get(.unlikePlaylist(playlist.id))
+        myLikedPlaylistIds.removeAll(where: { $0 == playlist.id })
+    }
+    
+    func getTracksForUser(_ id: Int, _ limit: Int = 20) async throws -> Page<Track> {
+        try await get(.tracksForUser(id, limit))
+    }
+
+    func getLikedTracksForUser(_ id: Int, _ limit: Int = 20) async throws -> Page<Track> {
+        try await get(.likedTracksForUser(id, limit))
+    }
+
+    func followUser(_ user: User) async throws {
+        #warning("Investigate behaviour when following user twice in a row")
+        try await get(.followUser(user.id))
+        usersImFollowing?.items.insert(user, at: 0)
+    }
+
+    func unfollowUser(_ user: User) async throws {
+        try await get(.unfollowUser(user.id))
+        usersImFollowing?.items.removeAll(where: { $0 == user })
+    }
+    
+    func searchTracks(_ query: String) async throws -> Page<Track> {
+        try await get(.searchTracks(query))
+    }
+    
+    func searchPlaylists(_ query: String) async throws -> Page<Playlist> {
+        let page = try await get(.searchPlaylists(query))
+        for playlist in page.items where !loadedPlaylists.keys.contains(playlist.id) {
+            loadedPlaylists[playlist.id] = playlist
+        }
+        return page
+    }
+    
+    func searchUsers(_ query: String) async throws -> Page<User> {
+        try await get(.searchUsers(query))
+    }
+    
+    func pageOfItems<ItemType>(for href: String) async throws -> Page<ItemType> {
+        try await get(.getNextPage(href))
+    }
+
+    func getTracksForPlaylist(with id: Int) async throws -> Page<Track> {
         try await get(.tracksForPlaylist(id))
     }
     
+    // MARK: - Private API Helpers
     private func getStreamInfoForTrack(with id: Int) async throws -> StreamInfo {
         try await get(.streamInfoForTrack(id))
     }
@@ -295,7 +364,7 @@ extension SoundCloud {
         #endif
     }
     
-    private func getNewAuthTokens(using authCode: String) async throws -> (OAuthTokenResponse) {
+    private func getNewAuthTokens(using authCode: String) async throws -> (TokenResponse) {
         let tokenResponse = try await get(.accessToken(authCode, config.clientId, config.clientSecret, config.redirectURI))
         print("✅ Received new tokens:"); dump(tokenResponse)
         return tokenResponse
@@ -308,7 +377,7 @@ extension SoundCloud {
         persistAuthTokensWithCreationDate(newTokens)
     }
     
-    private func persistAuthTokensWithCreationDate(_ tokens: OAuthTokenResponse) {
+    private func persistAuthTokensWithCreationDate(_ tokens: TokenResponse) {
         var tokensWithDate = tokens
         tokensWithDate.expiryDate = tokens.expiresIn.dateWithSecondsAdded(to: Date())
         tokenPersistenceService.save(tokensWithDate)
@@ -332,6 +401,9 @@ private extension SoundCloud {
         guard statusCode != .unauthorized else {
             throw Error.userNotAuthorized
         }
+        guard statusCode != .tooManyRequests else {
+            throw Error.tooManyRequests
+        }
         guard !statusCode.errorOccurred else {
             throw Error.network(statusCode)
         }
@@ -350,27 +422,15 @@ private extension SoundCloud {
         components.queryItems = scRequest.queryParameters?.map { URLQueryItem(name: $0, value: $1) }
         
         var request = URLRequest(url: components.url!)
+        if scRequest.isForHref {
+            request = URLRequest(url: URL(string: scRequest.path)!)
+        }
+
         request.httpMethod = scRequest.httpMethod
         if scRequest.shouldUseAuthHeader {
             request.allHTTPHeaderFields = try await authHeader // Will refresh tokens if necessary
         }
         return request
-    }
-    
-    // Hacky way to get data from Href without making new api enum case
-    private func getCollectionOfTracksForHref(_ url: String) async throws -> TrackCollectionResponse {
-        guard let url = URL(string: url) else {
-            throw Error.invalidURL
-        }
-        var authorizedURLRequest = URLRequest(url: url)
-        authorizedURLRequest.allHTTPHeaderFields = try await authHeader
-        guard let (data, _) = try? await URLSession.shared.data(for: authorizedURLRequest) else {
-            throw Error.noInternet // Is no internet the only case here?
-        }
-        guard let collectionResponse = try? decoder.decode(TrackCollectionResponse.self, from: data) else {
-            throw Error.decoding
-        }
-        return collectionResponse
     }
 }
 

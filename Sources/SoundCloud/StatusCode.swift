@@ -10,6 +10,7 @@ import Foundation
 public extension SoundCloud {
     enum StatusCode: Int {
         case success = 200
+        case created = 201
         case found = 302
         case badRequest = 400
         case unauthorized = 401
@@ -24,7 +25,7 @@ public extension SoundCloud {
         
         var errorOccurred: Bool {
             switch self {
-            case .success, .found:
+            case .success, .created, .found:
                 return false
             default:
                 return true

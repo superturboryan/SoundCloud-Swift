@@ -1,6 +1,15 @@
 # Changelog
 
-## 0.0.2 (pending)
+## 0.0.3 
+
+### ✨ Features
+- 
+
+### 🐞 Bug fixes
+- German "Neue Tracks" ➡️ "Neue Titel"
+
+
+## 0.0.2 
 
 ### ✨ Features
 - French, German localized strings

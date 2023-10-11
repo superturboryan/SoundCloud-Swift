@@ -11,6 +11,12 @@ import KeychainSwift
 internal struct KeychainService<T: Codable>: ValuePersisting {
     internal typealias ValueType = T
     private let service = KeychainSwift()
+    
+    internal var codingKey: String
+    
+    init(_ codingKey: String) {
+        self.codingKey = codingKey
+    }
 
     internal func get() -> T? {
         guard
