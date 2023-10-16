@@ -28,6 +28,12 @@
             "value" : "Téléchargements"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ダウンロード"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -60,6 +66,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gratuit"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "購読なし"
           }
         },
         "ko" : {
@@ -97,6 +109,12 @@
             "value" : "Titres aimés"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "好き"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -130,6 +148,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "En cours de lecture"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再生中"
           }
         },
         "ko" : {
@@ -171,6 +195,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Récentes"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新しい曲"
           }
         },
         "ko" : {
