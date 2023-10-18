@@ -10,10 +10,8 @@ import Combine
 
 final public class SoundCloudService: NSObject {
     
-    public private(set) var isLoggedIn = true
-    
-    public var downloadsInProgress: [Track : Progress] = [:]
     public var downloadedTracks: [Track] = [] // Tracks with streamURL set to local mp3 url
+    public var downloadsInProgress: [Track : Progress] = [:]
     private var downloadTasks: [Track : URLSessionTask] = [:]
     
     private let tokenPersistenceService = KeychainService<TokenResponse>("OAuthTokenResponse")
@@ -68,7 +66,6 @@ public extension SoundCloudService {
             let authCode = try await getAuthCode()
             let newAuthTokens = try await getNewAuthTokens(using: authCode)
             persistAuthTokensWithCreationDate(newAuthTokens)
-            isLoggedIn = true
         } catch(ASWebAuthenticationSession.Error.cancelledLogin) {
             throw Error.cancelledLogin
         } catch {
@@ -78,7 +75,94 @@ public extension SoundCloudService {
     
     func logout() {
         tokenPersistenceService.delete()
-        isLoggedIn = false
+    }
+}
+
+// MARK: - My User
+public extension SoundCloudService {
+    func getMyUser() async throws -> User {
+        try await get(.me())
+    }
+    
+    func getUsersImFollowing() async throws -> Page<User> {
+        try await get(.usersImFollowing())
+    }
+    
+    func getMyLikedTracks() async throws -> Page<Track> {
+        try await get(.myLikedTracks())
+    }
+    
+    func getMyFollowingsRecentlyPosted() async throws -> [Track] {
+        try await get(.myFollowingsRecentlyPosted())
+    }
+    
+    func getMyPlaylistsWithoutTracks() async throws -> [Playlist] {
+        try await get(.myPlaylists())
+    }
+    
+    func getMyLikedPlaylistsWithoutTracks() async throws -> [Playlist] {
+        try await get(.myLikedPlaylists())
+    }
+}
+
+// MARK: - Like + Follow
+public extension SoundCloudService {
+    func likeTrack(_ likedTrack: Track) async throws {
+        try await get(.likeTrack(likedTrack.id))
+    }
+    
+    func unlikeTrack(_ unlikedTrack: Track) async throws {
+        try await get(.unlikeTrack(unlikedTrack.id))
+    }
+    
+    func likePlaylist(_ playlist: Playlist) async throws {
+        try await get(.likePlaylist(playlist.id))
+    }
+    
+    func unlikePlaylist(_ playlist: Playlist) async throws {
+        try await get(.unlikePlaylist(playlist.id))
+    }
+    
+    func followUser(_ user: User) async throws {
+        try await get(.followUser(user.id))
+    }
+    
+    func unfollowUser(_ user: User) async throws {
+        try await get(.unfollowUser(user.id))
+    }
+}
+
+// MARK: - Search
+public extension SoundCloudService {
+    func searchTracks(_ query: String) async throws -> Page<Track> {
+        try await get(.searchTracks(query))
+    }
+    
+    func searchPlaylists(_ query: String) async throws -> Page<Playlist> {
+        try await get(.searchPlaylists(query))
+    }
+    
+    func searchUsers(_ query: String) async throws -> Page<User> {
+        try await get(.searchUsers(query))
+    }
+}
+
+// MARK: - Helpers
+public extension SoundCloudService {
+    func pageOfItems<ItemType>(for href: String) async throws -> Page<ItemType> {
+        try await get(.getNextPage(href))
+    }
+
+    func getTracksForPlaylist(_ id: Int) async throws -> Page<Track> {
+        try await get(.tracksForPlaylist(id))
+    }
+    
+    func getTracksForUser(_ id: Int, _ limit: Int = 20) async throws -> Page<Track> {
+        try await get(.tracksForUser(id, limit))
+    }
+    
+    func getLikedTracksForUser(_ id: Int, _ limit: Int = 20) async throws -> Page<Track> {
+        try await get(.likedTracksForUser(id, limit))
     }
 }
 
@@ -110,69 +194,8 @@ public extension SoundCloudService {
         downloadsInProgress.removeValue(forKey: track)
     }
     
-    func getStreamInfoForTrack(with id: Int) async throws -> StreamInfo {
+    private func getStreamInfoForTrack(with id: Int) async throws -> StreamInfo {
         try await get(.streamInfoForTrack(id))
-    }
-}
-    
-// MARK: - Like + Follow
-public extension SoundCloudService {
-    func likeTrack(_ likedTrack: Track) async throws {
-        try await get(.likeTrack(likedTrack.id))
-    }
-    
-    func unlikeTrack(_ unlikedTrack: Track) async throws {
-        try await get(.unlikeTrack(unlikedTrack.id))
-    }
-    
-    func likePlaylist(_ playlist: Playlist) async throws {
-        try await get(.likePlaylist(playlist.id))
-    }
-    
-    func unlikePlaylist(_ playlist: Playlist) async throws {
-        try await get(.unlikePlaylist(playlist.id))
-    }
-    
-    func getTracksForUser(_ id: Int, _ limit: Int = 20) async throws -> Page<Track> {
-        try await get(.tracksForUser(id, limit))
-    }
-    
-    func getLikedTracksForUser(_ id: Int, _ limit: Int = 20) async throws -> Page<Track> {
-        try await get(.likedTracksForUser(id, limit))
-    }
-    
-    func followUser(_ user: User) async throws {
-        try await get(.followUser(user.id))
-    }
-    
-    func unfollowUser(_ user: User) async throws {
-        try await get(.unfollowUser(user.id))
-    }
-}
-    
-// MARK: - Search
-public extension SoundCloudService {
-    func searchTracks(_ query: String) async throws -> Page<Track> {
-        try await get(.searchTracks(query))
-    }
-    
-    func searchPlaylists(_ query: String) async throws -> Page<Playlist> {
-        try await get(.searchPlaylists(query))
-    }
-    
-    func searchUsers(_ query: String) async throws -> Page<User> {
-        try await get(.searchUsers(query))
-    }
-}
-
-// MARK: - Helpers
-public extension SoundCloudService {
-    func pageOfItems<ItemType>(for href: String) async throws -> Page<ItemType> {
-        try await get(.getNextPage(href))
-    }
-
-    func getTracksForPlaylist(with id: Int) async throws -> Page<Track> {
-        try await get(.tracksForPlaylist(id))
     }
 }
 
@@ -331,7 +354,7 @@ extension SoundCloudService: URLSessionTaskDelegate {
             .store(in: &subscriptions)
     }
     
-    private func loadDownloadedTracks() throws {
+    public func loadDownloadedTracks() throws {
         // Get id of downloaded tracks from device's documents directory
         let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         let downloadedTrackIds = try FileManager.default.contentsOfDirectory(atPath: documentsURL.path)

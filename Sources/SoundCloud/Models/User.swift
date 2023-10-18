@@ -27,6 +27,52 @@ public struct User: Codable, Equatable {
     public let likesCount: Int
     public let playlistCount: Int
     public let subscriptions: [Subscription]
+    
+    public init(
+        avatarUrl: String = "",
+        id: Int,
+        permalinkUrl: String = "",
+        uri: String = "",
+        username: String = "",
+        createdAt: String = "",
+        firstName: String? = nil,
+        lastName: String? = nil,
+        fullName: String = "",
+        city: String? = nil,
+        country: String? = nil,
+        description: String? = nil,
+        trackCount: Int = 0,
+        repostsCount: Int = 0,
+        followersCount: Int = 0,
+        followingsCount: Int = 0,
+        commentsCount: Int = 0,
+        online: Bool = false,
+        likesCount: Int = 0,
+        playlistCount: Int = 0,
+        subscriptions: [Subscription] = []
+    ) {
+        self.avatarUrl = avatarUrl
+        self.id = id
+        self.permalinkUrl = permalinkUrl
+        self.uri = uri
+        self.username = username
+        self.createdAt = createdAt
+        self.firstName = firstName
+        self.lastName = lastName
+        self.fullName = fullName
+        self.city = city
+        self.country = country
+        self.description = description
+        self.trackCount = trackCount
+        self.repostsCount = repostsCount
+        self.followersCount = followersCount
+        self.followingsCount = followingsCount
+        self.commentsCount = commentsCount
+        self.online = online
+        self.likesCount = likesCount
+        self.playlistCount = playlistCount
+        self.subscriptions = subscriptions
+    }
 }
 
 public extension User {
