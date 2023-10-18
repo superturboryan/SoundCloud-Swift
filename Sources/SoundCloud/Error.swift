@@ -23,3 +23,20 @@ public extension SoundCloud {
         case tooManyRequests
     }
 }
+
+public extension SoundCloudService {
+    enum Error: LocalizedError {
+        case loggingIn
+        case cancelledLogin
+        case trackDownloadNotInProgress
+        case downloadAlreadyExists
+        case userNotAuthorized
+        case network(StatusCode)
+        case decoding
+        case invalidURL
+        case noInternet
+        case refreshingExpiredAuthTokens
+        case removingDownloadedTrack
+        case tooManyRequests
+    }
+}
