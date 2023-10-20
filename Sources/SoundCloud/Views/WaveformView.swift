@@ -7,17 +7,10 @@
 
 import SwiftUI
 
-#if os(watchOS) || os(iOS)
-
 public struct WaveformView: View {
     
     @Binding var progress: CGFloat
     @Binding var waveform: UIImage
-    
-    public init(progress: Binding<CGFloat>, waveform: Binding<UIImage>) {
-        _progress = progress
-        _waveform = waveform
-    }
     
     public var body: some View {
         GeometryReader { geo in
@@ -65,8 +58,7 @@ struct SwiftUIView_Previews: PreviewProvider {
     
     static var previews: some View {
         WaveformView(progress: $progress, waveform: $waveform)
-//            .frame(height: 30)
+            .previewLayout(.sizeThatFits)
+            .frame(width: 100, height: 30)
     }
 }
-
-#endif
