@@ -7,7 +7,7 @@
 
 import AuthenticationServices
 
-final public class SoundCloudService: NSObject {
+final public class SoundCloudService {
             
     private let config: SoundCloud.Config
     private let decoder = JSONDecoder()
@@ -15,7 +15,6 @@ final public class SoundCloudService: NSObject {
     
     public init(_ config: SoundCloud.Config) {
         self.config = config
-        super.init()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         if let authTokens = try? tokenDAO.get() {
             print("✅💾🔐 SC.init: Loaded saved auth tokens: \(authTokens.accessToken)")
