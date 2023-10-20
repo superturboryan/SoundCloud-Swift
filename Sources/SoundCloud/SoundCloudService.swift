@@ -9,11 +9,11 @@ import AuthenticationServices
 
 final public class SoundCloudService: NSObject {
             
-    private let config: SoundCloudConfig
+    private let config: SoundCloud.Config
     private let decoder = JSONDecoder()
     private let tokenDAO = KeychainDAO<TokenResponse>("OAuthTokenResponse")
     
-    public init(_ config: SoundCloudConfig) {
+    public init(_ config: SoundCloud.Config) {
         self.config = config
         super.init()
         decoder.keyDecodingStrategy = .convertFromSnakeCase

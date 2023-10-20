@@ -79,8 +79,8 @@ final public class SoundCloud: NSObject, ObservableObject {
     private let decoder = JSONDecoder()
     private var subscriptions = Set<AnyCancellable>()
     
-    private let config: SoundCloudConfig
-    public init(_ config: SoundCloudConfig) {
+    private let config: SoundCloud.Config
+    public init(_ config: SoundCloud.Config) {
         self.config = config
         super.init()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
