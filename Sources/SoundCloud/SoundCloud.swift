@@ -8,6 +8,7 @@
 import AuthenticationServices
 import Combine
 import SwiftUI
+import OSLog
 
 @MainActor
 final public class SoundCloud: NSObject, ObservableObject {
@@ -55,9 +56,8 @@ final public class SoundCloud: NSObject, ObservableObject {
         guard let savedAuthTokens = try? tokenDAO.get() else {
             throw Error.userNotAuthorized
         }
-        
         if savedAuthTokens.isExpired {
-            print("⚠️ Auth tokens expired at: \(savedAuthTokens.expiryDate != nil ? "\(savedAuthTokens.expiryDate!)" : "Unknown")")
+            Logger.auth.warning("Auth tokens expired at: \(savedAuthTokens.expiryDate!)")
             do {
                 try await refreshAuthTokens()
             } catch {
@@ -85,7 +85,7 @@ final public class SoundCloud: NSObject, ObservableObject {
         super.init()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         if let authTokens = try? tokenDAO.get() {
-            print("✅💾🔐 SC.init: Loaded saved auth tokens: \(authTokens.accessToken)")
+            Logger.auth.info("Loaded saved auth tokens: \(authTokens.accessToken, privacy: .private)")
         }
     }
 }
@@ -168,10 +168,9 @@ public extension SoundCloud {
                 try await loadMyLikedTracksPlaylistWithTracks()
             case .recentlyPosted:
                 try await loadRecentlyPostedPlaylistWithTracks()
-            // These playlists are not reloaded here
+            
             case .nowPlaying, .downloads:
-                print("⚠️ SC.loadTracksForPlaylist has no effect. Playlist type reloads automatically")
-                break
+                break // These playlists are not reloaded here
             }
         } else {
             let page = try await getTracksForPlaylist(with: id)
@@ -240,7 +239,6 @@ public extension SoundCloud {
     }
 
     func followUser(_ user: User) async throws {
-        #warning("Investigate behaviour when following user twice in a row")
         try await get(.followUser(user.id))
         usersImFollowing?.items.insert(user, at: 0)
     }
@@ -365,14 +363,16 @@ extension SoundCloud {
     
     private func getNewAuthTokens(using authCode: String) async throws -> (TokenResponse) {
         let tokenResponse = try await get(.accessToken(authCode, config.clientId, config.clientSecret, config.redirectURI))
-        print("✅ Received new tokens:"); dump(tokenResponse)
+        Logger.auth.info("Received new access token: \(tokenResponse.accessToken, privacy: .private)")
         return tokenResponse
     }
     
     private func refreshAuthTokens() async throws {
-        let persistedRefreshToken = (try? tokenDAO.get().refreshToken) ?? ""
+        guard let persistedRefreshToken = try? tokenDAO.get().refreshToken else {
+            throw Error.userNotAuthorized
+        }
         let newTokens = try await get(.refreshToken(persistedRefreshToken, config.clientId, config.clientSecret, config.redirectURI))
-        print("♻️ Refreshed tokens:"); dump(newTokens)
+        Logger.auth.info("Refreshed access token: \(newTokens.accessToken, privacy: .private)")
         persistAuthTokensWithCreationDate(newTokens)
     }
     
@@ -488,8 +488,7 @@ extension SoundCloud: URLSessionTaskDelegate {
         task.publisher(for: \.progress)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] progress in
-                DispatchQueue.main.async { // Not sure if this works better than .receive(on:) alone
-                    print("\n⬇️🎵 Download progress for \(trackBeingDownloaded.title): \(progress.fractionCompleted)")
+                DispatchQueue.main.async { // Not sure if this works better than .receive(on:)
                     self?.downloadsInProgress[trackBeingDownloaded] = progress
                 }
             }

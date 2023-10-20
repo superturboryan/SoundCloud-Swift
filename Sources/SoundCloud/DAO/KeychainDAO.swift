@@ -18,10 +18,10 @@ public final class KeychainDAO<T: Codable>: DAO {
     }
 
     public func get() throws -> T {
-        guard
-            let valueData = service.getData(codingKey),
-            let value = try? JSONDecoder().decode(T.self, from: valueData)
-        else {
+        guard let data = service.getData(codingKey) else {
+            throw DAOError.noData
+        }
+        guard let value = try? JSONDecoder().decode(T.self, from: data) else {
             throw DAOError.decoding
         }
         return value

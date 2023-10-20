@@ -6,6 +6,7 @@
 //
 
 public enum DAOError: Error {
+    case noData
     case decoding
     case encoding
 }

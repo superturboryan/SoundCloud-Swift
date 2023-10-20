@@ -17,10 +17,10 @@ public final class UserDefaultsDAO<T: Codable>: DAO {
     }
 
     public func get() throws -> T {
-        guard
-            let valueData = service.object(forKey: codingKey) as? Data,
-            let value = try? JSONDecoder().decode(T.self, from: valueData)
-        else {
+        guard let data = service.object(forKey: codingKey) as? Data else {
+            throw DAOError.noData
+        }
+        guard let value = try? JSONDecoder().decode(T.self, from: data) else {
             throw DAOError.decoding
         }
         return value

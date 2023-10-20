@@ -6,6 +6,7 @@
 //
 
 import AuthenticationServices
+import OSLog
 
 final public class SoundCloudService {
             
@@ -17,7 +18,7 @@ final public class SoundCloudService {
         self.config = config
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         if let authTokens = try? tokenDAO.get() {
-            print("✅💾🔐 SC.init: Loaded saved auth tokens: \(authTokens.accessToken)")
+            Logger.auth.info("💾 Loaded saved access token: \(authTokens.accessToken, privacy: .private)")
         }
     }
 }
@@ -33,6 +34,7 @@ public extension SoundCloudService {
             throw Error.userNotAuthorized
         }
         if savedAuthTokens.isExpired {
+            Logger.auth.warning("⏰ Access token expired at: \(savedAuthTokens.expiryDate!)")
             do {
                 try await refreshAuthTokens()
             } catch {
@@ -180,7 +182,7 @@ private extension SoundCloudService {
     
     func getNewAuthTokens(using authCode: String) async throws -> (TokenResponse) {
         let tokenResponse = try await get(.accessToken(authCode, config.clientId, config.clientSecret, config.redirectURI))
-        print("✅ Received new tokens:"); dump(tokenResponse)
+        Logger.auth.info("🌟 Received new access token: \(tokenResponse.accessToken, privacy: .private)")
         return tokenResponse
     }
     
@@ -189,7 +191,7 @@ private extension SoundCloudService {
             throw Error.userNotAuthorized
         }
         let newTokens = try await get(.refreshToken(savedRefreshToken, config.clientId, config.clientSecret, config.redirectURI))
-        print("♻️ Refreshed tokens:"); dump(newTokens)
+        Logger.auth.info("♻️ Refreshed access token: \(newTokens.accessToken, privacy: .private)")
         saveTokensWithCreationDate(newTokens)
     }
     
