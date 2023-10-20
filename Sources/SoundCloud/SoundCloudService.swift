@@ -12,9 +12,10 @@ final public class SoundCloudService: NSObject {
         
     private let tokenDAO = KeychainDAO<TokenResponse>("OAuthTokenResponse")
     
-    ///  Returns a dictionary with valid OAuth access token to be used as URLRequest header.
+    ///  Dictionary with refreshed OAuth access token to be used as `URLRequest` header.
     ///
-    ///  **This getter will attempt to refresh the access token first if it is expired**, throwing an error if it fails to refresh the token.
+    ///  **This getter will attempt to refresh the access token first if it is expired**, 
+    ///  throwing an error if it fails to refresh the token or doesn't find any persisted token.
     public var authHeader: [String : String] { get async throws {
         guard let savedAuthTokens = try? tokenDAO.get() else {
             throw Error.userNotAuthorized
@@ -58,7 +59,7 @@ public extension SoundCloudService {
         do {
             let authCode = try await getAuthCode()
             let newAuthTokens = try await getNewAuthTokens(using: authCode)
-            persistAuthTokensWithCreationDate(newAuthTokens)
+            saveTokensWithCreationDate(newAuthTokens)
         } catch(ASWebAuthenticationSession.Error.cancelledLogin) {
             throw Error.cancelledLogin
         } catch {
@@ -196,13 +197,15 @@ private extension SoundCloudService {
     }
     
     func refreshAuthTokens() async throws {
-        let persistedRefreshToken = (try? tokenDAO.get().refreshToken) ?? ""
-        let newTokens = try await get(.refreshToken(persistedRefreshToken, config.clientId, config.clientSecret, config.redirectURI))
+        guard let savedRefreshToken = try? tokenDAO.get().refreshToken else {
+            throw Error.userNotAuthorized
+        }
+        let newTokens = try await get(.refreshToken(savedRefreshToken, config.clientId, config.clientSecret, config.redirectURI))
         print("♻️ Refreshed tokens:"); dump(newTokens)
-        persistAuthTokensWithCreationDate(newTokens)
+        saveTokensWithCreationDate(newTokens)
     }
     
-    func persistAuthTokensWithCreationDate(_ tokens: TokenResponse) {
+    func saveTokensWithCreationDate(_ tokens: TokenResponse) {
         var tokensWithDate = tokens
         tokensWithDate.expiryDate = tokens.expiresIn.dateWithSecondsAdded(to: Date())
         try? tokenDAO.save(tokensWithDate)
