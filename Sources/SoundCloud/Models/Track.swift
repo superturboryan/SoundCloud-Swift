@@ -64,14 +64,6 @@ extension Track: Hashable {
     }
 }
 
-internal extension Track {
-    struct FileExtension {
-        private init() {}
-        public static let mp3 = "mp3"
-        public static let json = "json"
-    }
-}
-
 /*
  API image sizes:
 

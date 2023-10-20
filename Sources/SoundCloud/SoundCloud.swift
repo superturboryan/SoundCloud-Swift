@@ -527,3 +527,11 @@ extension SoundCloud: URLSessionTaskDelegate {
         downloadedTracks = loadedTracks
     }
 }
+
+internal extension Track {
+    struct FileExtension {
+        private init() {}
+        public static let mp3 = "mp3"
+        public static let json = "json"
+    }
+}

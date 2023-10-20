@@ -119,4 +119,6 @@ public let testNextProSubscription = User.Subscription(product: User.Subscriptio
 @MainActor
 public var testSC = SoundCloud(SoundCloudConfig(apiURL: "", clientId: "", clientSecret: "", redirectURI: ""))
 
+public let testSC2 = SoundCloudService(SoundCloudConfig(apiURL: "", clientId: "", clientSecret: "", redirectURI: ""))
+
 public var testSCConfig = SoundCloudConfig(apiURL: "", clientId: "", clientSecret: "", redirectURI: "")
