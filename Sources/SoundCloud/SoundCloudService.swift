@@ -10,13 +10,13 @@ import Combine
 
 final public class SoundCloudService: NSObject {
         
-    private let tokenPersistenceService = KeychainService<TokenResponse>("OAuthTokenResponse")
+    private let tokenDAO = KeychainDAO<TokenResponse>("OAuthTokenResponse")
     
     ///  Returns a dictionary with valid OAuth access token to be used as URLRequest header.
     ///
     ///  **This getter will attempt to refresh the access token first if it is expired**, throwing an error if it fails to refresh the token.
     public var authHeader: [String : String] { get async throws {
-        guard let savedAuthTokens = tokenPersistenceService.get() else {
+        guard let savedAuthTokens = try? tokenDAO.get() else {
             throw Error.userNotAuthorized
         }
         if savedAuthTokens.isExpired {
@@ -26,12 +26,12 @@ final public class SoundCloudService: NSObject {
                 throw Error.refreshingExpiredAuthTokens
             }
         }
-        let validAuthTokens = tokenPersistenceService.get()!
+        let validAuthTokens = try! tokenDAO.get()
         return ["Authorization" : "Bearer " + (validAuthTokens.accessToken)]
     }}
     
     public var isSessionExpired: Bool {
-        guard let savedAuthTokens = tokenPersistenceService.get() else {
+        guard let savedAuthTokens = try? tokenDAO.get() else {
             return false
         }
         return savedAuthTokens.isExpired
@@ -46,7 +46,7 @@ final public class SoundCloudService: NSObject {
         self.config = config
         super.init()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
-        if let authTokens = tokenPersistenceService.get() {
+        if let authTokens = try? tokenDAO.get() {
             print("✅💾🔐 SC.init: Loaded saved auth tokens: \(authTokens.accessToken)")
         }
     }
@@ -67,7 +67,7 @@ public extension SoundCloudService {
     }
     
     func logout() {
-        tokenPersistenceService.delete()
+        try? tokenDAO.delete()
     }
 }
 
@@ -196,7 +196,7 @@ private extension SoundCloudService {
     }
     
     func refreshAuthTokens() async throws {
-        let persistedRefreshToken = tokenPersistenceService.get()?.refreshToken ?? ""
+        let persistedRefreshToken = (try? tokenDAO.get().refreshToken) ?? ""
         let newTokens = try await get(.refreshToken(persistedRefreshToken, config.clientId, config.clientSecret, config.redirectURI))
         print("♻️ Refreshed tokens:"); dump(newTokens)
         persistAuthTokensWithCreationDate(newTokens)
@@ -205,7 +205,7 @@ private extension SoundCloudService {
     func persistAuthTokensWithCreationDate(_ tokens: TokenResponse) {
         var tokensWithDate = tokens
         tokensWithDate.expiryDate = tokens.expiresIn.dateWithSecondsAdded(to: Date())
-        tokenPersistenceService.save(tokensWithDate)
+        try? tokenDAO.save(tokensWithDate)
     }
 }
 

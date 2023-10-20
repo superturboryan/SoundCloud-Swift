@@ -40,8 +40,8 @@ final public class SoundCloud: NSObject, ObservableObject {
     
     private var downloadTasks: [Track : URLSessionTask] = [:]
     
-    private let tokenPersistenceService = KeychainService<TokenResponse>("OAuthTokenResponse")
-    private let userPersistenceService = UserDefaultsService<User>("\(User.self)")
+    private let tokenDAO = KeychainDAO<TokenResponse>("OAuthTokenResponse")
+    private let userDAO = UserDefaultsDAO<User>("\(User.self)")
     
     public var isLoadedTrackDownloaded: Bool {
         guard let loadedTrack else { return false }
@@ -52,7 +52,7 @@ final public class SoundCloud: NSObject, ObservableObject {
     ///
     ///  **This getter will attempt to refresh the access token first if it is expired**, throwing an error if it fails to refresh the token.
     public var authHeader: [String : String] { get async throws {
-        guard let savedAuthTokens = tokenPersistenceService.get() else {
+        guard let savedAuthTokens = try? tokenDAO.get() else {
             throw Error.userNotAuthorized
         }
         
@@ -65,12 +65,12 @@ final public class SoundCloud: NSObject, ObservableObject {
             }
         }
         
-        let validAuthTokens = tokenPersistenceService.get()!
+        let validAuthTokens = try! tokenDAO.get()
         return ["Authorization" : "Bearer " + (validAuthTokens.accessToken)]
     }}
     
     public var isSessionExpired: Bool {
-        guard let savedAuthTokens = tokenPersistenceService.get() else {
+        guard let savedAuthTokens = try? tokenDAO.get() else {
             return false
         }
         return savedAuthTokens.isExpired
@@ -84,7 +84,7 @@ final public class SoundCloud: NSObject, ObservableObject {
         self.config = config
         super.init()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
-        if let authTokens = tokenPersistenceService.get() {
+        if let authTokens = try? tokenDAO.get() {
             print("✅💾🔐 SC.init: Loaded saved auth tokens: \(authTokens.accessToken)")
         }
     }
@@ -106,8 +106,8 @@ public extension SoundCloud {
     }
     
     func logout() {
-        tokenPersistenceService.delete()
-        userPersistenceService.delete()
+        try? tokenDAO.delete()
+        try? userDAO.delete()
         isLoggedIn = false
     }
     
@@ -126,12 +126,12 @@ public extension SoundCloud {
     }
     
     func loadMyProfile() async throws {
-        if let savedUser = userPersistenceService.get() {
+        if let savedUser = try? userDAO.get() {
             myUser = savedUser
         } else {
             let loadedUser = try await get(.me())
             myUser = loadedUser
-            userPersistenceService.save(loadedUser)
+            try? userDAO.save(loadedUser)
         }
     }
     
@@ -370,7 +370,7 @@ extension SoundCloud {
     }
     
     private func refreshAuthTokens() async throws {
-        let persistedRefreshToken = tokenPersistenceService.get()?.refreshToken ?? ""
+        let persistedRefreshToken = (try? tokenDAO.get().refreshToken) ?? ""
         let newTokens = try await get(.refreshToken(persistedRefreshToken, config.clientId, config.clientSecret, config.redirectURI))
         print("♻️ Refreshed tokens:"); dump(newTokens)
         persistAuthTokensWithCreationDate(newTokens)
@@ -379,7 +379,7 @@ extension SoundCloud {
     private func persistAuthTokensWithCreationDate(_ tokens: TokenResponse) {
         var tokensWithDate = tokens
         tokensWithDate.expiryDate = tokens.expiresIn.dateWithSecondsAdded(to: Date())
-        tokenPersistenceService.save(tokensWithDate)
+        try? tokenDAO.save(tokensWithDate)
     }
 }
 
