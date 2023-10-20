@@ -6,17 +6,30 @@
 //
 
 import AuthenticationServices
-import Combine
 
 final public class SoundCloudService: NSObject {
-        
+            
+    private let config: SoundCloudConfig
+    private let decoder = JSONDecoder()
     private let tokenDAO = KeychainDAO<TokenResponse>("OAuthTokenResponse")
     
-    ///  Dictionary with refreshed OAuth access token to be used as `URLRequest` header.
+    public init(_ config: SoundCloudConfig) {
+        self.config = config
+        super.init()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        if let authTokens = try? tokenDAO.get() {
+            print("✅💾🔐 SC.init: Loaded saved auth tokens: \(authTokens.accessToken)")
+        }
+    }
+}
+
+// MARK: - Auth 🔐
+public extension SoundCloudService {
+    ///  Dictionary with refreshed authorization token to be used as `URLRequest` header.
     ///
-    ///  **This getter will attempt to refresh the access token first if it is expired**, 
+    ///  **This getter will attempt to refresh the access token first if it is expired**,
     ///  throwing an error if it fails to refresh the token or doesn't find any persisted token.
-    public var authHeader: [String : String] { get async throws {
+    var authHeader: [String : String] { get async throws {
         guard let savedAuthTokens = try? tokenDAO.get() else {
             throw Error.userNotAuthorized
         }
@@ -31,30 +44,6 @@ final public class SoundCloudService: NSObject {
         return ["Authorization" : "Bearer " + (validAuthTokens.accessToken)]
     }}
     
-    public var isSessionExpired: Bool {
-        guard let savedAuthTokens = try? tokenDAO.get() else {
-            return false
-        }
-        return savedAuthTokens.isExpired
-    }
-    
-    private let decoder = JSONDecoder()
-    private var subscriptions = Set<AnyCancellable>()
-    
-    // MARK: - Dependencies
-    private let config: SoundCloudConfig
-    public init(_ config: SoundCloudConfig) {
-        self.config = config
-        super.init()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-        if let authTokens = try? tokenDAO.get() {
-            print("✅💾🔐 SC.init: Loaded saved auth tokens: \(authTokens.accessToken)")
-        }
-    }
-}
-
-// MARK: - Auth
-public extension SoundCloudService {
     func login() async throws {
         do {
             let authCode = try await getAuthCode()
@@ -72,7 +61,7 @@ public extension SoundCloudService {
     }
 }
 
-// MARK: - My User
+// MARK: - My User 💁
 public extension SoundCloudService {
     func getMyUser() async throws -> User {
         try await get(.me())
@@ -99,7 +88,7 @@ public extension SoundCloudService {
     }
 }
 
-// MARK: - Like + Follow
+// MARK: - Like + Follow 🧡
 public extension SoundCloudService {
     func likeTrack(_ likedTrack: Track) async throws {
         try await get(.likeTrack(likedTrack.id))
@@ -126,7 +115,7 @@ public extension SoundCloudService {
     }
 }
 
-// MARK: - Search
+// MARK: - Search 🕵️
 public extension SoundCloudService {
     func searchTracks(_ query: String) async throws -> Page<Track> {
         try await get(.searchTracks(query))
@@ -141,7 +130,7 @@ public extension SoundCloudService {
     }
 }
 
-// MARK: - Tracks
+// MARK: - Tracks 💿
 public extension SoundCloudService {
     func getTracksForPlaylist(_ id: Int) async throws -> Page<Track> {
         try await get(.tracksForPlaylist(id))
@@ -160,14 +149,14 @@ public extension SoundCloudService {
     }
 }
 
-// MARK: Miscellaneous
+// MARK: Miscellaneous ✨
 public extension SoundCloudService {
     func pageOfItems<ItemType>(for href: String) async throws -> Page<ItemType> {
         try await get(.getNextPage(href))
     }
 }
 
-// MARK: - Auth
+// MARK: - Private Auth 🙈
 private extension SoundCloudService {
     func getAuthCode() async throws -> String {
         let authorizeURL = config.apiURL
@@ -212,7 +201,7 @@ private extension SoundCloudService {
     }
 }
 
-// MARK: - API request
+// MARK: - API request 🌍
 private extension SoundCloudService {
     @discardableResult
     func get<T: Decodable>(_ request: Request<T>) async throws -> T {
