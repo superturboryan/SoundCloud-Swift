@@ -1,103 +1,55 @@
 //
-//  SC.swift
+//  SoundCloud.swift
 //  SoundCloud
 //
-//  Created by Ryan Forsyth on 2023-08-10.
+//  Created by Ryan Forsyth on 2023-10-18.
 //
 
 import AuthenticationServices
-import Combine
-import SwiftUI
 import OSLog
 
-@MainActor
-final public class SoundCloud: NSObject, ObservableObject {
-    
-    @Published public var myUser: User? = nil
-    @Published public private(set) var isLoggedIn: Bool = true
-    
-    @Published public var loadedPlaylists: [Int : Playlist] = [:]
-    @Published public private(set) var loadedTrackNowPlayingQueueIndex: Int = -1
-    @Published public var loadedTrack: Track? {
-        didSet {
-            loadedTrackNowPlayingQueueIndex = loadedPlaylists[PlaylistType.nowPlaying.rawValue]?
-                .tracks?
-                .firstIndex(where: { $0 == loadedTrack }) ?? -1
-        }
-    }
-    
-    @Published public var usersImFollowing: Page<User>? = nil
-    
-    @Published public var downloadsInProgress: [Track : Progress] = [:]
-    @Published public var downloadedTracks: [Track] = [] { // Tracks with streamURL set to local mp3 url
-        didSet {
-            loadedPlaylists[PlaylistType.downloads.rawValue]!.tracks = downloadedTracks
-        }
-    }
-    
-    // Use id to filter loadedPlaylists dictionary for my + liked playlists
-    @Published public var myPlaylistIds: [Int] = []
-    @Published public var myLikedPlaylistIds: [Int] = []
-    
-    private var downloadTasks: [Track : URLSessionTask] = [:]
-    
+final public class SoundCloud {
+            
+    private let config: SoundCloud.Config
+    private let decoder = JSONDecoder()
     private let tokenDAO = KeychainDAO<TokenResponse>("OAuthTokenResponse")
-    private let userDAO = UserDefaultsDAO<User>("\(User.self)")
     
-    public var isLoadedTrackDownloaded: Bool {
-        guard let loadedTrack else { return false }
-        return downloadedTracks.contains(loadedTrack)
+    public init(_ config: SoundCloud.Config) {
+        self.config = config
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        if let authTokens = try? tokenDAO.get() {
+            Logger.auth.info("💾 Loaded saved access token: \(authTokens.accessToken, privacy: .private)")
+        }
     }
-    
-    ///  Returns a dictionary with valid OAuth access token to be used as URLRequest header.
+}
+
+// MARK: - Auth 🔐
+public extension SoundCloud {
+    ///  Dictionary with refreshed authorization token to be used as `URLRequest` header.
     ///
-    ///  **This getter will attempt to refresh the access token first if it is expired**, throwing an error if it fails to refresh the token.
-    public var authHeader: [String : String] { get async throws {
+    ///  **This getter will attempt to refresh the access token first if it is expired**,
+    ///  throwing an error if it fails to refresh the token or doesn't find any persisted token.
+    var authHeader: [String : String] { get async throws {
         guard let savedAuthTokens = try? tokenDAO.get() else {
             throw Error.userNotAuthorized
         }
         if savedAuthTokens.isExpired {
-            Logger.auth.warning("Auth tokens expired at: \(savedAuthTokens.expiryDate!)")
+            Logger.auth.warning("⏰ Access token expired at: \(savedAuthTokens.expiryDate!)")
             do {
                 try await refreshAuthTokens()
             } catch {
                 throw Error.refreshingExpiredAuthTokens
             }
         }
-        
         let validAuthTokens = try! tokenDAO.get()
         return ["Authorization" : "Bearer " + (validAuthTokens.accessToken)]
     }}
     
-    public var isSessionExpired: Bool {
-        guard let savedAuthTokens = try? tokenDAO.get() else {
-            return false
-        }
-        return savedAuthTokens.isExpired
-    }
-    
-    private let decoder = JSONDecoder()
-    private var subscriptions = Set<AnyCancellable>()
-    
-    private let config: SoundCloud.Config
-    public init(_ config: SoundCloud.Config) {
-        self.config = config
-        super.init()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-        if let authTokens = try? tokenDAO.get() {
-            Logger.auth.info("Loaded saved auth tokens: \(authTokens.accessToken, privacy: .private)")
-        }
-    }
-}
-
-// MARK: - Public API
-public extension SoundCloud {
     func login() async throws {
         do {
             let authCode = try await getAuthCode()
             let newAuthTokens = try await getNewAuthTokens(using: authCode)
-            persistAuthTokensWithCreationDate(newAuthTokens)
-            isLoggedIn = true
+            saveTokensWithCreationDate(newAuthTokens)
         } catch(ASWebAuthenticationSession.Error.cancelledLogin) {
             throw Error.cancelledLogin
         } catch {
@@ -107,240 +59,107 @@ public extension SoundCloud {
     
     func logout() {
         try? tokenDAO.delete()
-        try? userDAO.delete()
-        isLoggedIn = false
+    }
+}
+
+// MARK: - My User 💁
+public extension SoundCloud {
+    func getMyUser() async throws -> User {
+        try await get(.me())
     }
     
-    func loadLibrary() async throws {
-        
-        try await loadMyProfile()
-        loadDefaultPlaylists() // ⚠️ Must call loadMyProfile first!
-        try loadDownloadedTracks()
-        
-        try await loadMyPlaylistsWithoutTracks()
-        try await loadMyLikedPlaylistsWithoutTracks()
-        try await loadMyLikedTracksPlaylistWithTracks()
-        try await loadRecentlyPostedPlaylistWithTracks()
-        
-        try await loadUsersImFollowing()
+    func getUsersImFollowing() async throws -> Page<User> {
+        try await get(.usersImFollowing())
     }
     
-    func loadMyProfile() async throws {
-        if let savedUser = try? userDAO.get() {
-            myUser = savedUser
-        } else {
-            let loadedUser = try await get(.me())
-            myUser = loadedUser
-            try? userDAO.save(loadedUser)
-        }
+    func getMyLikedTracks() async throws -> Page<Track> {
+        try await get(.myLikedTracks())
     }
     
-    func loadMyLikedTracksPlaylistWithTracks() async throws {
-        let response = try await get(.myLikedTracks())
-        loadedPlaylists[PlaylistType.likes.rawValue]?.tracks = response.items
-        loadedPlaylists[PlaylistType.likes.rawValue]?.nextPageUrl = response.nextPage
+    func getMyFollowingsRecentlyPosted() async throws -> [Track] {
+        try await get(.myFollowingsRecentlyPosted())
     }
     
-    func loadRecentlyPostedPlaylistWithTracks() async throws {
-        loadedPlaylists[PlaylistType.recentlyPosted.rawValue]?.tracks = try await get(.myFollowingsRecentlyPosted())
+    func getMyPlaylistsWithoutTracks() async throws -> [Playlist] {
+        try await get(.myPlaylists())
     }
     
-    func loadMyLikedPlaylistsWithoutTracks() async throws {
-        let myLikedPlaylists = try await get(.myLikedPlaylists())
-        myLikedPlaylistIds = myLikedPlaylists.map(\.id)
-        for playlist in myLikedPlaylists {
-            loadedPlaylists[playlist.id] = playlist
-        }
+    func getMyLikedPlaylistsWithoutTracks() async throws -> [Playlist] {
+        try await get(.myLikedPlaylists())
     }
-    
-    func loadMyPlaylistsWithoutTracks() async throws {
-        let myPlaylists = try await get(.myPlaylists())
-        myPlaylistIds = myPlaylists.map(\.id)
-        for playlist in myPlaylists {
-            loadedPlaylists[playlist.id] = playlist
-        }
-    }
-    
-    func loadTracksForPlaylist(with id: Int) async throws {
-        if let userPlaylistType = PlaylistType(rawValue: id) {
-            switch userPlaylistType {
-            case .likes:
-                try await loadMyLikedTracksPlaylistWithTracks()
-            case .recentlyPosted:
-                try await loadRecentlyPostedPlaylistWithTracks()
-            
-            case .nowPlaying, .downloads:
-                break // These playlists are not reloaded here
-            }
-        } else {
-            let page = try await getTracksForPlaylist(with: id)
-            loadedPlaylists[id]?.tracks = page.items
-            loadedPlaylists[id]?.nextPageUrl = page.nextPage
-        }
-    }
-    
-    func loadUsersImFollowing() async throws {
-        if usersImFollowing == nil {
-            let response = try await get(.usersImFollowing())
-            usersImFollowing = response
-        } else if let nextPageUrl = usersImFollowing?.nextPage {
-            let nextPage: Page<User> = try await get(.getNextPage(nextPageUrl))
-            usersImFollowing?.update(with: nextPage)
-        }
-    }
-    
-    func download(_ track: Track) async throws {
-        let streamInfo = try await getStreamInfoForTrack(with: track.id)
-        try await downloadTrack(track, from: streamInfo.httpMp3128Url)
-    }
-     
-    func removeDownload(_ trackToRemove: Track) throws {
-        let trackMp3Url = trackToRemove.localFileUrl(withExtension: Track.FileExtension.mp3)
-        let trackJsonUrl = trackToRemove.localFileUrl(withExtension: Track.FileExtension.json)
-        do {
-            try FileManager.default.removeItem(at: trackMp3Url)
-            try FileManager.default.removeItem(at: trackJsonUrl)
-            downloadedTracks.removeAll(where: { $0.id == trackToRemove.id })
-        } catch {
-            throw Error.removingDownloadedTrack
-        }
-    }
-    
+}
+
+// MARK: - Like + Follow 🧡
+public extension SoundCloud {
     func likeTrack(_ likedTrack: Track) async throws {
         try await get(.likeTrack(likedTrack.id))
-        // 🚨 Hack for SC API cached responses -> Update loaded playlist manually
-        loadedPlaylists[PlaylistType.likes.rawValue]?.tracks?.insert(likedTrack, at: 0)
     }
     
     func unlikeTrack(_ unlikedTrack: Track) async throws {
         try await get(.unlikeTrack(unlikedTrack.id))
-        // 🚨 Hack for SC API cached responses -> Update loaded playlist manually
-        loadedPlaylists[PlaylistType.likes.rawValue]?.tracks?.removeAll(where: { $0.id == unlikedTrack.id })
     }
     
     func likePlaylist(_ playlist: Playlist) async throws {
         try await get(.likePlaylist(playlist.id))
-        if !myLikedPlaylistIds.contains(playlist.id) {
-            myLikedPlaylistIds.insert(playlist.id, at: 0)
-        }
     }
     
     func unlikePlaylist(_ playlist: Playlist) async throws {
         try await get(.unlikePlaylist(playlist.id))
-        myLikedPlaylistIds.removeAll(where: { $0 == playlist.id })
     }
     
-    func getTracksForUser(_ id: Int, _ limit: Int = 20) async throws -> Page<Track> {
-        try await get(.tracksForUser(id, limit))
-    }
-
-    func getLikedTracksForUser(_ id: Int, _ limit: Int = 20) async throws -> Page<Track> {
-        try await get(.likedTracksForUser(id, limit))
-    }
-
     func followUser(_ user: User) async throws {
         try await get(.followUser(user.id))
-        usersImFollowing?.items.insert(user, at: 0)
-    }
-
-    func unfollowUser(_ user: User) async throws {
-        try await get(.unfollowUser(user.id))
-        usersImFollowing?.items.removeAll(where: { $0 == user })
     }
     
+    func unfollowUser(_ user: User) async throws {
+        try await get(.unfollowUser(user.id))
+    }
+}
+
+// MARK: - Search 🕵️
+public extension SoundCloud {
     func searchTracks(_ query: String) async throws -> Page<Track> {
         try await get(.searchTracks(query))
     }
     
     func searchPlaylists(_ query: String) async throws -> Page<Playlist> {
-        let page = try await get(.searchPlaylists(query))
-        for playlist in page.items where !loadedPlaylists.keys.contains(playlist.id) {
-            loadedPlaylists[playlist.id] = playlist
-        }
-        return page
+        try await get(.searchPlaylists(query))
     }
     
     func searchUsers(_ query: String) async throws -> Page<User> {
         try await get(.searchUsers(query))
     }
-    
-    func pageOfItems<ItemType>(for href: String) async throws -> Page<ItemType> {
-        try await get(.getNextPage(href))
-    }
+}
 
-    func getTracksForPlaylist(with id: Int) async throws -> Page<Track> {
+// MARK: - Tracks 💿
+public extension SoundCloud {
+    func getTracksForPlaylist(_ id: Int) async throws -> Page<Track> {
         try await get(.tracksForPlaylist(id))
     }
     
-    // MARK: - Private API Helpers
-    private func getStreamInfoForTrack(with id: Int) async throws -> StreamInfo {
+    func getTracksForUser(_ id: Int, _ limit: Int = 20) async throws -> Page<Track> {
+        try await get(.tracksForUser(id, limit))
+    }
+    
+    func getLikedTracksForUser(_ id: Int, _ limit: Int = 20) async throws -> Page<Track> {
+        try await get(.likedTracksForUser(id, limit))
+    }
+    
+    func getStreamInfoForTrack(with id: Int) async throws -> StreamInfo {
         try await get(.streamInfoForTrack(id))
     }
-    
-    private func loadDefaultPlaylists() {
-        loadedPlaylists.removeAll()
-        
-        loadedPlaylists[PlaylistType.nowPlaying.rawValue] = Playlist(
-            id: PlaylistType.nowPlaying.rawValue,
-            user: myUser!,
-            title: PlaylistType.nowPlaying.title,
-            tracks: []
-        )
-        loadedPlaylists[PlaylistType.downloads.rawValue] = Playlist(
-            id: PlaylistType.downloads.rawValue,
-            user: myUser!,
-            title: PlaylistType.downloads.title,
-            tracks: []
-        )
-        loadedPlaylists[PlaylistType.likes.rawValue] = Playlist(
-            id: PlaylistType.likes.rawValue,
-            permalinkUrl: myUser!.permalinkUrl + "/likes",
-            user: myUser!,
-            title: PlaylistType.likes.title,
-            tracks: []
-        )
-        loadedPlaylists[PlaylistType.recentlyPosted.rawValue] = Playlist(
-            id: PlaylistType.recentlyPosted.rawValue,
-            permalinkUrl: myUser!.permalinkUrl + "/following",
-            user: myUser!,
-            title: PlaylistType.recentlyPosted.title,
-            tracks: []
-        )
-    }
 }
 
-// MARK: - Queue helpers
+// MARK: Miscellaneous ✨
 public extension SoundCloud {
-    func setNowPlayingQueue(with tracks: [Track]) {
-        loadedPlaylists[PlaylistType.nowPlaying.rawValue]?.tracks = tracks
-    }
-    
-    var nowPlayingQueue: [Track]? {
-        loadedPlaylists[PlaylistType.nowPlaying.rawValue]?.tracks
-    }
-    
-    var nextTrackInNowPlayingQueue: Track? {
-        guard let queue = nowPlayingQueue
-        else { return nil }
-        
-        let isEndOfQueue = loadedTrackNowPlayingQueueIndex == queue.count - 1
-        let nextTrackIndex = isEndOfQueue ? 0 : loadedTrackNowPlayingQueueIndex + 1
-        return queue[nextTrackIndex]
-    }
-    
-    var previousTrackInNowPlayingQueue: Track? {
-        guard let queue = nowPlayingQueue,
-              loadedTrackNowPlayingQueueIndex > 0
-        else { return nil }
-        
-        let previousTrackIndex = loadedTrackNowPlayingQueueIndex - 1
-        return queue[previousTrackIndex]
+    func pageOfItems<ItemType>(for href: String) async throws -> Page<ItemType> {
+        try await get(.getNextPage(href))
     }
 }
 
-// MARK: - Authentication
-extension SoundCloud {
-    private func getAuthCode() async throws -> String {
+// MARK: - Private Auth 🙈
+private extension SoundCloud {
+    func getAuthCode() async throws -> String {
         let authorizeURL = config.apiURL
         + "connect"
         + "?client_id=\(config.clientId)"
@@ -361,31 +180,30 @@ extension SoundCloud {
         #endif
     }
     
-    private func getNewAuthTokens(using authCode: String) async throws -> (TokenResponse) {
+    func getNewAuthTokens(using authCode: String) async throws -> (TokenResponse) {
         let tokenResponse = try await get(.accessToken(authCode, config.clientId, config.clientSecret, config.redirectURI))
-        Logger.auth.info("Received new access token: \(tokenResponse.accessToken, privacy: .private)")
+        Logger.auth.info("🌟 Received new access token: \(tokenResponse.accessToken, privacy: .private)")
         return tokenResponse
     }
     
-    private func refreshAuthTokens() async throws {
-        guard let persistedRefreshToken = try? tokenDAO.get().refreshToken else {
+    func refreshAuthTokens() async throws {
+        guard let savedRefreshToken = try? tokenDAO.get().refreshToken else {
             throw Error.userNotAuthorized
         }
-        let newTokens = try await get(.refreshToken(persistedRefreshToken, config.clientId, config.clientSecret, config.redirectURI))
-        Logger.auth.info("Refreshed access token: \(newTokens.accessToken, privacy: .private)")
-        persistAuthTokensWithCreationDate(newTokens)
+        let newTokens = try await get(.refreshToken(savedRefreshToken, config.clientId, config.clientSecret, config.redirectURI))
+        Logger.auth.info("♻️ Refreshed access token: \(newTokens.accessToken, privacy: .private)")
+        saveTokensWithCreationDate(newTokens)
     }
     
-    private func persistAuthTokensWithCreationDate(_ tokens: TokenResponse) {
+    func saveTokensWithCreationDate(_ tokens: TokenResponse) {
         var tokensWithDate = tokens
         tokensWithDate.expiryDate = tokens.expiresIn.dateWithSecondsAdded(to: Date())
         try? tokenDAO.save(tokensWithDate)
     }
 }
 
-// MARK: - API request
+// MARK: - API request 🌍
 private extension SoundCloud {
-    
     @discardableResult
     func get<T: Decodable>(_ request: Request<T>) async throws -> T {
         try await fetchData(from: authorized(request))
@@ -430,107 +248,5 @@ private extension SoundCloud {
             request.allHTTPHeaderFields = try await authHeader // Will refresh tokens if necessary
         }
         return request
-    }
-}
-
-// MARK: - Downloads
-extension SoundCloud: URLSessionTaskDelegate {
-    private func downloadTrack(_ track: Track, from url: String) async throws {
-        // Checks before starting download
-        let localMp3Url = track.localFileUrl(withExtension: Track.FileExtension.mp3)
-        let localFileDoesNotExist = !FileManager.default.fileExists(atPath: localMp3Url.path)
-        let downloadNotAlreadyInProgress = !downloadsInProgress.keys.contains(track)
-        guard localFileDoesNotExist, downloadNotAlreadyInProgress else {
-            throw Error.downloadAlreadyExists
-        }
-        // Set empty progress for track so didCreateTask can know which track it's starting download for
-        downloadsInProgress[track] = Progress(totalUnitCount: 0)
-        // Setup request
-        var request = URLRequest(url: URL(string: url)!)
-        request.allHTTPHeaderFields = try await authHeader
-        // ‼️ Response does not contain ID for track (only encrypted ID)
-        // Add track ID to request header to know which track is being downloaded in delegate
-        request.addValue("\(track.id)", forHTTPHeaderField: "track_id")
-        // Make request for track data
-        guard let (trackData, response) = try? await URLSession.shared.data(for: request, delegate: self) else {
-            throw Error.noInternet
-        }
-        let statusCodeInt = (response as! HTTPURLResponse).statusCode
-        let statusCode = StatusCode(rawValue: statusCodeInt) ?? .unknown
-        guard statusCode != .unauthorized else {
-            throw Error.userNotAuthorized
-        }
-        guard !statusCode.errorOccurred else {
-            throw Error.network(statusCode)
-        }
-        downloadsInProgress.removeValue(forKey: track)
-        // Save track data as mp3
-        try trackData.write(to: localMp3Url)
-        // Save track metadata as track json object
-        let trackJsonData = try JSONEncoder().encode(track)
-        let localJsonUrl = track.localFileUrl(withExtension: Track.FileExtension.json)
-        try trackJsonData.write(to: localJsonUrl)
-        // Create copy of track with local file url added
-        var trackWithLocalFileUrl = track
-        trackWithLocalFileUrl.localFileUrl = localMp3Url.absoluteString
-        downloadedTracks.append(trackWithLocalFileUrl)
-    }
-    
-    public func urlSession(_ session: URLSession, didCreateTask task: URLSessionTask) {
-        // ‼️ Get track id being downloaded from request header field
-        guard
-            let trackId = Int(task.originalRequest?.value(forHTTPHeaderField: "track_id") ?? ""),
-            let trackBeingDownloaded = downloadsInProgress.keys.first(where: { $0.id == trackId })
-        else { return }
-        // Keep reference to task in case we need to cancel
-        downloadTasks[trackBeingDownloaded] = task
-        // Assign task's progress to track being downloaded
-        task.publisher(for: \.progress)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] progress in
-                DispatchQueue.main.async { // Not sure if this works better than .receive(on:)
-                    self?.downloadsInProgress[trackBeingDownloaded] = progress
-                }
-            }
-            .store(in: &subscriptions)
-    }
-    
-    public func cancelDownloadInProgress(for track: Track) throws {
-        guard downloadsInProgress.keys.contains(track), let task = downloadTasks[track] else {
-            throw Error.trackDownloadNotInProgress
-        }
-        task.cancel()
-        downloadTasks.removeValue(forKey: track)
-        downloadsInProgress.removeValue(forKey: track)
-    }
-    
-    private func loadDownloadedTracks() throws {
-        // Get id of downloaded tracks from device's documents directory
-        let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        let downloadedTrackIds = try FileManager.default.contentsOfDirectory(atPath: documentsURL.path)
-            .filter { $0.lowercased().contains(Track.FileExtension.mp3) } // Get all mp3 files
-            .map { $0.replacingOccurrences(of: ".\(Track.FileExtension.mp3)", with: "") } // Remove mp3 extension so only id remains
-        
-        // Load track for each id, set local mp3 file url for track
-        var loadedTracks = [Track]()
-        for id in downloadedTrackIds {
-            let trackJsonURL = documentsURL.appendingPathComponent("\(id).\(Track.FileExtension.json)")
-            let trackJsonData = try Data(contentsOf: trackJsonURL)
-            var downloadedTrack = try decoder.decode(Track.self, from: trackJsonData)
-            
-            let downloadedTrackLocalMp3Url = downloadedTrack.localFileUrl(withExtension: Track.FileExtension.mp3).absoluteString
-            downloadedTrack.localFileUrl = downloadedTrackLocalMp3Url
-            
-            loadedTracks.append(downloadedTrack)
-        }
-        downloadedTracks = loadedTracks
-    }
-}
-
-internal extension Track {
-    struct FileExtension {
-        private init() {}
-        public static let mp3 = "mp3"
-        public static let json = "json"
     }
 }
