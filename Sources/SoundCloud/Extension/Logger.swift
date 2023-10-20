@@ -9,7 +9,7 @@ import OSLog
 
 extension Logger {
     
-    private static let subsystem = Bundle.module.bundleIdentifier!
+    private static let subsystem = "SoundCloud"
     
     static let auth = Logger(subsystem: subsystem, category: "Authentication")
 }

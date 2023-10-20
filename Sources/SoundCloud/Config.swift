@@ -7,17 +7,22 @@
 
 ///  Object containing properties to configure SoundCloud instance with.
 ///
-///  - Parameter apiURL: Base URL to use for API requests. **Defaults to http://api.soundcloud.com**
+///  - Parameter apiURL: Base URL to use for API requests.
 ///  - Parameter clientID: Client ID to use when authorizing with API and requesting tokens.
 ///  - Parameter clientSecret: Client secret to use when authorizing with API and requesting tokens.
 ///  - Parameter redirectURI: URI to use when redirecting from OAuth login page to app. This URI should take the form
 extension SoundCloud {
     public struct Config {
-        public let apiURL: String
-        public let clientId: String
-        public let clientSecret: String
-        public let redirectURI: String
-        public init(apiURL: String, clientId: String, clientSecret: String, redirectURI: String) {
+        internal let apiURL: String
+        internal let clientId: String
+        internal let clientSecret: String
+        internal let redirectURI: String
+        public init(
+            apiURL: String = "http://api.soundcloud.com",
+            clientId: String,
+            clientSecret: String,
+            redirectURI: String
+        ) {
             self.apiURL = apiURL
             self.clientId = clientId
             self.clientSecret = clientSecret

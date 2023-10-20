@@ -17,7 +17,7 @@ extension SoundCloud {
         enum API {
             case accessToken(_ accessCode: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String)
             case refreshAccessToken(_ refreshToken: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String)
-            case me
+            case myUser
             case myLikedTracks(_ limit: Int)
             case myFollowingsRecentlyPosted(_ limit: Int)
             case myLikedPlaylists
@@ -30,10 +30,8 @@ extension SoundCloud {
             
             case likeTrack(_ id: Int)
             case unlikeTrack(_ id: Int)
-            
             case likePlaylist(_ id: Int)
             case unlikePlaylist(_ id: Int)
-            
             case followUser(_ id: Int)
             case unfollowUser(_ id: Int)
             
@@ -52,8 +50,8 @@ extension SoundCloud {
             Request<TokenResponse>(api: .refreshAccessToken(refreshToken, clientId, clientSecret, redirectURI))
         }
         
-        static func me() -> Request<User> {
-            Request<User>(api: .me)
+        static func myUser() -> Request<User> {
+            Request<User>(api: .myUser)
         }
         
         static func myLikedTracks(_ limit: Int = 100) -> Request<Page<Track>> {
@@ -144,7 +142,7 @@ extension SoundCloud.Request {
             return "oauth2/token"
         case .refreshAccessToken: 
             return "oauth2/token"
-        case .me: 
+        case .myUser: 
             return "me"
         case .myLikedTracks: 
             return "me/likes/tracks"

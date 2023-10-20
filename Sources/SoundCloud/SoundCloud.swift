@@ -65,7 +65,7 @@ public extension SoundCloud {
 // MARK: - My User 💁
 public extension SoundCloud {
     func getMyUser() async throws -> User {
-        try await get(.me())
+        try await get(.myUser())
     }
     
     func getUsersImFollowing() async throws -> Page<User> {
