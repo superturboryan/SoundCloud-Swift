@@ -7,27 +7,18 @@
 
 import Foundation
 
-public struct TokenResponse: Codable {
-    public let accessToken: String
-    public let expiresIn: Int
-    public let refreshToken: String
-    public let scope: String
-    public let tokenType: String
+internal struct TokenResponse: Codable {
+    let accessToken: String
+    let expiresIn: Int
+    let refreshToken: String
+    let scope: String
+    let tokenType: String
     
-    internal var expiryDate: Date? = nil // Set when persisting object
+    var expiryDate: Date? = nil // Set when persisting object
 }
 
-extension TokenResponse {
-    public var isExpired: Bool {
+internal extension TokenResponse {
+    var isExpired: Bool {
         expiryDate == nil ? true : expiryDate! < Date()
-    }
-    public static var empty: Self {
-        TokenResponse(
-            accessToken: "",
-            expiresIn: 0,
-            refreshToken: "",
-            scope: "",
-            tokenType: ""
-        )
     }
 }
