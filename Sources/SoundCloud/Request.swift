@@ -35,7 +35,7 @@ extension SoundCloud {
             case followUser(_ id: Int)
             case unfollowUser(_ id: Int)
             
-            case searchTracks(_ query: String)
+            case searchTracks(_ query: String, _ limit: Int)
             case searchPlaylists(_ query: String)
             case searchUsers(_ query: String)
 
@@ -114,8 +114,8 @@ extension SoundCloud {
             Request<Status>(api: .unfollowUser(id))
         }
         
-        static func searchTracks(_ query: String) -> Request<Page<Track>> {
-            Request<Page<Track>>(api: .searchTracks(query))
+        static func searchTracks(_ query: String, _ limit: Int = 20) -> Request<Page<Track>> {
+            Request<Page<Track>>(api: .searchTracks(query, limit))
         }
         
         static func searchPlaylists(_ query: String) -> Request<Page<Playlist>> {
@@ -240,10 +240,10 @@ extension SoundCloud.Request {
             "linked_partitioning" : "true"
         ]
             
-        case .searchTracks(let query): return [
+        case let .searchTracks(query, limit): return [
             "q" : query,
             "access" : "playable",
-            "limit" : "20",
+            "limit" : "\(limit)",
             "linked_partitioning" : "true"
         ]
             

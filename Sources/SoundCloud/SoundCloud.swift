@@ -118,8 +118,8 @@ public extension SoundCloud {
 
 // MARK: - Search 🕵️
 public extension SoundCloud {
-    func searchTracks(_ query: String) async throws -> Page<Track> {
-        try await get(.searchTracks(query))
+    func searchTracks(_ query: String, _ limit: Int = 20) async throws -> Page<Track> {
+        try await get(.searchTracks(query, limit))
     }
     
     func searchPlaylists(_ query: String) async throws -> Page<Playlist> {
