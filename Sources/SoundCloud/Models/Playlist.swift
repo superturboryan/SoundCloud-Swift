@@ -51,7 +51,8 @@ public struct Playlist: Decodable, Identifiable, Equatable {
         streamable: Bool? = true,
         artworkUrl: String? = nil,
         tracksUri: String = "",
-        tracks: [Track]
+        tracks: [Track],
+        nextPageUrl: String? = nil
     ) {
         self.id = id
         self.genre = genre
@@ -74,6 +75,7 @@ public struct Playlist: Decodable, Identifiable, Equatable {
         self.artworkUrl = artworkUrl
         self.tracksUri = tracksUri
         self.tracks = tracks
+        self.nextPageUrl = nextPageUrl
     }
 }
 
