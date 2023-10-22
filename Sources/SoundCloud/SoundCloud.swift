@@ -89,6 +89,40 @@ public extension SoundCloud {
     }
 }
 
+// MARK: - Tracks 💿
+public extension SoundCloud {
+    func getTracksForPlaylist(_ id: Int) async throws -> Page<Track> {
+        try await get(.tracksForPlaylist(id))
+    }
+    
+    func getTracksForUser(_ id: Int, _ limit: Int = 20) async throws -> Page<Track> {
+        try await get(.tracksForUser(id, limit))
+    }
+    
+    func getLikedTracksForUser(_ id: Int, _ limit: Int = 20) async throws -> Page<Track> {
+        try await get(.likedTracksForUser(id, limit))
+    }
+    
+    func getStreamInfoForTrack(with id: Int) async throws -> StreamInfo {
+        try await get(.streamInfoForTrack(id))
+    }
+}
+
+// MARK: - Search 🕵️
+public extension SoundCloud {
+    func searchTracks(_ query: String, _ limit: Int = 20) async throws -> Page<Track> {
+        try await get(.searchTracks(query, limit))
+    }
+    
+    func searchPlaylists(_ query: String) async throws -> Page<Playlist> {
+        try await get(.searchPlaylists(query))
+    }
+    
+    func searchUsers(_ query: String) async throws -> Page<User> {
+        try await get(.searchUsers(query))
+    }
+}
+
 // MARK: - Like + Follow 🧡
 public extension SoundCloud {
     func likeTrack(_ likedTrack: Track) async throws {
@@ -113,40 +147,6 @@ public extension SoundCloud {
     
     func unfollowUser(_ user: User) async throws {
         try await get(.unfollowUser(user.id))
-    }
-}
-
-// MARK: - Search 🕵️
-public extension SoundCloud {
-    func searchTracks(_ query: String, _ limit: Int = 20) async throws -> Page<Track> {
-        try await get(.searchTracks(query, limit))
-    }
-    
-    func searchPlaylists(_ query: String) async throws -> Page<Playlist> {
-        try await get(.searchPlaylists(query))
-    }
-    
-    func searchUsers(_ query: String) async throws -> Page<User> {
-        try await get(.searchUsers(query))
-    }
-}
-
-// MARK: - Tracks 💿
-public extension SoundCloud {
-    func getTracksForPlaylist(_ id: Int) async throws -> Page<Track> {
-        try await get(.tracksForPlaylist(id))
-    }
-    
-    func getTracksForUser(_ id: Int, _ limit: Int = 20) async throws -> Page<Track> {
-        try await get(.tracksForUser(id, limit))
-    }
-    
-    func getLikedTracksForUser(_ id: Int, _ limit: Int = 20) async throws -> Page<Track> {
-        try await get(.likedTracksForUser(id, limit))
-    }
-    
-    func getStreamInfoForTrack(with id: Int) async throws -> StreamInfo {
-        try await get(.streamInfoForTrack(id))
     }
 }
 
