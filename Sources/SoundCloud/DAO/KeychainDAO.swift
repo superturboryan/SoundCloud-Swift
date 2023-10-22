@@ -13,7 +13,7 @@ public final class KeychainDAO<T: Codable>: DAO {
     
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
-    private let service = KeychainSwift()
+    private let persistence = KeychainSwift()
     
     public var codingKey: String
     init(_ codingKey: String) {
@@ -21,7 +21,7 @@ public final class KeychainDAO<T: Codable>: DAO {
     }
 
     public func get() throws -> T {
-        guard let data = service.getData(codingKey) else {
+        guard let data = persistence.getData(codingKey) else {
             throw DAOError.noData
         }
         guard let value = try? decoder.decode(T.self, from: data) else {
@@ -34,10 +34,10 @@ public final class KeychainDAO<T: Codable>: DAO {
         guard let data = try? encoder.encode(value) else {
             throw DAOError.encoding
         }
-        service.set(data, forKey: codingKey)
+        persistence.set(data, forKey: codingKey)
     }
     
     public func delete() throws {
-        service.delete(codingKey)
+        persistence.delete(codingKey)
     }
 }
