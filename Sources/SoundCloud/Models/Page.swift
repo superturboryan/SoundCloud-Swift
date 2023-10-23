@@ -35,3 +35,7 @@ public extension Page where ItemType == Track {
         )
     }
 }
+
+public extension Page {
+    static var emptyPage: Page<ItemType> { Page(items: [], nextPage: nil) }
+}
