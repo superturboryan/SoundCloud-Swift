@@ -44,96 +44,96 @@ extension SoundCloud {
         }
         
         static func accessToken(_ code: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String) -> Request<TokenResponse> {
-            Request<TokenResponse>(api: .accessToken(code, clientId, clientSecret, redirectURI))
+            .init(api: .accessToken(code, clientId, clientSecret, redirectURI))
         }
         
         static func refreshToken(_ refreshToken: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String) -> Request<TokenResponse> {
-            Request<TokenResponse>(api: .refreshAccessToken(refreshToken, clientId, clientSecret, redirectURI))
+            .init(api: .refreshAccessToken(refreshToken, clientId, clientSecret, redirectURI))
         }
         
         static func myUser() -> Request<User> {
-            Request<User>(api: .myUser)
+            .init(api: .myUser)
         }
         
         static func myLikedTracks(_ limit: Int = 100) -> Request<Page<Track>> {
-            Request<Page<Track>>(api: .myLikedTracks(limit))
+            .init(api: .myLikedTracks(limit))
         }
         
         static func myFollowingsRecentlyPosted(_ limit: Int = 100) -> Request<[Track]> {
-            Request<[Track]>(api: .myFollowingsRecentlyPosted(limit))
+            .init(api: .myFollowingsRecentlyPosted(limit))
         }
         
         static func myLikedPlaylists() -> Request<[Playlist]> {
-            Request<[Playlist]>(api: .myLikedPlaylists)
+            .init(api: .myLikedPlaylists)
         }
         
         static func myPlaylists() -> Request<[Playlist]> {
-            Request<[Playlist]>(api: .myPlaylists)
+            .init(api: .myPlaylists)
         }
         
         static func tracksForPlaylist(_ id: Int, _ limit: Int = 1000) -> Request<Page<Track>> {
-            Request<Page<Track>>(api: .tracksForPlaylist(id, limit))
+            .init(api: .tracksForPlaylist(id, limit))
         }
         
         static func tracksForUser(_ id: Int, _ limit: Int = 20) -> Request<Page<Track>> {
-            Request<Page<Track>>(api: .tracksForUser(id, limit))
+            .init(api: .tracksForUser(id, limit))
         }
         
         static func likedTracksForUser(_ id: Int, _ limit: Int = 20) -> Request<Page<Track>> {
-            Request<Page<Track>>(api: .likedTracksForUser(id, limit))
+            .init(api: .likedTracksForUser(id, limit))
         }
 
         static func streamInfoForTrack(_ id: Int) -> Request<StreamInfo> {
-            Request<StreamInfo>(api: .streamInfoForTrack(id))
+            .init(api: .streamInfoForTrack(id))
         }
         
         static func usersImFollowing() -> Request<Page<User>> {
-            Request<Page<User>>(api: .usersImFollowing)
+            .init(api: .usersImFollowing)
         }
         
         static func likeTrack(_ id: Int) -> Request<Status> {
-            Request<Status>(api: .likeTrack(id))
+            .init(api: .likeTrack(id))
         }
         
         static func unlikeTrack(_ id: Int) -> Request<Status> {
-            Request<Status>(api: .unlikeTrack(id))
+            .init(api: .unlikeTrack(id))
         }
         
         static func likePlaylist(_ id: Int) -> Request<Status> {
-            Request<Status>(api: .likePlaylist(id))
+            .init(api: .likePlaylist(id))
         }
         
         static func unlikePlaylist(_ id: Int) -> Request<Status> {
-            Request<Status>(api: .unlikePlaylist(id))
+            .init(api: .unlikePlaylist(id))
         }
         
         static func followUser(_ id: Int) -> Request<User> {
-            Request<User>(api: .followUser(id))
+            .init(api: .followUser(id))
         }
 
         static func unfollowUser(_ id: Int) -> Request<Status> {
-            Request<Status>(api: .unfollowUser(id))
+            .init(api: .unfollowUser(id))
         }
         
         static func searchTracks(_ query: String, _ limit: Int = 20) -> Request<Page<Track>> {
-            Request<Page<Track>>(api: .searchTracks(query, limit))
+            .init(api: .searchTracks(query, limit))
         }
         
         static func searchPlaylists(_ query: String) -> Request<Page<Playlist>> {
-            Request<Page<Playlist>>(api: .searchPlaylists(query))
+            .init(api: .searchPlaylists(query))
         }
         
         static func searchUsers(_ query: String) -> Request<Page<User>> {
-            Request<Page<User>>(api: .searchUsers(query))
+            .init(api: .searchUsers(query))
         }
 
         static func getNextPage<ItemType: Decodable>(_ href: String) -> Request<Page<ItemType>> {
-            Request<Page<ItemType>>(api: .nextPage(href))
+            .init(api: .nextPage(href))
         }
     }
 }
 
-// MARK: - Request Parameters
+// MARK: - Request Parameters ⚙️
 extension SoundCloud.Request {
     
     var path: String {
@@ -262,7 +262,7 @@ extension SoundCloud.Request {
     }
 }
 
-// MARK: - Helpers
+// MARK: - Helpers 🔬
 extension SoundCloud.Request {
     var shouldUseAuthHeader: Bool {
         switch api {
