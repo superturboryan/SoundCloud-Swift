@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.0.0 
+
+### ✨ Features
+- SoundCloud instance no longer has stored/published properties
+- Italian, Japanese localized strings
+- Search API's all have limit parameters
+- Page has empty static var
+- Swift 5.9 switches as statements
+
+### 🐞 Bug fixes
+- Remove NSObject inheritance from SoundCloud instance
+
+
 ## 0.0.3 
 
 ### ✨ Features
