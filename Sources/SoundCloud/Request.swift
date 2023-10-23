@@ -17,6 +17,7 @@ extension SoundCloud {
         enum API {
             case accessToken(_ accessCode: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String)
             case refreshAccessToken(_ refreshToken: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String)
+            
             case myUser
             case myLikedTracks(_ limit: Int)
             case myFollowingsRecentlyPosted(_ limit: Int)
@@ -137,60 +138,35 @@ extension SoundCloud.Request {
     
     var path: String {
         switch api {
+        case .accessToken: "oauth2/token"
+        case .refreshAccessToken: "oauth2/token"
         
-        case .accessToken: 
-            return "oauth2/token"
-        case .refreshAccessToken: 
-            return "oauth2/token"
-        case .myUser: 
-            return "me"
-        case .myLikedTracks: 
-            return "me/likes/tracks"
-        case .myFollowingsRecentlyPosted: 
-            return "me/followings/tracks"
-        case .myLikedPlaylists:
-            return "me/likes/playlists"
-        case .myPlaylists:
-            return "me/playlists"
-        case .tracksForPlaylist(let id, _):
-            return "playlists/\(id)/tracks"
-        case .tracksForUser(let id, _):
-            return "users/\(id)/tracks"
-        case .likedTracksForUser(let id, _):
-            return "users/\(id)/likes/tracks"
-        case .streamInfoForTrack(let id):
-            return "tracks/\(id)/streams"
-        case .usersImFollowing:
-            return "me/followings"
-
-        case .likeTrack(let id), 
-             .unlikeTrack(let id):
-            return "likes/tracks/\(id)"
+        case .myUser: "me"
+        case .myLikedTracks: "me/likes/tracks"
+        case .myFollowingsRecentlyPosted: "me/followings/tracks"
+        case .myLikedPlaylists: "me/likes/playlists"
+        case .myPlaylists: "me/playlists"
+        case .tracksForPlaylist(let id, _): "playlists/\(id)/tracks"
+        case .tracksForUser(let id, _): "users/\(id)/tracks"
+        case .likedTracksForUser(let id, _): "users/\(id)/likes/tracks"
+        case .streamInfoForTrack(let id): "tracks/\(id)/streams"
+        case .usersImFollowing: "me/followings"
+        case .likeTrack(let id), .unlikeTrack(let id): "likes/tracks/\(id)"
+        case .likePlaylist(let id), .unlikePlaylist(let id): "likes/playlists/\(id)"
+        case .followUser(let id), .unfollowUser(let id): "me/followings/\(id)"
             
-        case .likePlaylist(let id),
-             .unlikePlaylist(let id):
-            return "likes/playlists/\(id)"
+        case .searchTracks: "tracks"
+        case .searchPlaylists: "playlists"
+        case .searchUsers: "users"
             
-        case .followUser(let id), 
-             .unfollowUser(let id):
-            return "me/followings/\(id)"
-            
-        case .searchTracks:
-            return "tracks"
-        case .searchPlaylists:
-            return "playlists"
-        case .searchUsers:
-            return "users"
-            
-        case .nextPage(let href): 
-            return href
+        case .nextPage(let href): href
         }
     }
     
     var queryParameters: [String : String]? {
         switch api {
 
-        case let .accessToken(accessCode, clientId, clientSecret, redirectURI): return [
+        case let .accessToken(accessCode, clientId, clientSecret, redirectURI): [
             "code" : accessCode,
             "grant_type" : "authorization_code",
             "client_id" : clientId,
@@ -198,7 +174,7 @@ extension SoundCloud.Request {
             "redirect_uri" : redirectURI
         ]
             
-        case let .refreshAccessToken(refreshToken, clientId, clientSecret, redirectURI): return [
+        case let .refreshAccessToken(refreshToken, clientId, clientSecret, redirectURI): [
             "refresh_token" : refreshToken,
             "grant_type" : "refresh_token",
             "client_id" : clientId,
@@ -206,61 +182,61 @@ extension SoundCloud.Request {
             "redirect_uri" : redirectURI
         ]
             
-        case .myLikedTracks(let limit): return [
+        case .myLikedTracks(let limit): [
             "limit" : "\(limit)",
             "access" : "playable",
             "linked_partitioning" : "true"
         ]
         
-        case .myFollowingsRecentlyPosted(let limit): return [
+        case .myFollowingsRecentlyPosted(let limit): [
             "limit" : "\(limit)",
             "access" : "playable",
         ]
             
-        case let .tracksForPlaylist(_, limit): return [
-            "access" : "playable",
-            "limit" : "\(limit)",
-            "linked_partitioning" : "true"
-        ]
-            
-        case let .tracksForUser(_, limit): return [
+        case let .tracksForPlaylist(_, limit): [
             "access" : "playable",
             "limit" : "\(limit)",
             "linked_partitioning" : "true"
         ]
             
-        case let .likedTracksForUser(_, limit): return [
+        case let .tracksForUser(_, limit): [
+            "access" : "playable",
+            "limit" : "\(limit)",
+            "linked_partitioning" : "true"
+        ]
+            
+        case let .likedTracksForUser(_, limit): [
             "access" : "playable",
             "limit" : "\(limit)",
             "linked_partitioning" : "true"
         ]
 
-        case .usersImFollowing: return [
+        case .usersImFollowing: [
             "limit" : "1000", // Page size
             "linked_partitioning" : "true"
         ]
             
-        case let .searchTracks(query, limit): return [
+        case let .searchTracks(query, limit): [
             "q" : query,
             "access" : "playable",
             "limit" : "\(limit)",
             "linked_partitioning" : "true"
         ]
             
-        case .searchPlaylists(let query): return [
+        case .searchPlaylists(let query): [
             "q" : query,
             "show_tracks" : "false",
             "limit" : "20",
             "linked_partitioning" : "true"
         ]
             
-        case .searchUsers(let query): return [
+        case .searchUsers(let query): [
             "q" : query,
             "limit" : "20",
             "linked_partitioning" : "true"
         ]
             
-        default: return nil
+        default: nil
         }
     }
     
@@ -271,17 +247,17 @@ extension SoundCloud.Request {
              .refreshAccessToken,
              .likeTrack,
              .likePlaylist:
-            return "POST"
+            "POST"
         
         case .unlikeTrack,
              .unlikePlaylist,
              .unfollowUser:
-            return "DELETE"
+            "DELETE"
 
         case .followUser:
-            return "PUT"
+            "PUT"
         
-        default: return "GET"
+        default: "GET"
         }
     }
 }
@@ -290,22 +266,22 @@ extension SoundCloud.Request {
 extension SoundCloud.Request {
     var shouldUseAuthHeader: Bool {
         switch api {
-        case .accessToken, .refreshAccessToken: return false
-        default: return true
+        case .accessToken, .refreshAccessToken: false
+        default: true
         }
     }
     
     var isToRefresh: Bool {
         switch api {
-            case .refreshAccessToken: return true
-            default: return false
+            case .refreshAccessToken: true
+            default: false
         }
     }
     
     var isForHref: Bool {
         switch api {
-            case .nextPage: return true
-            default: return false
+            case .nextPage: true
+            default: false
         }
     }
 }

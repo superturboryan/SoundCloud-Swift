@@ -103,10 +103,10 @@ public enum PlaylistType: Int, CaseIterable {
     
     public var title: String {
         switch self {
-        case .nowPlaying: return String(localized: "Now playing", bundle: .module, comment: "Noun")
-        case .downloads: return String(localized:"Downloads", bundle: .module, comment: "Plural noun")
-        case .likes:  return String(localized:"Likes", bundle: .module, comment: "Plural noun")
-        case .recentlyPosted: return String(localized:"Recently posted", bundle: .module, comment: "User playlist - Noun")
+        case .nowPlaying: String(localized: "Now playing", bundle: .module, comment: "Noun")
+        case .downloads: String(localized:"Downloads", bundle: .module, comment: "Plural noun")
+        case .likes:  String(localized:"Likes", bundle: .module, comment: "Plural noun")
+        case .recentlyPosted: String(localized:"Recently posted", bundle: .module, comment: "User playlist - Noun")
         }
     }
 }
