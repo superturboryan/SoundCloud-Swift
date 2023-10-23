@@ -114,12 +114,12 @@ public extension SoundCloud {
         try await get(.searchTracks(query, limit))
     }
     
-    func searchPlaylists(_ query: String) async throws -> Page<Playlist> {
-        try await get(.searchPlaylists(query))
+    func searchPlaylists(_ query: String, _ limit: Int = 20) async throws -> Page<Playlist> {
+        try await get(.searchPlaylists(query, limit))
     }
     
-    func searchUsers(_ query: String) async throws -> Page<User> {
-        try await get(.searchUsers(query))
+    func searchUsers(_ query: String, _ limit: Int = 20) async throws -> Page<User> {
+        try await get(.searchUsers(query, limit))
     }
 }
 

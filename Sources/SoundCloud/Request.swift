@@ -37,8 +37,8 @@ extension SoundCloud {
             case unfollowUser(_ id: Int)
             
             case searchTracks(_ query: String, _ limit: Int)
-            case searchPlaylists(_ query: String)
-            case searchUsers(_ query: String)
+            case searchPlaylists(_ query: String, _ limit: Int)
+            case searchUsers(_ query: String, _ limit: Int)
 
             case nextPage(_ href: String)
         }
@@ -115,16 +115,16 @@ extension SoundCloud {
             .init(api: .unfollowUser(id))
         }
         
-        static func searchTracks(_ query: String, _ limit: Int = 20) -> Request<Page<Track>> {
+        static func searchTracks(_ query: String, _ limit: Int) -> Request<Page<Track>> {
             .init(api: .searchTracks(query, limit))
         }
         
-        static func searchPlaylists(_ query: String) -> Request<Page<Playlist>> {
-            .init(api: .searchPlaylists(query))
+        static func searchPlaylists(_ query: String, _ limit: Int) -> Request<Page<Playlist>> {
+            .init(api: .searchPlaylists(query, limit))
         }
         
-        static func searchUsers(_ query: String) -> Request<Page<User>> {
-            .init(api: .searchUsers(query))
+        static func searchUsers(_ query: String, _ limit: Int) -> Request<Page<User>> {
+            .init(api: .searchUsers(query, limit))
         }
 
         static func getNextPage<ItemType: Decodable>(_ href: String) -> Request<Page<ItemType>> {
@@ -223,16 +223,16 @@ extension SoundCloud.Request {
             "linked_partitioning" : "true"
         ]
             
-        case .searchPlaylists(let query): [
+        case let .searchPlaylists(query, limit): [
             "q" : query,
             "show_tracks" : "false",
-            "limit" : "20",
+            "limit" : "\(limit)",
             "linked_partitioning" : "true"
         ]
             
-        case .searchUsers(let query): [
+        case let .searchUsers(query, limit): [
             "q" : query,
-            "limit" : "20",
+            "limit" : "\(limit)",
             "linked_partitioning" : "true"
         ]
             
