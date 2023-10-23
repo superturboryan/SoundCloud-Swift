@@ -117,6 +117,4 @@ public let testFreeSubscription = User.Subscription(product: User.Subscription.P
 public let testNextProSubscription = User.Subscription(product: User.Subscription.Product(id: "next_pro", name: "Next Pro"))
 
 @MainActor
-public var testSC = SoundCloud(SoundCloudConfig(apiURL: "", clientId: "", clientSecret: "", redirectURI: ""))
-
-public var testSCConfig = SoundCloudConfig(apiURL: "", clientId: "", clientSecret: "", redirectURI: "")
+public var testSC = SoundCloud(SoundCloud.Config(apiURL: "", clientId: "", clientSecret: "", redirectURI: ""))

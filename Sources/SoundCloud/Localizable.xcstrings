@@ -28,6 +28,18 @@
             "value" : "Téléchargements"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ダウンロード"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -60,6 +72,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gratuit"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gratuito"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "購読なし"
           }
         },
         "ko" : {
@@ -97,6 +121,18 @@
             "value" : "Titres aimés"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Piace"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "好き"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -130,6 +166,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "En cours de lecture"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sta giocando"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再生中"
           }
         },
         "ko" : {
@@ -171,6 +219,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Récentes"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recente"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新しい曲"
           }
         },
         "ko" : {

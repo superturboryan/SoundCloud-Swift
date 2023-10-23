@@ -23,12 +23,21 @@ public extension SoundCloud {
         case serviceUnavailable = 503
         case unknown = 0
         
-        var errorOccurred: Bool {
+        public var errorOccurred: Bool {
             switch self {
-            case .success, .created, .found:
-                return false
-            default:
-                return true
+            case .success, 
+                 .created,
+                 .found: false
+            case .badRequest, 
+                 .unauthorized,
+                 .forbidden,
+                 .notFound,
+                 .notAccessible,
+                 .unprocessableEntity,
+                 .tooManyRequests,
+                 .internalServerError,
+                 .serviceUnavailable, 
+                 .unknown: true
             }
         }
     }
