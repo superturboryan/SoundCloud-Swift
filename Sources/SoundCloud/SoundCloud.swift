@@ -8,7 +8,7 @@
 import AuthenticationServices
 import OSLog
 
-final public class SoundCloud {
+public final class SoundCloud {
             
     private let config: SoundCloud.Config
     private let decoder = JSONDecoder()
