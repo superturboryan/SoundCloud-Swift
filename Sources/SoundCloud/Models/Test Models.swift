@@ -5,9 +5,6 @@
 //  Created by Ryan Forsyth on 2023-10-03.
 //
 
-import Foundation
-import SwiftUI
-
 public func testUser(_ id: Int = Int.random(in: 0..<1000)) -> User {
     User(
         avatarUrl: "https://i1.sndcdn.com/avatars-0DxRBnyCNCI3zL1X-oeoRyw-large.jpg",
@@ -96,11 +93,6 @@ public func testTrack() -> Track {
         repostsCount: 0,
         access: "playable"
     )
-}
-
-public func testTrackBinding() -> Binding<Track> {
-    var track = testTrack()
-    return Binding(get: { track }, set: { newTrack in track = newTrack })
 }
 
 public var testDefaultLoadedPlaylists: [Int : Playlist] {

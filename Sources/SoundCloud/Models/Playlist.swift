@@ -5,8 +5,6 @@
 //  Created by Ryan Forsyth on 2023-10-03.
 //
 
-import Foundation
-
 public struct Playlist: Decodable, Identifiable, Equatable {
     public let id: Int
     public let genre: String
