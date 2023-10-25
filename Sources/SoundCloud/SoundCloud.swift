@@ -8,6 +8,13 @@
 import AuthenticationServices
 import OSLog
 
+/// Handles the logic for making authenticated requests to SoundCloud API.
+///
+/// Use an instance of `SoundCloud` to allow users to login with their SoundCloud account and make authenticated
+/// requests for streaming content and acessing track, artist, and playlist data from SoundCloud.
+///
+/// - Important: OAuth tokens are stored in the `Keychain`.
+/// - SeeAlso: Visit the [SoundCloud API Explorer](https://developers.soundcloud.com/docs/api/explorer/open-api#/) for more information.
 public final class SoundCloud {
             
     private let config: SoundCloud.Config
@@ -21,13 +28,42 @@ public final class SoundCloud {
     }
 }
 
-// MARK: - Auth 🔐
+// MARK: - 👀
 public extension SoundCloud {
-    ///  Dictionary with refreshed authorization token to be used as `URLRequest` header.
+    
+    // MARK: - Auth 🔐
+    /// Performs the `OAuth` login flow and persists the resulting access tokens.
     ///
-    ///  **This getter will attempt to refresh the access token first if it is expired**,
-    ///  throwing an error if it fails to refresh the token or doesn't find any persisted token.
-    var authHeader: [String : String] { get async throws {
+    /// This method does three things:
+    /// 1. Presents the SoundCloud login page inside a webview managed by ASWebAuthenticationSession to get the **authorization code**
+    /// 2. Exchanges the authorization code for **OAuth access tokens** specific to the SoundCloud user
+    /// 3. Persists the access tokens in the **Keychain**
+    ///
+    /// - Throws: **`.cancelledLogin`**  if logging in was cancelled manually by the user.
+    /// - Throws: **`.loggingIn`**  if an error occurred while fetching the authorization code or authentication tokens.
+    func login() async throws {
+        do {
+            let authCode = try await getAuthorizationCode()
+            let newAuthTokens = try await getAuthenticationTokens(using: authCode)
+            saveTokensWithCreationDate(newAuthTokens)
+        } catch(ASWebAuthenticationSession.Error.cancelledLogin) {
+            throw Error.cancelledLogin
+        } catch {
+            throw Error.loggingIn
+        }
+    }
+    
+    /// Deletes the persisted access tokens.
+    func logout() {
+        try? tokenDAO.delete()
+    }
+    
+    ///  Dictionary with valid auth token to be used as `URLRequest` header.
+    ///
+    ///  - Throws: **`.userNotAuthorized`**  if no access token exists.
+    ///  - Throws: **`.refreshingExpiredAuthTokens`** if refreshing fails.
+    ///  - Important: This **async** getter will attempt to refresh the access token first if it is expired.
+    var authenticatedHeader: [String : String] { get async throws {
         guard let savedAuthTokens = try? tokenDAO.get() else {
             throw Error.userNotAuthorized
         }
@@ -42,26 +78,8 @@ public extension SoundCloud {
         let validAuthTokens = try! tokenDAO.get()
         return ["Authorization" : "Bearer " + (validAuthTokens.accessToken)]
     }}
-    
-    func login() async throws {
-        do {
-            let authCode = try await getAuthCode()
-            let newAuthTokens = try await getNewAuthTokens(using: authCode)
-            saveTokensWithCreationDate(newAuthTokens)
-        } catch(ASWebAuthenticationSession.Error.cancelledLogin) {
-            throw Error.cancelledLogin
-        } catch {
-            throw Error.loggingIn
-        }
-    }
-    
-    func logout() {
-        try? tokenDAO.delete()
-    }
-}
 
-// MARK: - My User 💁
-public extension SoundCloud {
+    // MARK: - My User 🕺
     func getMyUser() async throws -> User {
         try await get(.myUser())
     }
@@ -85,10 +103,8 @@ public extension SoundCloud {
     func getMyLikedPlaylistsWithoutTracks() async throws -> [Playlist] {
         try await get(.myLikedPlaylists())
     }
-}
 
-// MARK: - Tracks 💿
-public extension SoundCloud {
+    // MARK: - Tracks 💿
     func getTracksForPlaylist(_ id: Int) async throws -> Page<Track> {
         try await get(.tracksForPlaylist(id))
     }
@@ -100,14 +116,8 @@ public extension SoundCloud {
     func getLikedTracksForUser(_ id: Int, _ limit: Int = 20) async throws -> Page<Track> {
         try await get(.likedTracksForUser(id, limit))
     }
-    
-    func getStreamInfoForTrack(with id: Int) async throws -> StreamInfo {
-        try await get(.streamInfoForTrack(id))
-    }
-}
 
-// MARK: - Search 🕵️
-public extension SoundCloud {
+    // MARK: - Search 🕵️
     func searchTracks(_ query: String, _ limit: Int = 20) async throws -> Page<Track> {
         try await get(.searchTracks(query, limit))
     }
@@ -119,10 +129,10 @@ public extension SoundCloud {
     func searchUsers(_ query: String, _ limit: Int = 20) async throws -> Page<User> {
         try await get(.searchUsers(query, limit))
     }
-}
 
-// MARK: - Like + Follow 🧡
-public extension SoundCloud {
+    // MARK: - Like + Follow 🧡
+    /// - Warning: The liked track may not be returned when calling `getMyLikedTracks()` since the API
+    /// appears to cache responses, consider keeping track of the liked tracks using a local array.
     func likeTrack(_ likedTrack: Track) async throws {
         try await get(.likeTrack(likedTrack.id))
     }
@@ -146,18 +156,22 @@ public extension SoundCloud {
     func unfollowUser(_ user: User) async throws {
         try await get(.unfollowUser(user.id))
     }
-}
 
-// MARK: Miscellaneous ✨
-public extension SoundCloud {
+    // MARK: - Miscellaneous ✨
     func pageOfItems<ItemType>(for href: String) async throws -> Page<ItemType> {
         try await get(.getNextPage(href))
     }
+    
+    func getStreamInfoForTrack(with id: Int) async throws -> StreamInfo {
+        try await get(.streamInfoForTrack(id))
+    }
 }
 
-// MARK: - Private Auth 🙈
+// MARK: - 🚫👀
 private extension SoundCloud {
-    func getAuthCode() async throws -> String {
+    
+    // MARK: - Auth 🔐
+    func getAuthorizationCode() async throws -> String {
         let authorizeURL = config.apiURL
         + "connect"
         + "?client_id=\(config.clientId)"
@@ -178,7 +192,7 @@ private extension SoundCloud {
         #endif
     }
     
-    func getNewAuthTokens(using authCode: String) async throws -> (TokenResponse) {
+    func getAuthenticationTokens(using authCode: String) async throws -> (TokenResponse) {
         let tokenResponse = try await get(.accessToken(authCode, config.clientId, config.clientSecret, config.redirectURI))
         debugLogNewAuthToken(tokenResponse.accessToken)
         return tokenResponse
@@ -198,10 +212,8 @@ private extension SoundCloud {
         tokensWithDate.expiryDate = tokens.expiresIn.dateWithSecondsAdded(to: Date())
         try? tokenDAO.save(tokensWithDate)
     }
-}
 
-// MARK: - API request 🌍
-private extension SoundCloud {
+    // MARK: - API request 🌍
     @discardableResult
     func get<T: Decodable>(_ request: Request<T>) async throws -> T {
         try await fetchData(from: authorized(request))
@@ -243,14 +255,12 @@ private extension SoundCloud {
 
         request.httpMethod = scRequest.httpMethod
         if scRequest.shouldUseAuthHeader {
-            request.allHTTPHeaderFields = try await authHeader // Will refresh tokens if necessary
+            request.allHTTPHeaderFields = try await authenticatedHeader // Will refresh tokens if necessary
         }
         return request
     }
-}
 
-// MARK: - Debug logging
-private extension SoundCloud {
+    // MARK: - Debug logging 📝
     func debugLogAuthToken() {
         #if DEBUG
         if let authToken = try? tokenDAO.get().accessToken {
