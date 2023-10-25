@@ -8,9 +8,9 @@
 import Foundation
 /// Data access object used for persisting a `Codable` object to device's `UserDefaults`.
 ///
-/// - Note: **Unexpected behaviour across app launches:**
+/// - Warning: **Unexpected behaviour across app launches:**
 /// `UserDefaults` may not be properly synchronized after terminating app with Xcode.
-/// **Terminate app via device** for expected synchronization behaviour.
+/// **Terminate app via device** for expected read-write behaviour.
 public final class UserDefaultsDAO<T: Codable>: DAO {
     public typealias DataType = T
     
