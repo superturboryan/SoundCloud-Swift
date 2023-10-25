@@ -16,10 +16,8 @@ final public class SoundCloud {
     
     public init(_ config: SoundCloud.Config) {
         self.config = config
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-        if let authTokens = try? tokenDAO.get() {
-            Logger.auth.info("💾 Loaded saved access token: \(authTokens.accessToken, privacy: .private)")
-        }
+        decoder.keyDecodingStrategy = .convertFromSnakeCase // API keys use snake case
+        debugLogAuthToken()
     }
 }
 
@@ -34,7 +32,7 @@ public extension SoundCloud {
             throw Error.userNotAuthorized
         }
         if savedAuthTokens.isExpired {
-            Logger.auth.warning("⏰ Access token expired at: \(savedAuthTokens.expiryDate!)")
+            debugLogAuthTokenExpired(savedAuthTokens.expiryDate!)
             do {
                 try await refreshAuthTokens()
             } catch {
@@ -182,7 +180,7 @@ private extension SoundCloud {
     
     func getNewAuthTokens(using authCode: String) async throws -> (TokenResponse) {
         let tokenResponse = try await get(.accessToken(authCode, config.clientId, config.clientSecret, config.redirectURI))
-        Logger.auth.info("🌟 Received new access token: \(tokenResponse.accessToken, privacy: .private)")
+        debugLogNewAuthToken(tokenResponse.accessToken)
         return tokenResponse
     }
     
@@ -190,9 +188,9 @@ private extension SoundCloud {
         guard let savedRefreshToken = try? tokenDAO.get().refreshToken else {
             throw Error.userNotAuthorized
         }
-        let newTokens = try await get(.refreshToken(savedRefreshToken, config.clientId, config.clientSecret, config.redirectURI))
-        Logger.auth.info("♻️ Refreshed access token: \(newTokens.accessToken, privacy: .private)")
-        saveTokensWithCreationDate(newTokens)
+        let refreshedTokens = try await get(.refreshToken(savedRefreshToken, config.clientId, config.clientSecret, config.redirectURI))
+        debugLogNewAuthToken(refreshedTokens.accessToken)
+        saveTokensWithCreationDate(refreshedTokens)
     }
     
     func saveTokensWithCreationDate(_ tokens: TokenResponse) {
@@ -248,5 +246,28 @@ private extension SoundCloud {
             request.allHTTPHeaderFields = try await authHeader // Will refresh tokens if necessary
         }
         return request
+    }
+}
+
+// MARK: - Debug logging
+private extension SoundCloud {
+    func debugLogAuthToken() {
+        #if DEBUG
+        if let authToken = try? tokenDAO.get().accessToken {
+            Logger.auth.info("💾 Persisted access token: \(authToken, privacy: .private)")
+        }
+        #endif
+    }
+    
+    func debugLogNewAuthToken(_ token: String) {
+        #if DEBUG
+        Logger.auth.info("🌟 Received new access token: \(token, privacy: .private)")
+        #endif
+    }
+    
+    func debugLogAuthTokenExpired(_ date: Date) {
+        #if DEBUG
+        Logger.auth.warning("⏰ Access token expired at: \(date)")
+        #endif
     }
 }
