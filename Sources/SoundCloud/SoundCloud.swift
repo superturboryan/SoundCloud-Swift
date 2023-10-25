@@ -10,19 +10,26 @@ import OSLog
 
 /// Handles the logic for making authenticated requests to SoundCloud API.
 ///
+/// - parameter config: Contains parameters for interacting with SoundCloud API (base URL, client ID, secret, redirect URI)
+/// - parameter tokenDAO: Data access object for persisting authentication tokens, defaults to **KeychainDAO**
+///
 /// Use an instance of `SoundCloud` to allow users to login with their SoundCloud account and make authenticated
 /// requests for streaming content and acessing track, artist, and playlist data from SoundCloud.
 ///
-/// - Important: OAuth tokens are stored in the `Keychain`.
+/// - Important: OAuth tokens are stored in the `Keychain` by default.
 /// - SeeAlso: Visit the [SoundCloud API Explorer](https://developers.soundcloud.com/docs/api/explorer/open-api#/) for more information.
 public final class SoundCloud {
             
     private let config: SoundCloud.Config
+    private let tokenDAO: any DAO<TokenResponse>
     private let decoder = JSONDecoder()
-    private let tokenDAO = KeychainDAO<TokenResponse>("OAuthTokenResponse")
     
-    public init(_ config: SoundCloud.Config) {
+    public init(
+        _ config: SoundCloud.Config,
+        _ tokenDAO: any DAO<TokenResponse> = KeychainDAO<TokenResponse>("OAuthTokenResponse")
+    ) {
         self.config = config
+        self.tokenDAO = tokenDAO
         decoder.keyDecodingStrategy = .convertFromSnakeCase // API keys use snake case
         debugLogAuthToken()
     }

@@ -8,7 +8,7 @@
 /// Describes a data access object used for persisting an item of generic `Codable` type `DataType`
  /// - Parameters:
 ///   - codingKey: key used to encode + decode persisted object
-public protocol DAO: AnyObject {
+public protocol DAO<DataType>: AnyObject {
     associatedtype DataType: Codable
     
     var codingKey: String { get }

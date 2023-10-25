@@ -16,7 +16,7 @@ public final class KeychainDAO<T: Codable>: DAO {
     private let persistence = KeychainSwift()
     
     public var codingKey: String
-    init(_ codingKey: String) {
+    public init(_ codingKey: String) {
         self.codingKey = codingKey
     }
 
