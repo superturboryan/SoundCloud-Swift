@@ -39,7 +39,7 @@ public final class SoundCloud {
 public extension SoundCloud {
     
     // MARK: - Auth 🔐
-    /// Performs the `OAuth` login flow and persists the resulting access tokens.
+    /// Performs the `OAuth` authentication flow and persists the resulting access tokens.
     ///
     /// This method does three things:
     /// 1. Presents the SoundCloud login page inside a webview managed by ASWebAuthenticationSession to get the **authorization code**
@@ -69,7 +69,7 @@ public extension SoundCloud {
     ///
     ///  - Throws: **`.userNotAuthorized`**  if no access token exists.
     ///  - Throws: **`.refreshingExpiredAuthTokens`** if refreshing fails.
-    ///  - Important: This **async** getter will attempt to refresh the access token first if it is expired.
+    ///  - Important: This **async** getter will first attempt to refresh the access token if it is expired.
     var authenticatedHeader: [String : String] { get async throws {
         guard let savedAuthTokens = try? tokenDAO.get() else {
             throw Error.userNotAuthorized

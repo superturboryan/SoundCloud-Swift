@@ -17,3 +17,9 @@ public protocol DAO<DataType>: AnyObject {
     func save(_ value: DataType) throws
     func delete() throws
 }
+
+public enum DAOError: Error {
+    case noData
+    case decoding
+    case encoding
+}
