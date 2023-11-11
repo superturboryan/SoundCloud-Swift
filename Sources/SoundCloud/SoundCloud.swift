@@ -42,9 +42,9 @@ public extension SoundCloud {
     /// Performs the `OAuth` authentication flow and persists the resulting access tokens.
     ///
     /// This method does three things:
-    /// 1. Presents the SoundCloud login page inside a webview managed by ASWebAuthenticationSession to get the **authorization code**
-    /// 2. Exchanges the authorization code for **OAuth access tokens** specific to the SoundCloud user
-    /// 3. Persists the access tokens in the **Keychain**
+    /// 1. Presents the SoundCloud login page inside a webview managed by `ASWebAuthenticationSession` to get the **authorization code**.
+    /// 2. Exchanges the authorization code for **OAuth access tokens** specific to the SoundCloud user.
+    /// 3. Persists the **access tokens** using the data access object.
     ///
     /// - Throws: **`.cancelledLogin`**  if logging in was cancelled manually by the user.
     /// - Throws: **`.loggingIn`**  if an error occurred while fetching the authorization code or authentication tokens.
