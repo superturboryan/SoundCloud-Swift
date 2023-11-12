@@ -9,14 +9,13 @@ import Foundation
 import KeychainSwift
 
 public final class KeychainDAO<T: Codable>: DAO {
-    public typealias DataType = T
     
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
     private let persistence = KeychainSwift()
     
     public var codingKey: String
-    init(_ codingKey: String) {
+    public init(_ codingKey: String) {
         self.codingKey = codingKey
     }
 

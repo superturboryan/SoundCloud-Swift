@@ -5,9 +5,6 @@
 //  Created by Ryan Forsyth on 2023-10-03.
 //
 
-import Foundation
-import SwiftUI
-
 public func testUser(_ id: Int = Int.random(in: 0..<1000)) -> User {
     User(
         avatarUrl: "https://i1.sndcdn.com/avatars-0DxRBnyCNCI3zL1X-oeoRyw-large.jpg",
@@ -98,11 +95,6 @@ public func testTrack() -> Track {
     )
 }
 
-public func testTrackBinding() -> Binding<Track> {
-    var track = testTrack()
-    return Binding(get: { track }, set: { newTrack in track = newTrack })
-}
-
 public var testDefaultLoadedPlaylists: [Int : Playlist] {
     var loadedPlaylists = [Int : Playlist]()
     let user = testUser()
@@ -118,3 +110,5 @@ public let testNextProSubscription = User.Subscription(product: User.Subscriptio
 
 @MainActor
 public var testSC = SoundCloud(SoundCloud.Config(apiURL: "", clientId: "", clientSecret: "", redirectURI: ""))
+
+public let testStreamInfo = StreamInfo(httpMp3128Url: "", hlsMp3128Url: "")

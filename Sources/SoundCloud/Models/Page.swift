@@ -8,6 +8,11 @@
 public struct Page<ItemType: Decodable>: Decodable {
     public var items: [ItemType]
     public var nextPage: String?
+    
+    public init(items: [ItemType], nextPage: String? = nil) {
+        self.items = items
+        self.nextPage = nextPage
+    }
 }
 
 extension Page {

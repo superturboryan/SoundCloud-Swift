@@ -5,8 +5,6 @@
 //  Created by Ryan Forsyth on 2023-09-07.
 //
 
-import Foundation
-
 public extension SoundCloud {
     enum StatusCode: Int {
         case success = 200
