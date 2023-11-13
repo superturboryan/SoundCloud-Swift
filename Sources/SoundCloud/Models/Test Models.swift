@@ -65,7 +65,7 @@ public func testPlaylist(empty: Bool = false) -> Playlist {
     )
 }
 
-public func testTrack() -> Track {
+public func testTrack(isLiked: Bool = false) -> Track {
     Track(
         id: Int.random(in: 0..<1000),
         createdAt: "2023/08/08 08:24:13 +0000",
@@ -86,7 +86,7 @@ public func testTrack() -> Track {
         downloadUrl: "",
         waveformUrl: "https://wave.sndcdn.com/ycxIIzLADTvQ_m.png",
         availableCountryCodes: ["ca"],
-        userFavorite: false,
+        userFavorite: isLiked,
         userPlaybackCount: 0,
         playbackCount: 0,
         favoritingsCount: 0,

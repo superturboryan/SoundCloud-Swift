@@ -31,7 +31,7 @@ public final class SoundCloud {
         self.config = config
         self.tokenDAO = tokenDAO
         decoder.keyDecodingStrategy = .convertFromSnakeCase // API keys use snake case
-        debugLogAuthToken()
+        logCurrentAuthToken()
     }
 }
 
@@ -75,7 +75,7 @@ public extension SoundCloud {
             throw Error.userNotAuthorized
         }
         if savedAuthTokens.isExpired {
-            debugLogAuthTokenExpired(savedAuthTokens.expiryDate!)
+            logAuthTokenExpired(savedAuthTokens.expiryDate!)
             do {
                 try await refreshAuthTokens()
             } catch {
@@ -201,7 +201,7 @@ private extension SoundCloud {
     
     func getAuthenticationTokens(using authCode: String) async throws -> (TokenResponse) {
         let tokenResponse = try await get(.accessToken(authCode, config.clientId, config.clientSecret, config.redirectURI))
-        debugLogNewAuthToken(tokenResponse.accessToken)
+        logNewAuthToken(tokenResponse.accessToken)
         return tokenResponse
     }
     
@@ -210,7 +210,7 @@ private extension SoundCloud {
             throw Error.userNotAuthorized
         }
         let refreshedTokens = try await get(.refreshToken(savedRefreshToken, config.clientId, config.clientSecret, config.redirectURI))
-        debugLogNewAuthToken(refreshedTokens.accessToken)
+        logNewAuthToken(refreshedTokens.accessToken)
         saveTokensWithCreationDate(refreshedTokens)
     }
     
@@ -268,23 +268,16 @@ private extension SoundCloud {
     }
 
     // MARK: - Debug logging 📝
-    func debugLogAuthToken() {
-        #if DEBUG
-        if let authToken = try? tokenDAO.get().accessToken {
-            Logger.auth.info("💾 Persisted access token: \(authToken, privacy: .private)")
-        }
-        #endif
+    func logCurrentAuthToken() {
+        let token = try? tokenDAO.get().accessToken
+        Logger.auth.info("💾 Current access token: \(token ?? "", privacy: .private)")
     }
     
-    func debugLogNewAuthToken(_ token: String) {
-        #if DEBUG
+    func logNewAuthToken(_ token: String) {
         Logger.auth.info("🌟 Received new access token: \(token, privacy: .private)")
-        #endif
     }
     
-    func debugLogAuthTokenExpired(_ date: Date) {
-        #if DEBUG
+    func logAuthTokenExpired(_ date: Date) {
         Logger.auth.warning("⏰ Access token expired at: \(date)")
-        #endif
     }
 }
