@@ -9,9 +9,9 @@ extension SoundCloud {
     
     struct Request<T: Decodable> {
         
-        var api: API
+        private let api: API
         
-        enum API {
+        private enum API {
             case accessToken(_ accessCode: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String)
             case refreshAccessToken(_ refreshToken: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String)
             
