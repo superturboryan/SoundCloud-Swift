@@ -91,6 +91,15 @@ extension Playlist {
     public var hasNextPage: Bool {
         nextPageUrl != nil
     }
+    
+    public mutating func updateWith(_ page: Page<Track>) {
+        if var tracks, !tracks.isEmpty {
+            tracks += page.items
+        } else { //
+            tracks = page.items
+        }
+        nextPageUrl = page.nextPageURL
+    }
 }
 
 public enum PlaylistType: Int, CaseIterable {

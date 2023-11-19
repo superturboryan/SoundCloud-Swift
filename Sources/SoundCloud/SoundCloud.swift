@@ -8,7 +8,7 @@
 import AuthenticationServices
 import OSLog
 
-/// Handles the logic for making authenticated requests to SoundCloud API.
+/// Handles the logic for making authenticated requests to the SoundCloud API.
 ///
 /// - parameter config: Contains parameters for interacting with SoundCloud API (base URL, client ID, secret, redirect URI)
 /// - parameter tokenDAO: Data access object for persisting authentication tokens, defaults to **KeychainDAO**
@@ -270,7 +270,7 @@ private extension SoundCloud {
     // MARK: - Debug logging 📝
     func logCurrentAuthToken() {
         let token = try? tokenDAO.get().accessToken
-        Logger.auth.info("💾 Current access token: \(token ?? "", privacy: .private)")
+        Logger.auth.info("💾 Current access token: \(token ?? "None", privacy: .private)")
     }
     
     func logNewAuthToken(_ token: String) {
