@@ -18,7 +18,7 @@ public final class UserDefaultsDAO<T: Codable>: DAO {
     
     public var codingKey: String
     public init(
-        _ codingKey: String,
+        _ codingKey: String = "\(T.self)",
         _ userDefaults: UserDefaults = UserDefaults.standard
     ) {
         self.codingKey = codingKey
