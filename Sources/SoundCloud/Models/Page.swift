@@ -7,25 +7,25 @@
 
 public struct Page<ItemType: Decodable>: Decodable {
     public var items: [ItemType]
-    public var nextPage: String?
+    public var nextPageURL: String?
     
     public init(items: [ItemType], nextPage: String? = nil) {
         self.items = items
-        self.nextPage = nextPage
+        self.nextPageURL = nextPage
     }
 }
 
 extension Page {
-    public var hasNextPage: Bool { nextPage != nil }
+    public var hasNextPage: Bool { nextPageURL != nil }
 
     public mutating func update(with next: Page<ItemType>) {
         items += next.items
-        nextPage = next.nextPage
+        nextPageURL = next.nextPageURL
     }
     
     internal enum CodingKeys: String, CodingKey {
         case items = "collection"
-        case nextPage = "nextHref"
+        case nextPageURL = "nextHref"
     }
 }
 
@@ -36,7 +36,7 @@ public extension Page where ItemType == Track {
             user: user,
             title: title,
             tracks: self.items,
-            nextPageUrl: self.nextPage
+            nextPageUrl: self.nextPageURL
         )
     }
 }
