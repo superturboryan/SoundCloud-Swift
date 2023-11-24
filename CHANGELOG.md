@@ -1,5 +1,20 @@
 # Changelog
 
+
+## 1.0.2
+
+### 🐞 Bug fixes
+- SoundCloud.Request api property is now private
+- Remove unused SoundCloud.Error cases 
+
+
+## 1.0.1
+
+### 🐞 Bug fixes
+- Remove @MainActor from `ASWebAuthenticationSession` async wrapper methods
+- Add public init for `Page` 
+
+
 ## 1.0.0 
 
 ### ✨ Features
