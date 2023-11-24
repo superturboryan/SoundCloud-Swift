@@ -108,7 +108,6 @@ public var testDefaultLoadedPlaylists: [Int : Playlist] {
 public let testFreeSubscription = User.Subscription(product: User.Subscription.Product(id: "free", name: "Free"))
 public let testNextProSubscription = User.Subscription(product: User.Subscription.Product(id: "next_pro", name: "Next Pro"))
 
-@MainActor
 public var testSC = SoundCloud(SoundCloud.Config(apiURL: "", clientId: "", clientSecret: "", redirectURI: ""))
 
 public let testStreamInfo = StreamInfo(httpMp3128Url: "", hlsMp3128Url: "")
