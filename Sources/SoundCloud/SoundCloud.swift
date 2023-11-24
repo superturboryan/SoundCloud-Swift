@@ -20,12 +20,13 @@ import OSLog
 /// - SeeAlso: Visit the [SoundCloud API Explorer](https://developers.soundcloud.com/docs/api/explorer/open-api#/) for more information.
 public final class SoundCloud {
             
-    private let config: SoundCloud.Config
+    private let config: Config
     private let tokenDAO: any DAO<TokenResponse>
     private let decoder = JSONDecoder()
+    private let urlSession = URLSession(configuration: .default)
     
     public init(
-        _ config: SoundCloud.Config,
+        _ config: Config,
         _ tokenDAO: any DAO<TokenResponse> = KeychainDAO<TokenResponse>("OAuthTokenResponse")
     ) {
         self.config = config
@@ -35,7 +36,7 @@ public final class SoundCloud {
     }
 }
 
-// MARK: - 👀
+// MARK: - Public 👀
 public extension SoundCloud {
     
     // MARK: - Auth 🔐
@@ -65,11 +66,11 @@ public extension SoundCloud {
         try? tokenDAO.delete()
     }
     
-    ///  Dictionary with valid auth token to be used as `URLRequest` header.
+    ///  Dictionary with valid OAuth 2.0 access token.
     ///
+    ///  - Important: This **async** getter will first attempt to refresh the access token if it is expired.
     ///  - Throws: **`.userNotAuthorized`**  if no access token exists.
     ///  - Throws: **`.refreshingExpiredAuthTokens`** if refreshing fails.
-    ///  - Important: This **async** getter will first attempt to refresh the access token if it is expired.
     var authenticatedHeader: [String : String] { get async throws {
         guard let savedAuthTokens = try? tokenDAO.get() else {
             throw Error.userNotAuthorized
@@ -174,26 +175,20 @@ public extension SoundCloud {
     }
 }
 
-// MARK: - 🚫👀
+// MARK: - Private 🚫👀
 private extension SoundCloud {
     
     // MARK: - Auth 🔐
     func getAuthorizationCode() async throws -> String {
-        let authorizeURL = config.apiURL
-        + "connect"
-        + "?client_id=\(config.clientId)"
-        + "&redirect_uri=\(config.redirectURI)"
-        + "&response_type=code"
-        
         #if os(iOS)
         return try await ASWebAuthenticationSession.getAuthCode(
-            from: authorizeURL,
+            from: config.authorizationURL,
             with: config.redirectURI,
             ephemeralSession: false
         )
         #else
         return try await ASWebAuthenticationSession.getAuthCode(
-            from: authorizeURL,
+            from: config.authorizationURL,
             with: config.redirectURI
         )
         #endif
@@ -227,7 +222,7 @@ private extension SoundCloud {
     }
     
     func fetchData<T: Decodable>(from request: URLRequest) async throws -> T {
-        guard let (data, response) = try? await URLSession.shared.data(for: request) else {
+        guard let (data, response) = try? await urlSession.data(for: request) else {
             throw Error.noInternet // Is no internet the only case here?
         }
         let statusCodeInt = (response as! HTTPURLResponse).statusCode

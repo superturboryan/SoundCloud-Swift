@@ -30,3 +30,13 @@ extension SoundCloud {
         }
     }
 }
+
+public extension SoundCloud.Config {
+    var authorizationURL: String {
+        apiURL
+        + "connect"
+        + "?client_id=\(clientId)"
+        + "&redirect_uri=\(redirectURI)"
+        + "&response_type=code"
+    }
+}
