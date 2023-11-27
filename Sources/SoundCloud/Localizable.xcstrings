@@ -45,6 +45,12 @@
             "state" : "translated",
             "value" : "다운로드"
           }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Downloads"
+          }
         }
       }
     },
@@ -90,6 +96,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "무료의"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Livre"
           }
         }
       }
@@ -138,6 +150,12 @@
             "state" : "translated",
             "value" : "즐겨찾기"
           }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Curtidas"
+          }
         }
       }
     },
@@ -159,7 +177,7 @@
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jugando Ahora"
+            "value" : "Ahora Suena"
           }
         },
         "fr" : {
@@ -184,6 +202,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "지금 재생 중"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reproduzindo"
           }
         }
       }
@@ -237,6 +261,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "최근에 게시됨"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Faixas Recentes"
           }
         }
       }
