@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 1.0.4
+
+### ✨ Features
+- Dutch localized strings
+
+
 ## 1.0.3
 
 ### ✨ Features
