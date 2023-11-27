@@ -46,6 +46,12 @@
             "value" : "다운로드"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Downloads"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -96,6 +102,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "무료의"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vrij"
           }
         },
         "pt-BR" : {
@@ -151,6 +163,12 @@
             "value" : "즐겨찾기"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gelikete"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -202,6 +220,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "지금 재생 중"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Huidige"
           }
         },
         "pt-BR" : {
@@ -261,6 +285,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "최근에 게시됨"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recent Geplaatst"
           }
         },
         "pt-BR" : {
