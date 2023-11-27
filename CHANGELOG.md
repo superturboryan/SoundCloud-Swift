@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 1.0.3
+
+### ✨ Features
+- Portuguese (pt-br) localized strings
+
+
 ## 1.0.2
 
 ### 🐞 Bug fixes
