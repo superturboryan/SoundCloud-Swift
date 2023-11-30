@@ -17,6 +17,7 @@ public extension ASWebAuthenticationSession {
     ///   - context: Delegate object that specifies how to present web page. Defaults to UIApplication.shared.keyWindow
     ///   - ephemeralSession: 🍪❓
     /// - Returns: Authorization code from callback URL
+    @MainActor
     static func getAuthCode(
         from url: String,
         with redirectURI: String,
