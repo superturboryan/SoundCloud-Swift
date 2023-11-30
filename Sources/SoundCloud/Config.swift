@@ -18,7 +18,7 @@ extension SoundCloud {
         internal let clientSecret: String
         internal let redirectURI: String
         public init(
-            apiURL: String = "http://api.soundcloud.com",
+            apiURL: String = "https://api.soundcloud.com/",
             clientId: String,
             clientSecret: String,
             redirectURI: String
