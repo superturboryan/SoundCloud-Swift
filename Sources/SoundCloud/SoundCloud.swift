@@ -6,6 +6,7 @@
 //
 
 import AuthenticationServices
+import Combine
 import OSLog
 
 /// Handles the logic for making authenticated requests to the SoundCloud API.
@@ -24,6 +25,7 @@ public final class SoundCloud {
     private let tokenDAO: any DAO<TokenResponse>
     private let decoder = JSONDecoder()
     private let urlSession = URLSession(configuration: .default)
+    public var subscriptions = Set<AnyCancellable>()
     
     public init(
         _ config: Config,
@@ -49,11 +51,13 @@ public extension SoundCloud {
     ///
     /// - Throws: **`.cancelledLogin`**  if logging in was cancelled manually by the user.
     /// - Throws: **`.loggingIn`**  if an error occurred while fetching the authorization code or authentication tokens.
-    func login() async throws {
+    @discardableResult
+    func login() async throws -> TokenResponse {
         do {
             let authCode = try await getAuthorizationCode()
             let newAuthTokens = try await getAuthenticationTokens(using: authCode)
             saveTokensWithCreationDate(newAuthTokens)
+            return newAuthTokens
         } catch(ASWebAuthenticationSession.Error.cancelledLogin) {
             throw Error.cancelledLogin
         } catch {
@@ -172,6 +176,17 @@ public extension SoundCloud {
     
     func getStreamInfoForTrack(with id: Int) async throws -> StreamInfo {
         try await get(.streamInfoForTrack(id))
+    }
+    
+    func handleNewAuthTokensNotification(_ notification: Notification) {
+        guard // Check notification.name?
+            let tokenData = notification.object as? Data,
+            let tokens = try? decoder.decode(TokenResponse.self, from: tokenData)
+        else {
+            // Log unexpected notification?
+            return
+        }
+        saveTokensWithCreationDate(tokens)
     }
 }
 
