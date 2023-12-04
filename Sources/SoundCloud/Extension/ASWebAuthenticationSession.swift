@@ -30,6 +30,11 @@ public extension ASWebAuthenticationSession {
                 callbackURLScheme: String(redirectURI.split(separator: ":").first!)
             ) { url, error in
                 if let error {
+                    let code = (error as NSError).code
+                    if code == ASWebAuthenticationSessionError.canceledLogin.rawValue {
+                        continuation.resume(throwing: Error.cancelledLogin)
+                        return
+                    }
                     continuation.resume(throwing: error)
                     return
                 }

@@ -14,7 +14,7 @@ public struct TokenResponse: Codable {
     internal let scope: String
     internal let tokenType: String
 
-    internal var expiryDate: Date? = nil // Set when persisting object
+    internal var expiryDate: Date? = nil // 💡 Set when persisting object
 }
 
 internal extension TokenResponse {
