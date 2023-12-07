@@ -41,7 +41,7 @@ public func testUser(_ id: Int = Int.random(in: 0..<1000)) -> User {
 
 public func testPlaylist(empty: Bool = false) -> Playlist {
     Playlist (
-        id: 1587600994,
+        id: Int.random(in: 0..<1000),
         genre: "",
         permalink: "",
         permalinkUrl: "https://google.com",
