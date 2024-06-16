@@ -81,11 +81,7 @@ public extension SoundCloud {
         }
         if savedAuthTokens.isExpired {
             logAuthTokenExpired(savedAuthTokens.expiryDate!)
-            do {
-                try await refreshAuthTokens()
-            } catch {
-                throw Error.refreshingExpiredAuthTokens
-            }
+            try await refreshAuthTokens()
         }
         let validAuthTokens = try! tokenDAO.get()
         return ["Authorization" : "Bearer " + (validAuthTokens.accessToken)]
