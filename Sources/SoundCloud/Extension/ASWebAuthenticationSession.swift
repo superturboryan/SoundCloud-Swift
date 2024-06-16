@@ -32,15 +32,12 @@ public extension ASWebAuthenticationSession {
                 if let error {
                     let code = (error as NSError).code
                     if code == ASWebAuthenticationSessionError.canceledLogin.rawValue {
-                        continuation.resume(throwing: Error.cancelledLogin)
-                        return
+                        return continuation.resume(throwing: Error.cancelledLogin)
                     }
-                    continuation.resume(throwing: error)
-                    return
+                    return continuation.resume(throwing: error)
                 }
                 guard let code = url?.queryParameters?["code"] else {
-                    continuation.resume(throwing: Error.noCode)
-                    return
+                    return continuation.resume(throwing: Error.noCode)
                 }
                 continuation.resume(returning: code)
             }
@@ -79,15 +76,12 @@ public extension ASWebAuthenticationSession {
                 if let error {
                     let code = (error as NSError).code
                     if code == ASWebAuthenticationSessionError.canceledLogin.rawValue {
-                        continuation.resume(throwing: Error.cancelledLogin)
-                        return
+                        return continuation.resume(throwing: Error.cancelledLogin)
                     }
-                    continuation.resume(throwing: error)
-                    return
+                    return continuation.resume(throwing: error)
                 }
                 guard let code = url?.queryParameters?["code"] else {
-                    continuation.resume(throwing: Error.noCode)
-                    return
+                    return continuation.resume(throwing: Error.noCode)
                 }
                 continuation.resume(returning: code)
             }
