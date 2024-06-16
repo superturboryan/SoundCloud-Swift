@@ -8,13 +8,22 @@
 import Foundation
 
 public struct TokenResponse: Codable {
-    internal let accessToken: String
-    internal let expiresIn: Int
-    internal let refreshToken: String
-    internal let scope: String
-    internal let tokenType: String
+    let accessToken: String
+    let expiresIn: Int
+    let refreshToken: String
+    let scope: String
+    let tokenType: String
 
-    internal var expiryDate: Date? = nil // 💡 Set when persisting object
+    var expiryDate: Date? = nil // 💡 Set when persisting object
+    
+    public init(accessToken: String, expiresIn: Int, refreshToken: String, scope: String, tokenType: String, expiryDate: Date? = nil) {
+        self.accessToken = accessToken
+        self.expiresIn = expiresIn
+        self.refreshToken = refreshToken
+        self.scope = scope
+        self.tokenType = tokenType
+        self.expiryDate = expiryDate
+    }
 }
 
 internal extension TokenResponse {
