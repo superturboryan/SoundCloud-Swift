@@ -23,6 +23,7 @@ extension SoundCloud {
             case tracksForPlaylist(_ id: Int, _ limit: Int)
             case tracksForUser(_ id: Int, _ limit: Int)
             case likedTracksForUser(_ id: Int, _ limit: Int)
+            case relatedTracks(_ tracksRelatedToId: Int, _ limit: Int)
             case streamInfoForTrack(_ id: Int)
             case usersImFollowing
             
@@ -78,6 +79,10 @@ extension SoundCloud {
         
         static func likedTracksForUser(_ id: Int, _ limit: Int = 20) -> Request<Page<Track>> {
             .init(api: .likedTracksForUser(id, limit))
+        }
+        
+        static func relatedTracks(_ tracksRelatedToId: Int, _ limit: Int = 20) -> Request<Page<Track>> {
+            .init(api: .relatedTracks(tracksRelatedToId, limit))
         }
 
         static func streamInfoForTrack(_ id: Int) -> Request<StreamInfo> {
@@ -146,6 +151,7 @@ extension SoundCloud.Request {
         case .tracksForPlaylist(let id, _): "playlists/\(id)/tracks"
         case .tracksForUser(let id, _): "users/\(id)/tracks"
         case .likedTracksForUser(let id, _): "users/\(id)/likes/tracks"
+        case .relatedTracks(let id, _): "tracks/\(id)/related"
         case .streamInfoForTrack(let id): "tracks/\(id)/streams"
         case .usersImFollowing: "me/followings"
         case .likeTrack(let id), .unlikeTrack(let id): "likes/tracks/\(id)"
@@ -208,6 +214,12 @@ extension SoundCloud.Request {
             "linked_partitioning" : "true"
         ]
 
+        case let .relatedTracks(_, limit): [
+            "access" : "playable",
+            "limit" : "\(limit)",
+            "linked_partitioning" : "true"
+        ]
+            
         case .usersImFollowing: [
             "limit" : "1000", // Page size
             "linked_partitioning" : "true"
@@ -233,7 +245,8 @@ extension SoundCloud.Request {
             "linked_partitioning" : "true"
         ]
             
-        default: nil
+        default: 
+            nil
         }
     }
     
@@ -254,7 +267,8 @@ extension SoundCloud.Request {
         case .followUser:
             "PUT"
         
-        default: "GET"
+        default: 
+            "GET"
         }
     }
 }

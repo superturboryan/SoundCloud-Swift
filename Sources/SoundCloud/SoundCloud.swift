@@ -124,6 +124,10 @@ public extension SoundCloud {
     func getLikedTracksForUser(_ id: Int, _ limit: Int = 20) async throws -> Page<Track> {
         try await get(.likedTracksForUser(id, limit))
     }
+    
+    func getRelatedTracks(_ id: Int, _ limit: Int = 20) async throws -> Page<Track> {
+        return try await get(.relatedTracks(id, limit))
+    }
 
     // MARK: - Search 🕵️
     func searchTracks(_ query: String, _ limit: Int = 20) async throws -> Page<Track> {
