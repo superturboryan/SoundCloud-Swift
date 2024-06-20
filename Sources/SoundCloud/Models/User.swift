@@ -77,7 +77,7 @@ public struct User: Codable, Equatable {
 
 public extension User {
     var subscription: String {
-        (subscriptions.first?.product.name) ?? "Free"
+        (subscriptions.first?.product.name) ??  String(localized: "Free", comment: "Adjective")
     }
     
     var largerAvatarUrl: String {

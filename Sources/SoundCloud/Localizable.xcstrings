@@ -57,10 +57,17 @@
             "state" : "translated",
             "value" : "Downloads"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tải xuống"
+          }
         }
       }
     },
     "Free" : {
+      "comment" : "Adjective",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -114,6 +121,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Livre"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Miễn phí"
           }
         }
       }
@@ -174,6 +187,12 @@
             "state" : "translated",
             "value" : "Curtidas"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lượt thích"
+          }
         }
       }
     },
@@ -233,6 +252,12 @@
             "state" : "translated",
             "value" : "Reproduzindo"
           }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang phát"
+          }
         }
       }
     },
@@ -290,7 +315,78 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Faixas Recentes"
+            "value" : "Recentes"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đăng gần đây"
+          }
+        }
+      }
+    },
+    "Related Tracks" : {
+      "comment" : "Playlist title - Noun",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "المسارات ذات الصلة"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ähnliche Tracks"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Relacionadas"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reliés"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Correlate"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "関連トラック"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "관련 트랙"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gerelateerde"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Relacionadas"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bài hát liên quan"
           }
         }
       }
