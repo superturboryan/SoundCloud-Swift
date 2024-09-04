@@ -49,6 +49,9 @@ To get the liked tracks for the current user:
 let likedTracks = try await sc.getMyLikedTracks()
 ```
 
+## Example apps
+This package is used by the third-party SoundCloud watchOS app _WatchCloud_, check it out on the App Store: https://apps.apple.com/us/app/watchcloud/id6466678799 📲
+
 
 ## Requirements
 SoundCloud requires apps to be registered in order to access their public API. See [terms of use](https://developers.soundcloud.com/docs/api/terms-of-use)
