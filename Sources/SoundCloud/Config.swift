@@ -5,25 +5,24 @@
 //  Created by Ryan Forsyth on 2023-09-15.
 //
 
-///  Object containing properties to configure SoundCloud instance with.
-///
-///  - Parameter apiURL: Base URL to use for API requests.
-///  - Parameter clientID: Client ID to use when authorizing with API and requesting tokens.
-///  - Parameter clientSecret: Client secret to use when authorizing with API and requesting tokens.
-///  - Parameter redirectURI: URI to use when redirecting from OAuth login page to app. This URI should take the form
 extension SoundCloud {
+    
+    ///  Properties for configuring SoundCloud API client. These values should be taken from the [your registered apps page](https://soundcloud.com/you/apps).
+    ///
+    ///  - Parameter clientID: Client ID to use when authorizing with API and requesting tokens.
+    ///  - Parameter clientSecret: Client secret to use when authorizing with API and requesting tokens.
+    ///  - Parameter redirectURI: URI to use when redirecting from OAuth login page to app. This URI should take the form
     public struct Config {
-        internal let apiURL: String
-        internal let clientId: String
-        internal let clientSecret: String
-        internal let redirectURI: String
+        
+        let clientId: String
+        let clientSecret: String
+        let redirectURI: String
+        
         public init(
-            apiURL: String = "https://api.soundcloud.com/",
             clientId: String,
             clientSecret: String,
             redirectURI: String
         ) {
-            self.apiURL = apiURL
             self.clientId = clientId
             self.clientSecret = clientSecret
             self.redirectURI = redirectURI
@@ -31,12 +30,7 @@ extension SoundCloud {
     }
 }
 
-public extension SoundCloud.Config {
-    var authorizationURL: String {
-        apiURL
-        + "connect"
-        + "?client_id=\(clientId)"
-        + "&redirect_uri=\(redirectURI)"
-        + "&response_type=code"
-    }
+extension SoundCloud.Config {
+    static let apiURL: String = "https://api.soundcloud.com/"
+    static let authURL: String = "https://secure.soundcloud.com/"
 }

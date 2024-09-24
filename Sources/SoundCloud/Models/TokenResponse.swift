@@ -28,6 +28,9 @@ public struct TokenResponse: Codable {
 
 internal extension TokenResponse {
     var isExpired: Bool {
-        expiryDate == nil ? true : expiryDate! < Date()
+        guard let expiryDate else {
+            return true
+        }
+        return expiryDate < Date()
     }
 }

@@ -18,28 +18,28 @@ public extension ASWebAuthenticationSession {
     ///   - ephemeralSession: 🍪❓
     /// - Returns: Authorization code from callback URL
     @MainActor
-    static func getAuthCode(
-        from url: String,
+    static func getAuthorizationCode(
+        from url: URL,
         with redirectURI: String,
         context: ASWebAuthenticationPresentationContextProviding = ApplicationWindowContextProvider(),
         ephemeralSession: Bool // Use cookies
     ) async throws -> String {
         try await withCheckedThrowingContinuation { continuation in
             let session = ASWebAuthenticationSession(
-                url: URL(string: url)!,
+                url: url,
                 callbackURLScheme: String(redirectURI.split(separator: ":").first!)
             ) { url, error in
                 if let error {
-                    let code = (error as NSError).code
-                    if code == ASWebAuthenticationSessionError.canceledLogin.rawValue {
+                    let errorCode = (error as NSError).code
+                    if errorCode == ASWebAuthenticationSessionError.canceledLogin.rawValue {
                         return continuation.resume(throwing: Error.cancelledLogin)
                     }
                     return continuation.resume(throwing: error)
                 }
-                guard let code = url?.queryParameters?["code"] else {
+                guard let authorizationCode = url?.queryParameters?["code"] else {
                     return continuation.resume(throwing: Error.noCode)
                 }
-                continuation.resume(returning: code)
+                continuation.resume(returning: authorizationCode)
             }
             session.presentationContextProvider = context
             session.prefersEphemeralWebBrowserSession = ephemeralSession
@@ -63,14 +63,14 @@ public extension ASWebAuthenticationSession {
     ///   - with: URI for OAuth web page to use to redirect back to your app. Should take the form "<your app scheme>://<path>"
     ///   - ephemeralSession: 🍪❓
     /// - Returns: Authorization code from callback URL
-    static func getAuthCode(
-        from url: String,
+    static func getAuthorizationCode(
+        from url: URL,
         with redirectURI: String,
         ephemeralSession: Bool = false
     ) async throws -> String {
         try await withCheckedThrowingContinuation { continuation in
             let session = ASWebAuthenticationSession(
-                url: URL(string: url)!,
+                url: url,
                 callbackURLScheme: String(redirectURI.split(separator: ":").first!)
             ) { url, error in
                 if let error {
