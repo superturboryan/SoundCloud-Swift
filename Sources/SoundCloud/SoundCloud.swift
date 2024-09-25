@@ -265,11 +265,6 @@ private extension SoundCloud {
         var request = scRequest.urlRequest
         if scRequest.shouldUseAuthHeader {
             request.allHTTPHeaderFields = try await authenticatedHeader // Will refresh tokens if necessary
-        } else {
-            request.allHTTPHeaderFields = [
-                "accept" : "application/json; charset=utf-8",
-                "Content-Type" : "application/x-www-form-urlencoded"
-            ]
         }
         return request
     }
