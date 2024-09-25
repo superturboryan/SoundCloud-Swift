@@ -14,8 +14,20 @@ extension SoundCloud {
         private let api: API
         
         private enum API {
-            case accessToken(_ accessCode: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String, _ codeVerifier: String)
-            case refreshAccessToken(_ refreshToken: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String)
+            
+            case accessToken(
+                _ accessCode: String,
+                _ clientId: String,
+                _ clientSecret: String,
+                _ redirectURI: String,
+                _ codeVerifier: String
+            )
+            case refreshAccessToken(
+                _ refreshToken: String,
+                _ clientId: String,
+                _ clientSecret: String,
+                _ redirectURI: String
+            )
             
             case myUser
             case myLikedTracks(_ limit: Int)
@@ -43,11 +55,22 @@ extension SoundCloud {
             case nextPage(_ href: String)
         }
         
-        static func accessToken(_ code: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String, _ codeVerifier: String) -> Request<TokenResponse> {
+        static func accessToken(
+            _ code: String,
+            _ clientId: String,
+            _ clientSecret: String,
+            _ redirectURI: String,
+            _ codeVerifier: String
+        ) -> Request<TokenResponse> {
             .init(api: .accessToken(code, clientId, clientSecret, redirectURI, codeVerifier))
         }
         
-        static func refreshToken(_ refreshToken: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String) -> Request<TokenResponse> {
+        static func refreshToken(
+            _ refreshToken: String,
+            _ clientId: String,
+            _ clientSecret: String,
+            _ redirectURI: String
+        ) -> Request<TokenResponse> {
             .init(api: .refreshAccessToken(refreshToken, clientId, clientSecret, redirectURI))
         }
         
@@ -153,7 +176,7 @@ extension SoundCloud.Request {
         
         var request = URLRequest(url: components.url!)
         
-        if isForHref { // Is this still necessary?
+        if isNextPageRequest {
             request = URLRequest(url: URL(string: path)!)
         }
         
@@ -336,16 +359,8 @@ extension SoundCloud.Request {
         default: true
         }
     }
-    
-    var isToRefresh: Bool {
         
-        switch api {
-            case .refreshAccessToken: true
-            default: false
-        }
-    }
-    
-    var isForHref: Bool {
+    var isNextPageRequest: Bool {
         
         switch api {
             case .nextPage: true
