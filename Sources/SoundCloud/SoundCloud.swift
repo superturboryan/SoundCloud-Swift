@@ -56,7 +56,7 @@ public extension SoundCloud {
         do {
             let codeVerifier = PKCE.generateCodeVerifier()
             let codeChallenge = try PKCE.generateCodeChallenge(using: codeVerifier)
-            let authorizationURL = Request<String>.authorize(config.clientId, config.redirectURI, codeChallenge).urlRequest.url!
+            let authorizationURL = makeOAuthAuthorizationURL(config.clientId, config.redirectURI, codeChallenge)
             let authorizationCode = try await getAuthorizationCode(from: authorizationURL, with: codeChallenge)
             
             let newAuthTokens = try await getAuthenticationTokens(with: authorizationCode, and: codeVerifier)
@@ -272,6 +272,19 @@ private extension SoundCloud {
             ]
         }
         return request
+    }
+    
+    private func makeOAuthAuthorizationURL(_ clientID: String, _ redirectURI: String, _ codeChallenge: String) -> URL {
+        let baseURLWithPath = "https://secure.soundcloud.com/authorize"
+        var components = URLComponents(string: baseURLWithPath)!
+        components.queryItems = [
+            URLQueryItem(name: "client_id", value: clientID),
+            URLQueryItem(name: "redirect_uri", value: redirectURI),
+            URLQueryItem(name: "response_type", value: "code"),
+            URLQueryItem(name: "code_challenge", value: codeChallenge),
+            URLQueryItem(name: "code_challenge_method", value: "S256")
+        ]
+        return components.url!
     }
     
     // MARK: - Debug logging 📝

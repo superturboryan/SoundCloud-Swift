@@ -14,7 +14,6 @@ extension SoundCloud {
         private let api: API
         
         private enum API {
-            case authorize(_ clientId: String, _ redirectURI: String, _ codeChallenge: String)
             case accessToken(_ accessCode: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String, _ codeVerifier: String)
             case refreshAccessToken(_ refreshToken: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String)
             
@@ -42,10 +41,6 @@ extension SoundCloud {
             case searchUsers(_ query: String, _ limit: Int)
 
             case nextPage(_ href: String)
-        }
-        
-        static func authorize(_ clientId: String, _ redirectURI: String, _ codeChallenge: String) -> Request<String> {
-            .init(api: .authorize(clientId, redirectURI, codeChallenge))
         }
         
         static func accessToken(_ code: String, _ clientId: String, _ clientSecret: String, _ redirectURI: String, _ codeVerifier: String) -> Request<TokenResponse> {
@@ -164,9 +159,7 @@ extension SoundCloud.Request {
         
         if let body {
             var urlComponents = URLComponents()
-            urlComponents.queryItems = body.map {
-                URLQueryItem(name: $0.key, value: $0.value)
-            }
+            urlComponents.queryItems = body
             request.httpBody = urlComponents.query?.data(using: .utf8)
         }
 
@@ -178,7 +171,7 @@ extension SoundCloud.Request {
         
         switch api {
             
-        case .authorize, .accessToken, .refreshAccessToken:
+        case .accessToken, .refreshAccessToken:
             SoundCloud.Config.authURL
         default:
             SoundCloud.Config.apiURL
@@ -189,7 +182,6 @@ extension SoundCloud.Request {
         
         switch api {
             
-        case .authorize: "authorize"
         case .accessToken: "oauth/token"
         case .refreshAccessToken: "oauth/token"
         
@@ -219,15 +211,7 @@ extension SoundCloud.Request {
     var queryParameters: [String : String]? {
         
         switch api {
-            
-        case let .authorize(clientID, redirectURI, codeChallenge): [
-            "client_id" : clientID,
-            "redirect_uri" : redirectURI,
-            "response_type" : "code",
-            "code_challenge" : codeChallenge,
-            "code_challenge_method" : "S256"
-        ]
-            
+                        
         case let .myLikedTracks(limit): [
             "limit" : "\(limit)",
             "access" : "playable",
@@ -293,25 +277,25 @@ extension SoundCloud.Request {
         }
     }
     
-    var body: [String : String]? {
+    var body: [URLQueryItem]? {
         
         switch api {
         
         case let .accessToken(accessCode, clientId, clientSecret, redirectURI, codeVerifier): [
-            "code" : accessCode,
-            "grant_type" : "authorization_code",
-            "client_id" : clientId,
-            "client_secret" : clientSecret,
-            "redirect_uri" : redirectURI,
-            "code_verifier" : codeVerifier
+            URLQueryItem(name:"code", value: accessCode),
+            URLQueryItem(name:"grant_type", value: "authorization_code"),
+            URLQueryItem(name:"client_id", value: clientId),
+            URLQueryItem(name:"client_secret", value: clientSecret),
+            URLQueryItem(name:"redirect_uri", value: redirectURI),
+            URLQueryItem(name:"code_verifier", value: codeVerifier),
         ]
             
         case let .refreshAccessToken(refreshToken, clientId, clientSecret, redirectURI): [
-            "refresh_token" : refreshToken,
-            "grant_type" : "refresh_token",
-            "client_id" : clientId,
-            "client_secret" : clientSecret,
-            "redirect_uri" : redirectURI
+            URLQueryItem(name:"refresh_token", value: refreshToken),
+            URLQueryItem(name:"grant_type", value: "refresh_token"),
+            URLQueryItem(name:"client_id", value: clientId),
+            URLQueryItem(name:"client_secret", value: clientSecret),
+            URLQueryItem(name:"redirect_uri", value: redirectURI),
         ]
         
         default: nil
@@ -348,7 +332,7 @@ extension SoundCloud.Request {
     var shouldUseAuthHeader: Bool {
         
         switch api {
-        case .authorize, .accessToken, .refreshAccessToken: false
+        case .accessToken, .refreshAccessToken: false
         default: true
         }
     }
