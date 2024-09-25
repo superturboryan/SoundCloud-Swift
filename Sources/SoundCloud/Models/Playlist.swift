@@ -32,7 +32,7 @@ public struct Playlist: Decodable, Identifiable, Equatable {
         id: Int,
         genre: String = "",
         permalink: String = "",
-        permalinkUrl: String = "",
+        permalinkUrl: String = "https://soundcloud.com",
         description: String? = nil,
         uri: String = "",
         tagList: String = "",
@@ -107,6 +107,7 @@ public enum PlaylistType: Int, CaseIterable {
     case downloads
     case likes
     case recentlyPosted // By people current user follows
+    case relatedTracks
     
     public var title: String {
         switch self {
@@ -114,6 +115,7 @@ public enum PlaylistType: Int, CaseIterable {
         case .downloads: String(localized:"Downloads", bundle: .module, comment: "Plural noun")
         case .likes:  String(localized:"Likes", bundle: .module, comment: "Plural noun")
         case .recentlyPosted: String(localized:"Recently Posted", bundle: .module, comment: "User playlist - Noun")
+        case .relatedTracks: String(localized:"Related Tracks", bundle: .module, comment: "Playlist title - Noun")
         }
     }
 }

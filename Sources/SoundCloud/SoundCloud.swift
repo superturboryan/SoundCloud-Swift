@@ -6,6 +6,8 @@
 //
 
 import AuthenticationServices
+import Combine
+import CryptoKit
 import OSLog
 
 /// Handles the logic for making authenticated requests to the SoundCloud API.
@@ -24,6 +26,7 @@ public final class SoundCloud {
     private let tokenDAO: any DAO<TokenResponse>
     private let decoder = JSONDecoder()
     private let urlSession = URLSession(configuration: .default)
+    public var subscriptions = Set<AnyCancellable>()
     
     public init(
         _ config: Config,
@@ -43,17 +46,22 @@ public extension SoundCloud {
     /// Performs the `OAuth` authentication flow and persists the resulting access tokens.
     ///
     /// This method does three things:
-    /// 1. Presents the SoundCloud login page inside a webview managed by `ASWebAuthenticationSession` to get the **authorization code**.
+    /// 1. Presents the SoundCloud login page inside a browser window managed by `ASWebAuthenticationSession` to get the **authorization code**.
     /// 2. Exchanges the authorization code for **OAuth access tokens** specific to the SoundCloud user.
     /// 3. Persists the **access tokens** using the data access object.
     ///
-    /// - Throws: **`.cancelledLogin`**  if logging in was cancelled manually by the user.
     /// - Throws: **`.loggingIn`**  if an error occurred while fetching the authorization code or authentication tokens.
-    func login() async throws {
+    @discardableResult
+    func login() async throws -> TokenResponse {
         do {
-            let authCode = try await getAuthorizationCode()
-            let newAuthTokens = try await getAuthenticationTokens(using: authCode)
+            let codeVerifier = PKCE.generateCodeVerifier()
+            let codeChallenge = try PKCE.generateCodeChallenge(using: codeVerifier)
+            let authorizationURL = makeOAuthAuthorizationURL(config.clientId, config.redirectURI, codeChallenge)
+            let authorizationCode = try await getAuthorizationCode(from: authorizationURL, with: codeChallenge)
+            
+            let newAuthTokens = try await getAuthenticationTokens(with: authorizationCode, and: codeVerifier)
             saveTokensWithCreationDate(newAuthTokens)
+            return newAuthTokens
         } catch(ASWebAuthenticationSession.Error.cancelledLogin) {
             throw Error.cancelledLogin
         } catch {
@@ -77,11 +85,7 @@ public extension SoundCloud {
         }
         if savedAuthTokens.isExpired {
             logAuthTokenExpired(savedAuthTokens.expiryDate!)
-            do {
-                try await refreshAuthTokens()
-            } catch {
-                throw Error.refreshingExpiredAuthTokens
-            }
+            try await refreshAuthTokens()
         }
         let validAuthTokens = try! tokenDAO.get()
         return ["Authorization" : "Bearer " + (validAuthTokens.accessToken)]
@@ -123,6 +127,10 @@ public extension SoundCloud {
     
     func getLikedTracksForUser(_ id: Int, _ limit: Int = 20) async throws -> Page<Track> {
         try await get(.likedTracksForUser(id, limit))
+    }
+    
+    func getRelatedTracks(_ id: Int, _ limit: Int = 20) async throws -> Page<Track> {
+        return try await get(.relatedTracks(id, limit))
     }
 
     // MARK: - Search 🕵️
@@ -173,29 +181,40 @@ public extension SoundCloud {
     func getStreamInfoForTrack(with id: Int) async throws -> StreamInfo {
         try await get(.streamInfoForTrack(id))
     }
+    
+    func handleNewAuthTokensNotification(_ notification: Notification) {
+        guard // Check notification.name?
+            let tokenData = notification.object as? Data,
+            let tokens = try? decoder.decode(TokenResponse.self, from: tokenData)
+        else {
+            // Log unexpected notification?
+            return
+        }
+        saveTokensWithCreationDate(tokens)
+    }
 }
 
 // MARK: - Private 🚫👀
 private extension SoundCloud {
     
     // MARK: - Auth 🔐
-    func getAuthorizationCode() async throws -> String {
+    func getAuthorizationCode(from url: URL, with codeChallenge: String) async throws -> String {
         #if os(iOS)
-        return try await ASWebAuthenticationSession.getAuthCode(
-            from: config.authorizationURL,
+        return try await ASWebAuthenticationSession.getAuthorizationCode(
+            from: url,
             with: config.redirectURI,
             ephemeralSession: false
         )
         #else
-        return try await ASWebAuthenticationSession.getAuthCode(
-            from: config.authorizationURL,
+        return try await ASWebAuthenticationSession.getAuthorizationCode(
+            from: url,
             with: config.redirectURI
         )
         #endif
     }
     
-    func getAuthenticationTokens(using authCode: String) async throws -> (TokenResponse) {
-        let tokenResponse = try await get(.accessToken(authCode, config.clientId, config.clientSecret, config.redirectURI))
+    func getAuthenticationTokens(with authCode: String, and codeVerifier: String) async throws -> (TokenResponse) {
+        let tokenResponse = try await get(.accessToken(authCode, config.clientId, config.clientSecret, config.redirectURI, codeVerifier))
         logNewAuthToken(tokenResponse.accessToken)
         return tokenResponse
     }
@@ -218,10 +237,10 @@ private extension SoundCloud {
     // MARK: - API request 🌍
     @discardableResult
     func get<T: Decodable>(_ request: Request<T>) async throws -> T {
-        try await fetchData(from: authorized(request))
+        try await fetchData(using: authorized(request))
     }
     
-    func fetchData<T: Decodable>(from request: URLRequest) async throws -> T {
+    func fetchData<T: Decodable>(using request: URLRequest) async throws -> T {
         guard let (data, response) = try? await urlSession.data(for: request) else {
             throw Error.noInternet // Is no internet the only case here?
         }
@@ -243,25 +262,26 @@ private extension SoundCloud {
     }
     
     func authorized<T>(_ scRequest: Request<T>) async throws -> URLRequest {
-        guard let urlWithPath = URL(string: config.apiURL + scRequest.path),
-              var components = URLComponents(url: urlWithPath, resolvingAgainstBaseURL: false)
-        else {
-            throw Error.invalidURL
-        }
-        components.queryItems = scRequest.queryParameters?.map { URLQueryItem(name: $0, value: $1) }
-        
-        var request = URLRequest(url: components.url!)
-        if scRequest.isForHref {
-            request = URLRequest(url: URL(string: scRequest.path)!)
-        }
-
-        request.httpMethod = scRequest.httpMethod
+        var request = scRequest.urlRequest
         if scRequest.shouldUseAuthHeader {
             request.allHTTPHeaderFields = try await authenticatedHeader // Will refresh tokens if necessary
         }
         return request
     }
-
+    
+    private func makeOAuthAuthorizationURL(_ clientID: String, _ redirectURI: String, _ codeChallenge: String) -> URL {
+        let baseURLWithPath = "https://secure.soundcloud.com/authorize"
+        var components = URLComponents(string: baseURLWithPath)!
+        components.queryItems = [
+            URLQueryItem(name: "client_id", value: clientID),
+            URLQueryItem(name: "redirect_uri", value: redirectURI),
+            URLQueryItem(name: "response_type", value: "code"),
+            URLQueryItem(name: "code_challenge", value: codeChallenge),
+            URLQueryItem(name: "code_challenge_method", value: "S256")
+        ]
+        return components.url!
+    }
+    
     // MARK: - Debug logging 📝
     func logCurrentAuthToken() {
         let token = try? tokenDAO.get().accessToken

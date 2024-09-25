@@ -8,7 +8,7 @@
 import Foundation
 
 public extension SoundCloud {
-    enum Error: LocalizedError {
+    enum Error: Swift.Error {
         case loggingIn
         case cancelledLogin
         case userNotAuthorized

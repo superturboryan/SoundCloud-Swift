@@ -3,7 +3,7 @@
 
 `SoundCloud` is a Swift Package that implements the [SoundCloud Public API Specification (v1.0.0) ](https://developers.soundcloud.com/docs/api/explorer/open-api). 
 
-It handles the logic for authenticating with a SoundCloud account using the OAuth 2.0 standard, and provides an API for streaming audio and accessing track, artist, and playlist data from SoundCloud.
+It handles the logic for authenticating with a SoundCloud account using the OAuth 2.1 standard, **including PKCE**, and provides an API for streaming audio and accessing track, artist, and playlist data from SoundCloud.
 
 ## Installation
 Add the following line to your project's dependencies in the Package.swift file:
@@ -29,7 +29,7 @@ To login using a SoundCloud account:
 ```swift
 import SoundCloud
 
-let config = SoundCloudConfig(apiURL: ...)
+let config = SoundCloudConfig(clientId: ...)
 @StateObject var sc = SoundCloud(config)  
   
 ...  
@@ -43,7 +43,7 @@ do {
 
 ```
 
-To get the liked tracks for the current user:
+To get the liked tracks for the authenticated user:
 
 ```swift
 let likedTracks = try await sc.getMyLikedTracks()
