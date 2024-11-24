@@ -58,6 +58,12 @@
             "value" : "Downloads"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Загрузки"
+          }
+        },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
@@ -121,6 +127,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Livre"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Бесплатно"
           }
         },
         "vi" : {
@@ -188,6 +200,12 @@
             "value" : "Curtidas"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Понравившееся"
+          }
+        },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
@@ -251,6 +269,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reproduzindo"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сейчас играет"
           }
         },
         "vi" : {
@@ -318,6 +342,12 @@
             "value" : "Recentes"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Недавно опубликовано"
+          }
+        },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
@@ -381,6 +411,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Relacionadas"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Похожие треки"
           }
         },
         "vi" : {
