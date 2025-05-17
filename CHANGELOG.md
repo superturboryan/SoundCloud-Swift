@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.2.0
+
+### ✨ Features
+- macOS 14 support
+- Russian localized strings
+
+
+## 1.1.0
+
+### ✨ Features
+- OAuth 2.1 (PKCE)
+- API: add `SoundCloud.getRelatedTracks`
+- Updated localized strings
+
 
 ## 1.0.4
 
