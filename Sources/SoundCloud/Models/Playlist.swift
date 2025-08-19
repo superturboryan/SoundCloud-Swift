@@ -5,8 +5,9 @@
 //  Created by Ryan Forsyth on 2023-10-03.
 //
 
-public struct Playlist: Decodable, Identifiable, Equatable {
-    public let id: Int
+public struct Playlist: Decodable, Hashable, Identifiable, Equatable {
+    
+    public let id: URN
     public let genre: String
     public let permalink: String
     public let permalinkUrl: String
@@ -29,7 +30,7 @@ public struct Playlist: Decodable, Identifiable, Equatable {
     public var tracks: [Track]? 
     public var nextPageUrl: String?
     public init(
-        id: Int,
+        id: URN,
         genre: String = "",
         permalink: String = "",
         permalinkUrl: String = "https://soundcloud.com",
@@ -75,6 +76,11 @@ public struct Playlist: Decodable, Identifiable, Equatable {
         self.tracks = tracks
         self.nextPageUrl = nextPageUrl
     }
+    
+    private enum CodingKeys: String, CodingKey {
+        case id = "urn"
+        case genre, permalink, permalinkUrl, description, uri, tagList, trackCount, lastModified, license, user, likesCount, sharing, createdAt, tags, kind, title, streamable, artworkUrl, tracksUri, tracks, nextPageUrl
+    }
 }
 
 extension Playlist {
@@ -102,12 +108,12 @@ extension Playlist {
     }
 }
 
-public enum PlaylistType: Int, CaseIterable {
-    case nowPlaying = 1
-    case downloads
-    case likes
-    case recentlyPosted // By people current user follows
-    case relatedTracks
+public enum PlaylistType: String, CaseIterable {
+    case nowPlaying = "nowPlaying"
+    case downloads = "downloads"
+    case likes = "likes"
+    case recentlyPosted = "recentlyPosted" // By people current user follows
+    case relatedTracks = "relatedTracks"
     
     public var title: String {
         switch self {

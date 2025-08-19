@@ -5,7 +5,7 @@
 //  Created by Ryan Forsyth on 2023-10-03.
 //
 
-public func testUser(_ id: Int = Int.random(in: 0..<1000)) -> User {
+public func testUser(_ id: String = "\(Int.random(in: 0..<1000))") -> User {
     User(
         avatarUrl: "https://i1.sndcdn.com/avatars-0DxRBnyCNCI3zL1X-oeoRyw-large.jpg",
         id: id,
@@ -41,7 +41,7 @@ public func testUser(_ id: Int = Int.random(in: 0..<1000)) -> User {
 
 public func testPlaylist(empty: Bool = false) -> Playlist {
     Playlist (
-        id: Int.random(in: 0..<1000),
+        id: "\(Int.random(in: 0..<1000))",
         genre: "",
         permalink: "",
         permalinkUrl: "https://google.com",
@@ -67,7 +67,7 @@ public func testPlaylist(empty: Bool = false) -> Playlist {
 
 public func testTrack(isLiked: Bool = false) -> Track {
     Track(
-        id: Int.random(in: 0..<1000),
+        id: "\(Int.random(in: 0..<1000))",
         createdAt: "2023/08/08 08:24:13 +0000",
         duration: 3678067,
         commentCount: 0,
@@ -95,13 +95,35 @@ public func testTrack(isLiked: Bool = false) -> Track {
     )
 }
 
-public var testDefaultLoadedPlaylists: [Int : Playlist] {
-    var loadedPlaylists = [Int : Playlist]()
+public var testDefaultLoadedPlaylists: [URN : Playlist] {
+    var loadedPlaylists = [URN : Playlist]()
     let user = testUser()
-    loadedPlaylists[PlaylistType.nowPlaying.rawValue] = Playlist(id: PlaylistType.nowPlaying.rawValue, user: user, title: PlaylistType.nowPlaying.title, tracks: [])
-    loadedPlaylists[PlaylistType.downloads.rawValue] = Playlist(id: PlaylistType.downloads.rawValue, user: user, title: PlaylistType.downloads.title, tracks: [])
-    loadedPlaylists[PlaylistType.likes.rawValue] = Playlist(id: PlaylistType.likes.rawValue, permalinkUrl: user.permalinkUrl + "/likes", user: user, title: PlaylistType.likes.title, tracks: [])
-    loadedPlaylists[PlaylistType.recentlyPosted.rawValue] = Playlist(id: PlaylistType.recentlyPosted.rawValue, permalinkUrl: user.permalinkUrl + "/following", user: user, title: PlaylistType.recentlyPosted.title, tracks: [])
+    loadedPlaylists[PlaylistType.nowPlaying.rawValue] = Playlist(
+        id: PlaylistType.nowPlaying.rawValue,
+        user: user,
+        title: PlaylistType.nowPlaying.title,
+        tracks: []
+    )
+    loadedPlaylists[PlaylistType.downloads.rawValue] = Playlist(
+        id: PlaylistType.downloads.rawValue,
+        user: user,
+        title: PlaylistType.downloads.title,
+        tracks: []
+    )
+    loadedPlaylists[PlaylistType.likes.rawValue] = Playlist(
+        id: PlaylistType.likes.rawValue,
+        permalinkUrl: user.permalinkUrl + "/likes",
+        user: user,
+        title: PlaylistType.likes.title,
+        tracks: []
+    )
+    loadedPlaylists[PlaylistType.recentlyPosted.rawValue] = Playlist(
+        id: PlaylistType.recentlyPosted.rawValue,
+        permalinkUrl: user.permalinkUrl + "/following",
+        user: user,
+        title: PlaylistType.recentlyPosted.title,
+        tracks: []
+    )
     return loadedPlaylists
 }
 

@@ -34,19 +34,19 @@ extension SoundCloud {
             case myFollowingsRecentlyPosted(_ limit: Int)
             case myLikedPlaylists
             case myPlaylists
-            case tracksForPlaylist(_ id: Int, _ limit: Int)
-            case tracksForUser(_ id: Int, _ limit: Int)
-            case likedTracksForUser(_ id: Int, _ limit: Int)
-            case relatedTracks(_ tracksRelatedToId: Int, _ limit: Int)
-            case streamInfoForTrack(_ id: Int)
+            case tracksForPlaylist(_ id: URN, _ limit: Int)
+            case tracksForUser(_ id: URN, _ limit: Int)
+            case likedTracksForUser(_ id: URN, _ limit: Int)
+            case relatedTracks(_ tracksRelatedToId: URN, _ limit: Int)
+            case streamInfoForTrack(_ id: URN)
             case usersImFollowing
             
-            case likeTrack(_ id: Int)
-            case unlikeTrack(_ id: Int)
-            case likePlaylist(_ id: Int)
-            case unlikePlaylist(_ id: Int)
-            case followUser(_ id: Int)
-            case unfollowUser(_ id: Int)
+            case likeTrack(_ id: URN)
+            case unlikeTrack(_ id: URN)
+            case likePlaylist(_ id: URN)
+            case unlikePlaylist(_ id: URN)
+            case followUser(_ id: URN)
+            case unfollowUser(_ id: URN)
             
             case searchTracks(_ query: String, _ limit: Int)
             case searchPlaylists(_ query: String, _ limit: Int)
@@ -94,23 +94,23 @@ extension SoundCloud {
             .init(api: .myPlaylists)
         }
         
-        static func tracksForPlaylist(_ id: Int, _ limit: Int = 1000) -> Request<Page<Track>> {
+        static func tracksForPlaylist(_ id: URN, _ limit: Int = 1000) -> Request<Page<Track>> {
             .init(api: .tracksForPlaylist(id, limit))
         }
         
-        static func tracksForUser(_ id: Int, _ limit: Int = 20) -> Request<Page<Track>> {
+        static func tracksForUser(_ id: URN, _ limit: Int = 20) -> Request<Page<Track>> {
             .init(api: .tracksForUser(id, limit))
         }
         
-        static func likedTracksForUser(_ id: Int, _ limit: Int = 20) -> Request<Page<Track>> {
+        static func likedTracksForUser(_ id: URN, _ limit: Int = 20) -> Request<Page<Track>> {
             .init(api: .likedTracksForUser(id, limit))
         }
         
-        static func relatedTracks(_ tracksRelatedToId: Int, _ limit: Int = 20) -> Request<Page<Track>> {
+        static func relatedTracks(_ tracksRelatedToId: URN, _ limit: Int = 20) -> Request<Page<Track>> {
             .init(api: .relatedTracks(tracksRelatedToId, limit))
         }
 
-        static func streamInfoForTrack(_ id: Int) -> Request<StreamInfo> {
+        static func streamInfoForTrack(_ id: URN) -> Request<StreamInfo> {
             .init(api: .streamInfoForTrack(id))
         }
         
@@ -118,27 +118,27 @@ extension SoundCloud {
             .init(api: .usersImFollowing)
         }
         
-        static func likeTrack(_ id: Int) -> Request<Status> {
+        static func likeTrack(_ id: URN) -> Request<Status> {
             .init(api: .likeTrack(id))
         }
         
-        static func unlikeTrack(_ id: Int) -> Request<Status> {
+        static func unlikeTrack(_ id: URN) -> Request<Status> {
             .init(api: .unlikeTrack(id))
         }
         
-        static func likePlaylist(_ id: Int) -> Request<Status> {
+        static func likePlaylist(_ id: URN) -> Request<Status> {
             .init(api: .likePlaylist(id))
         }
         
-        static func unlikePlaylist(_ id: Int) -> Request<Status> {
+        static func unlikePlaylist(_ id: URN) -> Request<Status> {
             .init(api: .unlikePlaylist(id))
         }
         
-        static func followUser(_ id: Int) -> Request<User> {
+        static func followUser(_ id: URN) -> Request<User> {
             .init(api: .followUser(id))
         }
 
-        static func unfollowUser(_ id: Int) -> Request<Status> {
+        static func unfollowUser(_ id: URN) -> Request<Status> {
             .init(api: .unfollowUser(id))
         }
         
