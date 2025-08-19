@@ -8,7 +8,7 @@
 import Foundation
 
 public struct Track: Codable, Identifiable {
-    public let id: Int
+    public let id: URN
     public let createdAt: String
     public let duration: Int
     public let commentCount: Int?
@@ -33,7 +33,12 @@ public struct Track: Codable, Identifiable {
     public let favoritingsCount: Int?
     public let repostsCount: Int?
     public let access: String // playable / preview / blocked
-    
+
+    private enum CodingKeys: String, CodingKey {
+        case id = "urn"
+        case createdAt, duration, commentCount, sharing, tagList, streamable, genre, title, description, license, uri, user, permalinkUrl, artworkUrl, streamUrl, downloadUrl, waveformUrl, availableCountryCodes, userFavorite, userPlaybackCount, playbackCount, favoritingsCount, repostsCount, access
+    }
+
     public var localFileUrl: String? = nil // For downloaded tracks
 }
 

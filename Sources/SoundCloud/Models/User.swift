@@ -7,7 +7,7 @@
 
 public struct User: Codable, Equatable {
     public let avatarUrl: String
-    public let id: Int
+    public let id: URN
     public let permalinkUrl: String
     public let uri: String
     public let username: String
@@ -30,7 +30,7 @@ public struct User: Codable, Equatable {
     
     public init(
         avatarUrl: String = "",
-        id: Int,
+        id: URN,
         permalinkUrl: String = "",
         uri: String = "",
         username: String = "",
@@ -72,6 +72,11 @@ public struct User: Codable, Equatable {
         self.likesCount = likesCount
         self.playlistCount = playlistCount
         self.subscriptions = subscriptions
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id = "urn"
+        case avatarUrl, permalinkUrl, uri, username, createdAt, firstName, lastName, fullName, city, country, description, trackCount, repostsCount, followersCount, followingsCount, commentsCount, online, likesCount, playlistCount, subscriptions
     }
 }
 

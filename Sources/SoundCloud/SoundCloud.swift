@@ -7,8 +7,12 @@
 
 import AuthenticationServices
 import Combine
-import CryptoKit
-import OSLog
+import Consolable
+
+/// Uniform Resource Name
+///
+/// See [SoundCloud developers blog article](https://developers.soundcloud.com/blog/urn-num-to-string)
+public typealias URN = String
 
 /// Handles the logic for making authenticated requests to the SoundCloud API.
 ///
@@ -20,6 +24,7 @@ import OSLog
 ///
 /// - Important: OAuth tokens are stored in the `Keychain` by default.
 /// - SeeAlso: Visit the [SoundCloud API Explorer](https://developers.soundcloud.com/docs/api/explorer/open-api#/) for more information.
+@Consolable("🌩️")
 public final class SoundCloud {
             
     private let config: Config
@@ -83,7 +88,7 @@ public extension SoundCloud {
             throw Error.userNotAuthorized
         }
         if savedAuthTokens.isExpired {
-            logAuthTokenExpired(savedAuthTokens.expiryDate!)
+            log("⏰ Access token expired at: \(savedAuthTokens.expiryDate!)")
             try await refreshAuthTokens()
         }
         let validAuthTokens = try! tokenDAO.get()
@@ -116,20 +121,20 @@ public extension SoundCloud {
     }
 
     // MARK: - Tracks 💿
-    func getTracksForPlaylist(_ id: Int) async throws -> Page<Track> {
+    func getTracksForPlaylist(_ id: URN) async throws -> Page<Track> {
         try await get(.tracksForPlaylist(id))
     }
     
-    func getTracksForUser(_ id: Int, _ limit: Int = 20) async throws -> Page<Track> {
+    func getTracksForUser(_ id: URN, _ limit: Int = 20) async throws -> Page<Track> {
         try await get(.tracksForUser(id, limit))
     }
     
-    func getLikedTracksForUser(_ id: Int, _ limit: Int = 20) async throws -> Page<Track> {
+    func getLikedTracksForUser(_ id: URN, _ limit: Int = 20) async throws -> Page<Track> {
         try await get(.likedTracksForUser(id, limit))
     }
     
-    func getRelatedTracks(_ id: Int, _ limit: Int = 20) async throws -> Page<Track> {
-        return try await get(.relatedTracks(id, limit))
+    func getRelatedTracks(_ id: URN, _ limit: Int = 20) async throws -> Page<Track> {
+        try await get(.relatedTracks(id, limit))
     }
 
     // MARK: - Search 🕵️
@@ -177,7 +182,7 @@ public extension SoundCloud {
         try await get(.getNextPage(href))
     }
     
-    func getStreamInfoForTrack(with id: Int) async throws -> StreamInfo {
+    func getStreamInfoForTrack(with id: URN) async throws -> StreamInfo {
         try await get(.streamInfoForTrack(id))
     }
     
@@ -277,14 +282,10 @@ private extension SoundCloud {
     // MARK: - Debug logging 📝
     func logCurrentAuthToken() {
         let token = try? tokenDAO.get().accessToken
-        Logger.auth.info("💾 Current access token: \(token ?? "None", privacy: .private)")
+        log("💾 Current access token: \(token ?? "None")")
     }
     
     func logNewAuthToken(_ token: String) {
-        Logger.auth.info("🌟 Received new access token: \(token, privacy: .private)")
-    }
-    
-    func logAuthTokenExpired(_ date: Date) {
-        Logger.auth.warning("⏰ Access token expired at: \(date)")
+        log("🌟 Received new access token: \(token)")
     }
 }

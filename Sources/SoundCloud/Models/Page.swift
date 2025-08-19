@@ -6,6 +6,7 @@
 //
 
 public struct Page<ItemType: Decodable>: Decodable {
+    
     public var items: [ItemType]
     public var nextPageURL: String?
     
@@ -16,6 +17,7 @@ public struct Page<ItemType: Decodable>: Decodable {
 }
 
 extension Page {
+    
     public var hasNextPage: Bool { nextPageURL != nil }
 
     public mutating func update(with next: Page<ItemType>) {
@@ -30,7 +32,7 @@ extension Page {
 }
 
 public extension Page where ItemType == Track {
-    func playlist(id: Int, title: String, user: User) -> Playlist {
+    func playlist(id: URN, title: String, user: User) -> Playlist {
         Playlist(
             id: id,
             user: user,

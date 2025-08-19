@@ -14,12 +14,17 @@ let package = Package(
             targets: ["SoundCloud"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/evgenyneu/keychain-swift", from: "20.0.0")
+        .package(url: "https://github.com/evgenyneu/keychain-swift", from: "20.0.0"),
+        .package(url: "https://github.com/superturboryan/Consolable/" , exact: "1.0.0")
     ],
     targets: [
         .target(
             name: "SoundCloud",
-            dependencies: [.product(name: "KeychainSwift", package: "keychain-swift")]),
+            dependencies: [
+                .product(name: "KeychainSwift", package: "keychain-swift"),
+                .product(name: "Consolable", package: "Consolable"),
+            ]
+        ),
         .testTarget(
             name: "SoundCloudTests",
             dependencies: ["SoundCloud"]),
