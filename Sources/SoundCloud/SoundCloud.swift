@@ -73,7 +73,11 @@ public extension SoundCloud {
         }
     }
     
-    /// Deletes the persisted access tokens.
+    /// Logs the user out by deleting persisted access tokens.
+    ///
+    /// This removes OAuth tokens stored in the Keychain (or custom `DAO` provided).
+    /// After calling this, all subsequent API calls will throw `Error.userNotAuthorized`
+    /// until `login()` is performed again.
     func logout() {
         try? tokenDAO.delete()
     }
@@ -96,83 +100,180 @@ public extension SoundCloud {
     }}
 
     // MARK: - My User 🕺
+    /// Fetch the authenticated user's profile.
+    ///
+    /// - Returns: The `User` associated with the current OAuth token.
+    /// - Throws: Authorization, network, or decoding errors.
     func getMyUser() async throws -> User {
         try await get(.myUser())
     }
     
+    /// Fetch the users the authenticated account is following.
+    ///
+    /// - Returns: A paginated `Page<User>`. Use `page.nextHref` with `pageOfItems(for:)` to load more.
+    /// - Throws: Authorization, network, or decoding errors.
     func getUsersImFollowing() async throws -> Page<User> {
         try await get(.usersImFollowing())
     }
     
+    /// Fetch your liked tracks.
+    ///
+    /// - Returns: A paginated `Page<Track>`. Use `page.nextHref` with `pageOfItems(for:)` to load more.
+    /// - Throws: Authorization, network, or decoding errors.
     func getMyLikedTracks() async throws -> Page<Track> {
         try await get(.myLikedTracks())
     }
     
+    /// Fetch recent tracks posted by accounts you follow.
+    ///
+    /// - Returns: A list of recent `Track`s from your followings.
+    /// - Throws: Authorization, network, or decoding errors.
     func getMyFollowingsRecentlyPosted() async throws -> [Track] {
         try await get(.myFollowingsRecentlyPosted())
     }
     
+    /// Fetch your playlists without track items to reduce payload size.
+    ///
+    /// Use `getTracksForPlaylist(_:)` to load tracks for a given playlist.
+    /// - Returns: A list of `Playlist` objects (track lists omitted).
+    /// - Throws: Authorization, network, or decoding errors.
     func getMyPlaylistsWithoutTracks() async throws -> [Playlist] {
         try await get(.myPlaylists())
     }
     
+    /// Fetch playlists you've liked, without track items to reduce payload size.
+    ///
+    /// Use `getTracksForPlaylist(_:)` to load tracks for a given playlist.
+    /// - Returns: A list of `Playlist` objects (track lists omitted).
+    /// - Throws: Authorization, network, or decoding errors.
     func getMyLikedPlaylistsWithoutTracks() async throws -> [Playlist] {
         try await get(.myLikedPlaylists())
     }
 
     // MARK: - Tracks 💿
+    /// Fetch tracks for a specific playlist.
+    ///
+    /// - Parameter id: The playlist URN.
+    /// - Returns: A paginated `Page<Track>`. Use `page.nextHref` with `pageOfItems(for:)` to load more.
+    /// - Throws: Authorization, network, or decoding errors.
     func getTracksForPlaylist(_ id: URN) async throws -> Page<Track> {
         try await get(.tracksForPlaylist(id))
     }
     
+    /// Fetch a user's uploaded tracks.
+    ///
+    /// - Parameters:
+    ///   - id: The user URN.
+    ///   - limit: Page size (default 20).
+    /// - Returns: A paginated `Page<Track>`. Use `page.nextHref` with `pageOfItems(for:)` to load more.
+    /// - Throws: Authorization, network, or decoding errors.
     func getTracksForUser(_ id: URN, _ limit: Int = 20) async throws -> Page<Track> {
         try await get(.tracksForUser(id, limit))
     }
     
+    /// Fetch tracks liked by a specific user.
+    ///
+    /// - Parameters:
+    ///   - id: The user URN.
+    ///   - limit: Page size (default 20).
+    /// - Returns: A paginated `Page<Track>`. Use `page.nextHref` with `pageOfItems(for:)` to load more.
+    /// - Throws: Authorization, network, or decoding errors.
     func getLikedTracksForUser(_ id: URN, _ limit: Int = 20) async throws -> Page<Track> {
         try await get(.likedTracksForUser(id, limit))
     }
     
+    /// Fetch tracks related to a given track.
+    ///
+    /// - Parameters:
+    ///   - id: The seed track URN.
+    ///   - limit: Page size (default 20).
+    /// - Returns: A paginated `Page<Track>`. Use `page.nextHref` with `pageOfItems(for:)` to load more.
+    /// - Throws: Authorization, network, or decoding errors.
     func getRelatedTracks(_ id: URN, _ limit: Int = 20) async throws -> Page<Track> {
         try await get(.relatedTracks(id, limit))
     }
 
     // MARK: - Search 🕵️
+    /// Search for tracks.
+    ///
+    /// - Parameters:
+    ///   - query: Free-text search query.
+    ///   - limit: Page size (default 20).
+    /// - Returns: A paginated `Page<Track>`. Use `page.nextHref` with `pageOfItems(for:)` to load more.
+    /// - Throws: Authorization, network, or decoding errors.
     func searchTracks(_ query: String, _ limit: Int = 20) async throws -> Page<Track> {
         try await get(.searchTracks(query, limit))
     }
     
+    /// Search for playlists.
+    ///
+    /// - Parameters:
+    ///   - query: Free-text search query.
+    ///   - limit: Page size (default 20).
+    /// - Returns: A paginated `Page<Playlist>`. Use `page.nextHref` with `pageOfItems(for:)` to load more.
+    /// - Throws: Authorization, network, or decoding errors.
     func searchPlaylists(_ query: String, _ limit: Int = 20) async throws -> Page<Playlist> {
         try await get(.searchPlaylists(query, limit))
     }
     
+    /// Search for users.
+    ///
+    /// - Parameters:
+    ///   - query: Free-text search query.
+    ///   - limit: Page size (default 20).
+    /// - Returns: A paginated `Page<User>`. Use `page.nextHref` with `pageOfItems(for:)` to load more.
+    /// - Throws: Authorization, network, or decoding errors.
     func searchUsers(_ query: String, _ limit: Int = 20) async throws -> Page<User> {
         try await get(.searchUsers(query, limit))
     }
 
     // MARK: - Like + Follow 🧡
-    /// - Warning: The liked track may not be returned when calling `getMyLikedTracks()` since the API
-    /// appears to cache responses, consider keeping track of the liked tracks using a local array.
+    /// Like a track on behalf of the authenticated user.
+    ///
+    /// - Parameter likedTrack: The track to like.
+    /// - Throws: Authorization or network errors.
+    /// - Warning: The liked track may not immediately appear in `getMyLikedTracks()` since
+    ///   the API may cache responses. Consider also tracking liked tracks locally.
     func likeTrack(_ likedTrack: Track) async throws {
         try await get(.likeTrack(likedTrack.id))
     }
     
+    /// Remove a track from your likes.
+    ///
+    /// - Parameter unlikedTrack: The track to unlike.
+    /// - Throws: Authorization or network errors.
     func unlikeTrack(_ unlikedTrack: Track) async throws {
         try await get(.unlikeTrack(unlikedTrack.id))
     }
     
+    /// Like a playlist on behalf of the authenticated user.
+    ///
+    /// - Parameter playlist: The playlist to like.
+    /// - Throws: Authorization or network errors.
     func likePlaylist(_ playlist: Playlist) async throws {
         try await get(.likePlaylist(playlist.id))
     }
     
+    /// Remove a playlist from your likes.
+    ///
+    /// - Parameter playlist: The playlist to unlike.
+    /// - Throws: Authorization or network errors.
     func unlikePlaylist(_ playlist: Playlist) async throws {
         try await get(.unlikePlaylist(playlist.id))
     }
     
+    /// Follow a user on behalf of the authenticated account.
+    ///
+    /// - Parameter user: The user to follow.
+    /// - Throws: Authorization or network errors.
     func followUser(_ user: User) async throws {
         try await get(.followUser(user.id))
     }
     
+    /// Unfollow a user on behalf of the authenticated account.
+    ///
+    /// - Parameter user: The user to unfollow.
+    /// - Throws: Authorization or network errors.
     func unfollowUser(_ user: User) async throws {
         try await get(.unfollowUser(user.id))
     }
@@ -201,22 +302,35 @@ public extension SoundCloud {
     ///
     /// // User
     /// let user: User = try await sc.resolve("https://soundcloud.com/username")
-    ///
-    /// // Short links are also supported
-    /// let shortTrack: Track = try await sc.resolve("https://on.soundcloud.com/abc123")
     /// ```
     func resolve<ItemType: Decodable>(_ url: String) async throws -> ItemType {
         try await get(.resolve(url))
     }
     
+    /// Fetch the next page of results.
+    ///
+    /// Pass the `nextHref` from an existing `Page<T>` to continue pagination.
+    /// - Parameter href: The `nextHref` URL from a previous page.
+    /// - Returns: The next `Page` of items.
+    /// - Throws: Authorization, network, or decoding errors.
     func pageOfItems<ItemType>(for href: String) async throws -> Page<ItemType> {
         try await get(.getNextPage(href))
     }
     
+    /// Fetch stream information for a track.
+    ///
+    /// Use this to obtain stream URLs and playback-related metadata.
+    /// - Parameter id: The track URN.
+    /// - Returns: `StreamInfo` suitable for initiating playback.
+    /// - Throws: Authorization, network, or decoding errors.
     func getStreamInfoForTrack(with id: URN) async throws -> StreamInfo {
         try await get(.streamInfoForTrack(id))
     }
     
+    /// Handle a notification carrying newly issued OAuth tokens.
+    ///
+    /// Expects `notification.object` to be `Data` representing a `TokenResponse`.
+    /// - Parameter notification: A notification whose `object` contains encoded token data.
     func handleNewAuthTokensNotification(_ notification: Notification) {
         guard // Check notification.name?
             let tokenData = notification.object as? Data,
