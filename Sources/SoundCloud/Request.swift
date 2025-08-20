@@ -29,7 +29,7 @@ extension SoundCloud {
                 _ redirectURI: String
             )
             
-            case myUser
+            case currentUser
             case myLikedTracks(_ limit: Int)
             case myFollowingsRecentlyPosted(_ limit: Int)
             case myLikedPlaylists
@@ -75,8 +75,8 @@ extension SoundCloud {
             .init(api: .refreshAccessToken(refreshToken, clientId, clientSecret, redirectURI))
         }
         
-        static func myUser() -> Request<User> {
-            .init(api: .myUser)
+        static func currentUser() -> Request<User> {
+            .init(api: .currentUser)
         }
         
         static func myLikedTracks(_ limit: Int = 100) -> Request<Page<Track>> {
@@ -213,7 +213,7 @@ extension SoundCloud.Request {
         case .accessToken: "oauth/token"
         case .refreshAccessToken: "oauth/token"
         
-        case .myUser: "me"
+        case .currentUser: "me"
         case .myLikedTracks: "me/likes/tracks"
         case .myFollowingsRecentlyPosted: "me/followings/tracks"
         case .myLikedPlaylists: "me/likes/playlists"
