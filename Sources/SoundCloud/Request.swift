@@ -48,6 +48,7 @@ extension SoundCloud {
             case followUser(_ id: URN)
             case unfollowUser(_ id: URN)
             
+            case resolve(_ url: String)
             case searchTracks(_ query: String, _ limit: Int)
             case searchPlaylists(_ query: String, _ limit: Int)
             case searchUsers(_ query: String, _ limit: Int)
@@ -141,7 +142,7 @@ extension SoundCloud {
         static func unfollowUser(_ id: URN) -> Request<Status> {
             .init(api: .unfollowUser(id))
         }
-        
+                
         static func searchTracks(_ query: String, _ limit: Int) -> Request<Page<Track>> {
             .init(api: .searchTracks(query, limit))
         }
@@ -156,6 +157,10 @@ extension SoundCloud {
 
         static func getNextPage<ItemType: Decodable>(_ href: String) -> Request<Page<ItemType>> {
             .init(api: .nextPage(href))
+        }
+        
+        static func resolve<ItemType: Decodable>(_ url: String) -> Request<ItemType> {
+            .init(api: .resolve(url))
         }
     }
 }
@@ -226,6 +231,7 @@ extension SoundCloud.Request {
         case .searchTracks: "tracks"
         case .searchPlaylists: "playlists"
         case .searchUsers: "users"
+        case .resolve: "resolve"
             
         case .nextPage(let href): href
         }
@@ -294,8 +300,12 @@ extension SoundCloud.Request {
             "limit" : "\(limit)",
             "linked_partitioning" : "true"
         ]
+        
+        case let .resolve(url): [
+            "url" : url
+        ]
             
-        default: 
+        default:
             nil
         }
     }
@@ -343,7 +353,7 @@ extension SoundCloud.Request {
         case .followUser:
             "PUT"
         
-        default: 
+        default:
             "GET"
         }
     }
@@ -353,7 +363,6 @@ extension SoundCloud.Request {
 extension SoundCloud.Request {
     
     var shouldUseAuthHeader: Bool {
-        
         switch api {
         case .accessToken, .refreshAccessToken: false
         default: true
@@ -361,10 +370,9 @@ extension SoundCloud.Request {
     }
         
     var isNextPageRequest: Bool {
-        
         switch api {
-            case .nextPage: true
-            default: false
+        case .nextPage: true
+        default: false
         }
     }
 }

@@ -178,6 +178,37 @@ public extension SoundCloud {
     }
 
     // MARK: - Miscellaneous ✨
+    
+    /// Resolve a SoundCloud web URL to its canonical API resource.
+    ///
+    /// Use this to turn a user-facing SoundCloud URL (e.g., `https://soundcloud.com/...` or
+    /// `https://on.soundcloud.com/...`) into a strongly-typed API model such as `Track`,
+    /// `Playlist`, or `User`.
+    ///
+    /// The generic `ItemType` you choose must match the resource type the URL resolves to.
+    ///
+    /// - Parameter url: A full SoundCloud URL to resolve.
+    /// - Returns: The decoded resource of the specified type.
+    /// - Throws: The same errors as other API calls, including authorization, network, and decoding failures.
+    ///
+    /// ### Examples
+    /// ```swift
+    /// // Track
+    /// let track: Track = try await sc.resolve("https://soundcloud.com/user/track-permalink")
+    ///
+    /// // Playlist
+    /// let playlist: Playlist = try await sc.resolve("https://soundcloud.com/user/sets/my-set")
+    ///
+    /// // User
+    /// let user: User = try await sc.resolve("https://soundcloud.com/username")
+    ///
+    /// // Short links are also supported
+    /// let shortTrack: Track = try await sc.resolve("https://on.soundcloud.com/abc123")
+    /// ```
+    func resolve<ItemType: Decodable>(_ url: String) async throws -> ItemType {
+        try await get(.resolve(url))
+    }
+    
     func pageOfItems<ItemType>(for href: String) async throws -> Page<ItemType> {
         try await get(.getNextPage(href))
     }
