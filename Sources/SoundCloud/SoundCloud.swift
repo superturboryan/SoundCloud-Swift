@@ -7,7 +7,7 @@
 
 import AuthenticationServices
 import Combine
-import Consolable
+import OSLog
 
 /// Uniform Resource Name
 ///
@@ -24,7 +24,6 @@ public typealias URN = String
 ///
 /// - Important: OAuth tokens are stored in the `Keychain` by default.
 /// - SeeAlso: Visit the [SoundCloud API Explorer](https://developers.soundcloud.com/docs/api/explorer/open-api#/) for more information.
-@Consolable("🌩️")
 public final class SoundCloud {
             
     private let config: Config
@@ -87,7 +86,7 @@ public extension SoundCloud {
             throw Error.userNotAuthorized
         }
         if savedAuthTokens.isExpired {
-            log("⏰ Access token expired at: \(savedAuthTokens.expiryDate!)")
+            Logger.auth.info("⏰ Access token expired at: \(savedAuthTokens.expiryDate!)")
             try await refreshAuthTokens()
         }
         let validAuthTokens = try! tokenDAO.get()
@@ -421,10 +420,10 @@ private extension SoundCloud {
     // MARK: - Debug logging 📝
     func logCurrentAuthToken() {
         let token = try? tokenDAO.get().accessToken
-        log("💾 Current access token: \(token ?? "None")")
+        Logger.auth.info("💾 Current access token: \(token ?? "None")")
     }
     
     func logNewAuthToken(_ token: String) {
-        log("🌟 Received new access token: \(token)")
+        Logger.auth.info("🌟 Received new access token: \(token)")
     }
 }
