@@ -90,7 +90,7 @@ public extension SoundCloud {
             try await refreshAuthTokens()
         }
         let validAuthTokens = try! tokenDAO.get()
-        return ["Authorization" : "Bearer " + (validAuthTokens.accessToken)]
+        return ["Authorization" : "Bearer " + validAuthTokens.accessToken]
     }}
     
     // MARK: - Auth 🔐

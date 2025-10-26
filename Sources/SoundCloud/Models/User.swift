@@ -97,7 +97,7 @@ extension User: Hashable {
 }
 
 public extension User {
-    struct Subscription: Codable, Equatable {
+    public struct Subscription: Codable, Equatable {
         public let product: Product
 
         public struct Product: Codable, Equatable {
