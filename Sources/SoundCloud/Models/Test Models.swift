@@ -132,4 +132,4 @@ public let testNextProSubscription = User.Subscription(product: User.Subscriptio
 
 public var testSC = SoundCloud(SoundCloud.Config(clientId: "", clientSecret: "", redirectURI: ""))
 
-public let testStreamInfo = StreamInfo(httpMp3128URL: "", hlsMp3128URL: "")
+public let testStreamInfo = StreamInfo(httpMp3128URL: "", hlsMp3128URL: "", hlsAAC96URL: "", hlsAAC160URL: "")
