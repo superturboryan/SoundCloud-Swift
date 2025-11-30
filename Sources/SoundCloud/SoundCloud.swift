@@ -29,7 +29,12 @@ public final class SoundCloud {
     private let config: Config
     private let tokenDAO: any DAO<TokenResponse>
     private let decoder = JSONDecoder()
-    private let urlSession = URLSession(configuration: .default)
+    private let urlSession: URLSession = {
+        let configuration = URLSessionConfiguration.default
+        configuration.timeoutIntervalForRequest = 10  // 10s between data packets
+        configuration.timeoutIntervalForResource = 15 // 15s total request time
+        return URLSession(configuration: configuration)
+    }()
     public var subscriptions = Set<AnyCancellable>()
     
     public init(
