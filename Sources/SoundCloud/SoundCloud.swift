@@ -355,12 +355,20 @@ private extension SoundCloud {
     }
     
     func refreshAuthTokens() async throws {
-        guard let savedRefreshToken = try? tokenDAO.get().refreshToken else {
+        do {
+            let savedRefreshToken = try tokenDAO.get().refreshToken
+            let refreshedTokens = try await get(.refreshToken(
+                savedRefreshToken,
+                config.clientId,
+                config.clientSecret,
+                config.redirectURI
+            ))
+            logNewAuthToken(refreshedTokens.accessToken)
+            saveTokensWithCreationDate(refreshedTokens)
+        } catch {
+            Logger.auth.info("❌ Failed to refresh auth token.")
             throw Error.userNotAuthorized
         }
-        let refreshedTokens = try await get(.refreshToken(savedRefreshToken, config.clientId, config.clientSecret, config.redirectURI))
-        logNewAuthToken(refreshedTokens.accessToken)
-        saveTokensWithCreationDate(refreshedTokens)
     }
     
     func saveTokensWithCreationDate(_ tokens: TokenResponse) {
