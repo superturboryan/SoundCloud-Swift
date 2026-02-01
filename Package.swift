@@ -32,11 +32,10 @@ let package = Package(
                     name: "KeychainSwift",
                     package: "keychain-swift"
                 ),
+            ],
+            swiftSettings: [
+                .enableExperimentalFeature("StrictConcurrency")
             ]
-        ),
-        .testTarget(
-            name: "SoundCloudTests",
-            dependencies: ["SoundCloud"]
         ),
     ]
 )

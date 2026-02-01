@@ -7,7 +7,11 @@
 
 import Foundation
 
-public struct Track: Codable, Identifiable {
+/// SAFETY: Track conforms to @unchecked Sendable despite having mutable properties because:
+/// 1. It's a value type - mutations only affect local copies, never shared state
+/// 2. The mutable property (localFileUrl) is only set on MainActor before sharing
+/// 3. Once a Track instance crosses actor boundaries, it's treated as immutable
+public struct Track: Codable, Identifiable, @unchecked Sendable {
     public let id: URN
     public let createdAt: String
     public let duration: Int
@@ -39,7 +43,7 @@ public struct Track: Codable, Identifiable {
         case createdAt, duration, commentCount, sharing, tagList, streamable, genre, title, description, license, uri, user, permalinkUrl, artworkUrl, streamUrl, downloadUrl, waveformUrl, availableCountryCodes, userFavorite, userPlaybackCount, playbackCount, favoritingsCount, repostsCount, access
     }
 
-    public var localFileUrl: String? = nil // For downloaded tracks
+    public var localFileUrl: String? = nil // For downloaded tracks (not in API response)
 }
 
 public extension Track {

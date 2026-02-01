@@ -6,12 +6,9 @@
 //
 
 import AuthenticationServices
-import Combine
 import OSLog
 
 /// Uniform Resource Name
-///
-/// See [SoundCloud developers blog article](https://developers.soundcloud.com/blog/urn-num-to-string)
 public typealias URN = String
 
 /// Handles the logic for making authenticated requests to the SoundCloud API.
@@ -23,8 +20,8 @@ public typealias URN = String
 /// requests for streaming content and acessing track, artist, and playlist data from SoundCloud.
 ///
 /// - Important: OAuth tokens are stored in the `Keychain` by default.
-/// - SeeAlso: Visit the [SoundCloud API Explorer](https://developers.soundcloud.com/docs/api/explorer/open-api#/) for more information.
-public final class SoundCloud {
+/// - SeeAlso: [SoundCloud API Explorer](https://developers.soundcloud.com/docs/api/explorer/open-api#/)
+public final class SoundCloud: Sendable {
             
     private let config: Config
     private let tokenDAO: any DAO<TokenResponse>
@@ -35,7 +32,6 @@ public final class SoundCloud {
         configuration.timeoutIntervalForResource = 15 // 15s total request time
         return URLSession(configuration: configuration)
     }()
-    public var subscriptions = Set<AnyCancellable>()
     
     public init(
         _ config: Config,
@@ -335,18 +331,11 @@ public extension SoundCloud {
         try await get(.streamInfoForTrack(id))
     }
     
-    /// Handle a notification carrying newly issued OAuth tokens.
+    /// Updates the stored authentication tokens.
     ///
-    /// Expects `notification.object` to be `Data` representing a `TokenResponse`.
-    /// - Parameter notification: A notification whose `object` contains encoded token data.
-    func handleNewAuthTokensNotification(_ notification: Notification) {
-        guard // Check notification.name?
-            let tokenData = notification.object as? Data,
-            let tokens = try? decoder.decode(TokenResponse.self, from: tokenData)
-        else {
-            // Log unexpected notification?
-            return
-        }
+    /// Use this when receiving tokens from an external source.
+    /// - Parameter tokens: The new `TokenResponse` to save.
+    public func setTokens(_ tokens: TokenResponse) {
         saveTokensWithCreationDate(tokens)
     }
 }
