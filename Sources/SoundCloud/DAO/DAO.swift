@@ -8,9 +8,9 @@
 /// Describes a data access object used for persisting an item of generic `Codable` type `DataType`
  /// - Parameters:
 ///   - codingKey: key used to encode + decode persisted object
-public protocol DAO<DataType>: AnyObject {
-    associatedtype DataType: Codable
-    
+public protocol DAO<DataType>: AnyObject, Sendable {
+    associatedtype DataType: Codable & Sendable
+
     var codingKey: String { get }
     
     func get() throws -> DataType

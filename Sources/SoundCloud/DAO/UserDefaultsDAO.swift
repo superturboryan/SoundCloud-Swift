@@ -10,7 +10,7 @@ import Foundation
 ///
 /// - Warning: **Unexpected behaviour across app launches:** `UserDefaults` may not be properly synchronized
 /// after terminating app with Xcode. **Terminate app via device** for expected read-write behaviour.
-public final class UserDefaultsDAO<T: Codable>: DAO {
+public final class UserDefaultsDAO<T: Codable & Sendable>: DAO, @unchecked Sendable {
     
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()

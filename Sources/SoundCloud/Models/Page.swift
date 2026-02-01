@@ -5,7 +5,7 @@
 //  Created by Ryan Forsyth on 2023-10-03.
 //
 
-public struct Page<ItemType: Decodable>: Decodable {
+public struct Page<ItemType: Decodable>: Decodable, Sendable where ItemType: Sendable {
     
     public var items: [ItemType]
     public var nextPageURL: String?

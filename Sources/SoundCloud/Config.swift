@@ -12,7 +12,7 @@ extension SoundCloud {
     ///  - Parameter clientID: Client ID to use when authorizing with API and requesting tokens.
     ///  - Parameter clientSecret: Client secret to use when authorizing with API and requesting tokens.
     ///  - Parameter redirectURI: URI to use when redirecting from OAuth login page to app. This URI should take the form
-    public struct Config {
+    public struct Config: Sendable {
         
         let clientId: String
         let clientSecret: String
