@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct TokenResponse: Codable {
+public struct TokenResponse: Codable, Sendable {
     let accessToken: String
     let expiresIn: Int
     let refreshToken: String

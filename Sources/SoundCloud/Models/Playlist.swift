@@ -5,7 +5,11 @@
 //  Created by Ryan Forsyth on 2023-10-03.
 //
 
-public struct Playlist: Decodable, Hashable, Identifiable, Equatable {
+/// SAFETY: Playlist conforms to @unchecked Sendable despite having mutable properties because:
+/// 1. It's a value type - mutations only affect local copies, never shared state
+/// 2. Mutable properties (tracks, nextPageUrl) are modified on MainActor before sharing
+/// 3. Once a Playlist instance crosses actor boundaries, it's treated as immutable
+public struct Playlist: Decodable, Hashable, Identifiable, Equatable, @unchecked Sendable {
     
     public let id: URN
     public let genre: String
@@ -108,7 +112,7 @@ extension Playlist {
     }
 }
 
-public enum PlaylistType: String, CaseIterable {
+public enum PlaylistType: String, CaseIterable, Sendable {
     case nowPlaying = "nowPlaying"
     case downloads = "downloads"
     case likes = "likes"

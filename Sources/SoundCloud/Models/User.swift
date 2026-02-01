@@ -5,7 +5,7 @@
 //  Created by Ryan Forsyth on 2023-10-03.
 //
 
-public struct User: Codable, Equatable {
+public struct User: Codable, Equatable, Sendable {
     public let avatarUrl: String
     public let id: URN
     public let permalinkUrl: String
@@ -97,10 +97,10 @@ extension User: Hashable {
 }
 
 public extension User {
-    public struct Subscription: Codable, Equatable {
+    public struct Subscription: Codable, Equatable, Sendable {
         public let product: Product
 
-        public struct Product: Codable, Equatable {
+        public struct Product: Codable, Equatable, Sendable {
             public let id: String
             public let name: String
         }

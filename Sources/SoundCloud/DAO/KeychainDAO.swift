@@ -8,7 +8,7 @@
 import Foundation
 import KeychainSwift
 
-public final class KeychainDAO<T: Codable>: DAO {
+public final class KeychainDAO<T: Codable & Sendable>: DAO, @unchecked Sendable {
     
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()

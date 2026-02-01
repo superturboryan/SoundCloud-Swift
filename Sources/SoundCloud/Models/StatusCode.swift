@@ -6,7 +6,7 @@
 //
 
 public extension SoundCloud {
-    enum StatusCode: Int {
+    enum StatusCode: Int, Sendable {
         case success = 200
         case created = 201
         case found = 302
