@@ -5,7 +5,6 @@ import PackageDescription
 
 let package = Package(
     name: "SoundCloud",
-    defaultLocalization: "en",
     platforms: [
         .iOS(.v15),
         .watchOS(.v9),
@@ -32,10 +31,6 @@ let package = Package(
                     name: "KeychainSwift",
                     package: "keychain-swift"
                 ),
-            ],
-            resources: [
-                .process("Assets.xcassets"),
-                .process("Localizable.xcstrings")
             ],
             swiftSettings: [
                 .enableExperimentalFeature("StrictConcurrency")

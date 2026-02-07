@@ -52,7 +52,7 @@ extension SoundCloud {
             case searchTracks(_ query: String, _ limit: Int)
             case searchPlaylists(_ query: String, _ limit: Int)
             case searchUsers(_ query: String, _ limit: Int)
-
+            
             case nextPage(_ href: String)
         }
         
@@ -110,7 +110,7 @@ extension SoundCloud {
         static func relatedTracks(_ tracksRelatedToId: URN, _ limit: Int = 20) -> Request<Page<Track>> {
             .init(api: .relatedTracks(tracksRelatedToId, limit))
         }
-
+        
         static func streamInfoForTrack(_ id: URN) -> Request<StreamInfo> {
             .init(api: .streamInfoForTrack(id))
         }
@@ -138,11 +138,11 @@ extension SoundCloud {
         static func followUser(_ id: URN) -> Request<User> {
             .init(api: .followUser(id))
         }
-
+        
         static func unfollowUser(_ id: URN) -> Request<Status> {
             .init(api: .unfollowUser(id))
         }
-                
+        
         static func searchTracks(_ query: String, _ limit: Int) -> Request<Page<Track>> {
             .init(api: .searchTracks(query, limit))
         }
@@ -154,7 +154,7 @@ extension SoundCloud {
         static func searchUsers(_ query: String, _ limit: Int) -> Request<Page<User>> {
             .init(api: .searchUsers(query, limit))
         }
-
+        
         static func getNextPage<ItemType: Decodable>(_ href: String) -> Request<Page<ItemType>> {
             .init(api: .nextPage(href))
         }
@@ -190,15 +190,13 @@ extension SoundCloud.Request {
             urlComponents.queryItems = body
             request.httpBody = urlComponents.query?.data(using: .utf8)
         }
-
+        
         request.httpMethod = httpMethod
         return request
     }
     
     var baseURL: String {
-        
         switch api {
-            
         case .accessToken, .refreshAccessToken:
             SoundCloud.Config.authURL
         default:
@@ -207,12 +205,10 @@ extension SoundCloud.Request {
     }
     
     var path: String {
-        
         switch api {
-            
         case .accessToken: "oauth/token"
         case .refreshAccessToken: "oauth/token"
-        
+            
         case .currentUser: "me"
         case .myLikedTracks: "me/likes/tracks"
         case .myFollowingsRecentlyPosted: "me/followings/tracks"
@@ -238,15 +234,13 @@ extension SoundCloud.Request {
     }
     
     var queryParameters: [String : String]? {
-        
         switch api {
-                        
         case let .myLikedTracks(limit): [
             "limit" : "\(limit)",
             "access" : "playable",
             "linked_partitioning" : "true"
         ]
-        
+            
         case let .myFollowingsRecentlyPosted(limit): [
             "limit" : "\(limit)",
             "access" : "playable",
@@ -269,7 +263,7 @@ extension SoundCloud.Request {
             "limit" : "\(limit)",
             "linked_partitioning" : "true"
         ]
-
+            
         case let .relatedTracks(_, limit): [
             "access" : "playable",
             "limit" : "\(limit)",
@@ -300,7 +294,7 @@ extension SoundCloud.Request {
             "limit" : "\(limit)",
             "linked_partitioning" : "true"
         ]
-        
+            
         case let .resolve(url): [
             "url" : url
         ]
@@ -311,9 +305,7 @@ extension SoundCloud.Request {
     }
     
     var body: [URLQueryItem]? {
-        
         switch api {
-        
         case let .accessToken(accessCode, clientId, clientSecret, redirectURI, codeVerifier): [
             URLQueryItem(name:"code", value: accessCode),
             URLQueryItem(name:"grant_type", value: "authorization_code"),
@@ -330,29 +322,27 @@ extension SoundCloud.Request {
             URLQueryItem(name:"client_secret", value: clientSecret),
             URLQueryItem(name:"redirect_uri", value: redirectURI),
         ]
-        
+            
         default: nil
         }
     }
     
     var httpMethod: String {
-        
         switch api {
-
         case .accessToken,
-             .refreshAccessToken,
-             .likeTrack,
-             .likePlaylist:
+                .refreshAccessToken,
+                .likeTrack,
+                .likePlaylist:
             "POST"
-        
+            
         case .unlikeTrack,
-             .unlikePlaylist,
-             .unfollowUser:
+                .unlikePlaylist,
+                .unfollowUser:
             "DELETE"
-
+            
         case .followUser:
             "PUT"
-        
+            
         default:
             "GET"
         }
@@ -368,7 +358,7 @@ extension SoundCloud.Request {
         default: true
         }
     }
-        
+    
     var isNextPageRequest: Bool {
         switch api {
         case .nextPage: true
