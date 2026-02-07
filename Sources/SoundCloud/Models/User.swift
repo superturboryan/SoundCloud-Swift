@@ -73,7 +73,7 @@ public struct User: Codable, Equatable, Sendable {
         self.playlistCount = playlistCount
         self.subscriptions = subscriptions
     }
-
+    
     private enum CodingKeys: String, CodingKey {
         case id = "urn"
         case avatarUrl, permalinkUrl, uri, username, createdAt, firstName, lastName, fullName, city, country, description, trackCount, repostsCount, followersCount, followingsCount, commentsCount, online, likesCount, playlistCount, subscriptions
@@ -82,7 +82,7 @@ public struct User: Codable, Equatable, Sendable {
 
 public extension User {
     var subscription: String {
-        (subscriptions.first?.product.name) ??  String(localized: "Free", comment: "Adjective")
+        (subscriptions.first?.product.name) ?? "Free"
     }
     
     var largerAvatarUrl: String {
@@ -99,7 +99,7 @@ extension User: Hashable {
 public extension User {
     public struct Subscription: Codable, Equatable, Sendable {
         public let product: Product
-
+        
         public struct Product: Codable, Equatable, Sendable {
             public let id: String
             public let name: String

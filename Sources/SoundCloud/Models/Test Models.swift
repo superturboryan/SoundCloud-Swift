@@ -20,11 +20,11 @@ public func testUser(_ id: String = "\(Int.random(in: 0..<1000))") -> User {
         country: "",
         description: """
         DJ
-
+        
         Always looking to cut dubplates and promote new tunes/producers, so feel free to send me tunes on here or to rizlateef111@gmail.com
-
+        
         Bookings: nikki@synchronicity.agency
-
+        
         Label: @southlondonpressings
         """,
         trackCount: 67,
@@ -93,38 +93,6 @@ public func testTrack(isLiked: Bool = false) -> Track {
         repostsCount: 0,
         access: "playable"
     )
-}
-
-public var testDefaultLoadedPlaylists: [URN : Playlist] {
-    var loadedPlaylists = [URN : Playlist]()
-    let user = testUser()
-    loadedPlaylists[PlaylistType.nowPlaying.rawValue] = Playlist(
-        id: PlaylistType.nowPlaying.rawValue,
-        user: user,
-        title: PlaylistType.nowPlaying.title,
-        tracks: []
-    )
-    loadedPlaylists[PlaylistType.downloads.rawValue] = Playlist(
-        id: PlaylistType.downloads.rawValue,
-        user: user,
-        title: PlaylistType.downloads.title,
-        tracks: []
-    )
-    loadedPlaylists[PlaylistType.likes.rawValue] = Playlist(
-        id: PlaylistType.likes.rawValue,
-        permalinkUrl: user.permalinkUrl + "/likes",
-        user: user,
-        title: PlaylistType.likes.title,
-        tracks: []
-    )
-    loadedPlaylists[PlaylistType.recentlyPosted.rawValue] = Playlist(
-        id: PlaylistType.recentlyPosted.rawValue,
-        permalinkUrl: user.permalinkUrl + "/following",
-        user: user,
-        title: PlaylistType.recentlyPosted.title,
-        tracks: []
-    )
-    return loadedPlaylists
 }
 
 public let testFreeSubscription = User.Subscription(product: User.Subscription.Product(id: "free", name: "Free"))

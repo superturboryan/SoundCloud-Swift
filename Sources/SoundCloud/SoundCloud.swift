@@ -22,7 +22,7 @@ public typealias URN = String
 /// - Important: OAuth tokens are stored in the `Keychain` by default.
 /// - SeeAlso: [SoundCloud API Explorer](https://developers.soundcloud.com/docs/api/explorer/open-api#/)
 public final class SoundCloud: Sendable {
-            
+    
     private let config: Config
     private let tokenDAO: any DAO<TokenResponse>
     private let decoder = JSONDecoder()
@@ -153,7 +153,7 @@ public extension SoundCloud {
     func likedPlaylists() async throws -> [Playlist] {
         try await get(.myLikedPlaylists())
     }
-
+    
     // MARK: - Tracks 💿
     /// Fetch tracks for a specific playlist.
     ///
@@ -196,7 +196,7 @@ public extension SoundCloud {
     func relatedTracks(to id: URN, limit: Int = 20) async throws -> Page<Track> {
         try await get(.relatedTracks(id, limit))
     }
-
+    
     // MARK: - Search 🕵️
     /// Search for tracks.
     ///
@@ -230,7 +230,7 @@ public extension SoundCloud {
     func searchUsers(matching query: String, limit: Int = 20) async throws -> Page<User> {
         try await get(.searchUsers(query, limit))
     }
-
+    
     // MARK: - Like + Follow 🧡
     /// Like a track on behalf of the authenticated user.
     ///
@@ -281,7 +281,7 @@ public extension SoundCloud {
     func unfollow(_ user: User) async throws {
         try await get(.unfollowUser(user.id))
     }
-
+    
     // MARK: - Miscellaneous ✨
     
     /// Resolve a SoundCloud web URL to its canonical API resource.
@@ -370,7 +370,7 @@ private extension SoundCloud {
         tokensWithDate.expiryDate = tokens.expiresIn.dateWithSecondsAdded(to: Date())
         try? tokenDAO.save(tokensWithDate)
     }
-
+    
     // MARK: - API request 🌍
     @discardableResult
     func get<T: Decodable>(_ request: Request<T>) async throws -> T {

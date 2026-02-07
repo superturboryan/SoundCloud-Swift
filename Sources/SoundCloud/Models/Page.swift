@@ -19,7 +19,7 @@ public struct Page<ItemType: Decodable>: Decodable, Sendable where ItemType: Sen
 extension Page {
     
     public var hasNextPage: Bool { nextPageURL != nil }
-
+    
     public mutating func update(with next: Page<ItemType>) {
         items += next.items
         nextPageURL = next.nextPageURL

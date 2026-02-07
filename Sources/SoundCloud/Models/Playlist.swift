@@ -118,14 +118,4 @@ public enum PlaylistType: String, CaseIterable, Sendable {
     case likes = "likes"
     case recentlyPosted = "recentlyPosted" // By people current user follows
     case relatedTracks = "relatedTracks"
-    
-    public var title: String {
-        switch self {
-        case .nowPlaying: String(localized: "Now Playing", bundle: .module, comment: "Noun")
-        case .downloads: String(localized:"Downloads", bundle: .module, comment: "Plural noun")
-        case .likes:  String(localized:"Likes", bundle: .module, comment: "Plural noun")
-        case .recentlyPosted: String(localized:"Recently Posted", bundle: .module, comment: "User playlist - Noun")
-        case .relatedTracks: String(localized:"Related Tracks", bundle: .module, comment: "Playlist title - Noun")
-        }
-    }
 }
