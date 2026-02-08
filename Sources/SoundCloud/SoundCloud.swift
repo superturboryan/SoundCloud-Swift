@@ -61,7 +61,7 @@ public extension SoundCloud {
         do {
             let codeVerifier = PKCE.generateCodeVerifier()
             let codeChallenge = try PKCE.generateCodeChallenge(using: codeVerifier)
-            let authorizationURL = makeOAuthAuthorizationURL(config.clientId, config.redirectURI, codeChallenge)
+            let authorizationURL = makeAuthorizationURL(config.clientId, config.redirectURI, codeChallenge)
             let authorizationCode = try await getAuthorizationCode(from: authorizationURL, with: codeChallenge)
             let newAuthTokens = try await getAuthenticationTokens(with: authorizationCode, and: codeVerifier)
             saveTokensWithCreationDate(newAuthTokens)
@@ -335,12 +335,13 @@ public extension SoundCloud {
     ///
     /// Use this when receiving tokens from an external source.
     /// - Parameter tokens: The new `TokenResponse` to save.
-    public func setTokens(_ tokens: TokenResponse) {
+    func setTokens(_ tokens: TokenResponse) {
         saveTokensWithCreationDate(tokens)
     }
 }
 
 // MARK: - Private 🚫👀
+
 private extension SoundCloud {
     func getAuthenticationTokens(with authCode: String, and codeVerifier: String) async throws -> (TokenResponse) {
         let tokenResponse = try await get(.accessToken(authCode, config.clientId, config.clientSecret, config.redirectURI, codeVerifier))
@@ -371,7 +372,6 @@ private extension SoundCloud {
         try? tokenDAO.save(tokensWithDate)
     }
     
-    // MARK: - API request 🌍
     @discardableResult
     func get<T: Decodable>(_ request: Request<T>) async throws -> T {
         try await fetchData(using: authorized(request))
@@ -406,7 +406,7 @@ private extension SoundCloud {
         return request
     }
     
-    private func makeOAuthAuthorizationURL(_ clientID: String, _ redirectURI: String, _ codeChallenge: String) -> URL {
+    func makeAuthorizationURL(_ clientID: String, _ redirectURI: String, _ codeChallenge: String) -> URL {
         let baseURLWithPath = "https://secure.soundcloud.com/authorize"
         var components = URLComponents(string: baseURLWithPath)!
         components.queryItems = [
@@ -419,7 +419,6 @@ private extension SoundCloud {
         return components.url!
     }
     
-    // MARK: - Debug logging 📝
     func logCurrentAuthToken() {
         let token = try? tokenDAO.get().accessToken
         Logger.auth.info("💾 Current access token: \(token ?? "None")")
