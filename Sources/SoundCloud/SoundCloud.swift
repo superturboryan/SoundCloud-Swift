@@ -429,3 +429,7 @@ private extension SoundCloud {
         Logger.auth.info("🌟 Received new access token: \(token)")
     }
 }
+
+extension Logger {
+    static let auth = Logger(subsystem: "SoundCloud", category: "Authentication")
+}
