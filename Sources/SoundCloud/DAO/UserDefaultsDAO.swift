@@ -12,11 +12,11 @@ import Foundation
 /// after terminating app with Xcode. **Terminate app via device** for expected read-write behaviour.
 public final class UserDefaultsDAO<T: Codable & Sendable>: DAO, @unchecked Sendable {
     
+    public let codingKey: String
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
     private let persistence: UserDefaults
     
-    public var codingKey: String
     public init(
         _ codingKey: String = "\(T.self)",
         _ userDefaults: UserDefaults = UserDefaults.standard

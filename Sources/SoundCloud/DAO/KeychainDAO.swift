@@ -10,11 +10,11 @@ import KeychainSwift
 
 public final class KeychainDAO<T: Codable & Sendable>: DAO, @unchecked Sendable {
     
+    public let codingKey: String
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
     private let persistence = KeychainSwift()
     
-    public var codingKey: String
     public init(_ codingKey: String) {
         self.codingKey = codingKey
     }
