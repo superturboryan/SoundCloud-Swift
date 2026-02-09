@@ -36,10 +36,33 @@ public struct Track: Codable, Identifiable, Sendable {
     
     private enum CodingKeys: String, CodingKey {
         case id = "urn"
-        case createdAt, duration, commentCount, sharing, tagList, streamable, genre, title, description, license, uri, user, permalinkUrl, artworkUrl, streamUrl, downloadUrl, waveformUrl, availableCountryCodes, userFavorite, userPlaybackCount, playbackCount, favoritingsCount, repostsCount, access
+        case createdAt,
+             duration,
+             commentCount,
+             sharing,
+             tagList,
+             streamable,
+             genre,
+             title,
+             description,
+             license,
+             uri,
+             user,
+             permalinkUrl,
+             artworkUrl,
+             streamUrl,
+             downloadUrl,
+             waveformUrl,
+             availableCountryCodes,
+             userFavorite,
+             userPlaybackCount,
+             playbackCount,
+             favoritingsCount,
+             repostsCount,
+             access
     }
     
-    public var localFileUrl: String? = nil // For downloaded tracks (not in API response)
+    public var localFileUrl: String?
 }
 
 public extension Track {
@@ -58,7 +81,7 @@ public extension Track {
 }
 
 extension Track: Equatable {
-    public static func ==(lhs: Track, rhs: Track) -> Bool {
+    public static func == (lhs: Track, rhs: Track) -> Bool {
         lhs.id == rhs.id
     }
 }

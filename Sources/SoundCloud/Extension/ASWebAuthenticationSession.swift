@@ -15,10 +15,11 @@ public typealias WebAuthContextProvider = ASWebAuthenticationPresentationContext
 #endif
 
 public extension ASWebAuthenticationSession {
-    /// Async-await wrapper for ASWebAuthenticationSession. Presents a webpage for authenticating using SSO and returns the authorization code after the user successfully signs in
+    /// Async-await wrapper for ``AuthenticationServices/ASWebAuthenticationSession``.
+    ///
     /// - Parameters:
     ///   - from: Authentication URL to present for SSO
-    ///   - with: URI for OAuth web page to use to redirect back to your app. Should take the form "<your app scheme>://<path>"
+    ///   - with: URI for OAuth web page to use to redirect back to your app (eg: `myapp://oauth`).
     ///   - contextProvider: Delegate object specifying how to present the web page (ignored on watchOS)
     ///   - ephemeralSession: If true, no cookies or browsing data are shared with Safari.
     /// - Returns: Authorization code from callback URL

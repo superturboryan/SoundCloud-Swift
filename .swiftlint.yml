@@ -1,0 +1,14 @@
+excluded:
+  - .build
+  - Packages
+  - DerivedData
+
+disabled_rules:
+  - trailing_whitespace
+  - trailing_comma
+  - colon
+
+line_length:
+  warning: 120
+  error: 200
+

@@ -7,11 +7,13 @@
 
 extension SoundCloud {
     
-    ///  Properties for configuring SoundCloud API client. These values should be taken from the [your registered apps page](https://soundcloud.com/you/apps).
+    ///  Properties for configuring SoundCloud API client.
+    ///
+    ///  These values should be taken from the [SoundCloud developer console](https://soundcloud.com/you/apps).
     ///
     ///  - Parameter clientID: Client ID to use when authorizing with API and requesting tokens.
     ///  - Parameter clientSecret: Client secret to use when authorizing with API and requesting tokens.
-    ///  - Parameter redirectURI: URI to use when redirecting from OAuth login page to app. This URI should take the form
+    ///  - Parameter redirectURI: URI to use when redirecting from OAuth login page to app (eg: `myapp://oauth`).
     public struct Config: Sendable {
         
         let clientId: String

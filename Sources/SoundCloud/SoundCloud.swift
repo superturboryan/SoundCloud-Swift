@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 //
 //  SoundCloud.swift
 //  SoundCloud
@@ -13,11 +14,8 @@ public typealias URN = String
 
 /// Handles the logic for making authenticated requests to the SoundCloud API.
 ///
-/// - parameter config: Contains parameters for interacting with SoundCloud API (base URL, client ID, secret, redirect URI)
-/// - parameter tokenDAO: Data access object for persisting authentication tokens, defaults to **KeychainDAO**
-///
-/// Use an instance of `SoundCloud` to allow users to login with their SoundCloud account and make authenticated
-/// requests for streaming content and acessing track, artist, and playlist data from SoundCloud.
+/// - parameter config: Contains parameters for initalizing `SoundCloud` instance.
+/// - parameter tokenDAO: Data access object for persisting authentication tokens, defaults to **KeychainDAO**.
 ///
 /// - Important: OAuth tokens are stored in the `Keychain` by default.
 /// - SeeAlso: [SoundCloud API Explorer](https://developers.soundcloud.com/docs/api/explorer/open-api#/)
@@ -51,11 +49,13 @@ public extension SoundCloud {
     /// Performs the `OAuth` authentication flow and persists the resulting access tokens.
     ///
     /// This method does three things:
-    /// 1. Presents the SoundCloud login page inside a browser window managed by `ASWebAuthenticationSession` to get the **authorization code**.
-    /// 2. Exchanges the authorization code for **OAuth access tokens** specific to the SoundCloud user.
+    /// 1. Presents the SoundCloud login page inside a WebView
+    /// managed by `ASWebAuthenticationSession` to get the **authorization code**.
+    /// 2. Exchanges the authorization code for **OAuth access tokens** .
     /// 3. Persists the **access tokens** using the data access object.
     ///
     /// - Throws: **`.loggingIn`**  if an error occurred while fetching the authorization code or authentication tokens.
+    /// - Throws: **`.cancelledLogin`**  if the user dismisses the login page WebView.
     @discardableResult
     func authenticate() async throws -> TokenResponse {
         do {
@@ -66,7 +66,7 @@ public extension SoundCloud {
             let newAuthTokens = try await getAuthenticationTokens(with: authorizationCode, and: codeVerifier)
             saveTokensWithCreationDate(newAuthTokens)
             return newAuthTokens
-        } catch(ASWebAuthenticationSession.Error.cancelledLogin) {
+        } catch ASWebAuthenticationSession.Error.cancelledLogin {
             throw Error.cancelledLogin
         } catch {
             throw Error.loggingIn
@@ -90,7 +90,7 @@ public extension SoundCloud {
             Logger.auth.info("⏰ Access token expired at: \(savedAuthTokens.expiryDate!)")
             try await refreshAuthTokens()
         }
-        let validAuthTokens = try! tokenDAO.get()
+        let validAuthTokens = try! tokenDAO.get() // swiftlint:disable:this force_try
         return ["Authorization" : "Bearer " + validAuthTokens.accessToken]
     }}
     
@@ -344,7 +344,13 @@ public extension SoundCloud {
 
 private extension SoundCloud {
     func getAuthenticationTokens(with authCode: String, and codeVerifier: String) async throws -> (TokenResponse) {
-        let tokenResponse = try await get(.accessToken(authCode, config.clientId, config.clientSecret, config.redirectURI, codeVerifier))
+        let tokenResponse = try await get(.accessToken(
+            authCode,
+            config.clientId,
+            config.clientSecret,
+            config.redirectURI,
+            codeVerifier
+        ))
         logNewAuthToken(tokenResponse.accessToken)
         return tokenResponse
     }
@@ -381,7 +387,7 @@ private extension SoundCloud {
         guard let (data, response) = try? await urlSession.data(for: request) else {
             throw Error.noInternet // Is no internet the only case here?
         }
-        let statusCodeInt = (response as! HTTPURLResponse).statusCode
+        let statusCodeInt = (response as! HTTPURLResponse).statusCode // swiftlint:disable:this force_cast
         let statusCode = StatusCode(rawValue: statusCodeInt) ?? .unknown
         guard statusCode != .unauthorized else {
             throw Error.userNotAuthorized
@@ -432,3 +438,5 @@ private extension SoundCloud {
 extension Logger {
     static let auth = Logger(subsystem: "SoundCloud", category: "Authentication")
 }
+
+// swiftlint:enable file_length

@@ -76,7 +76,26 @@ public struct User: Codable, Equatable, Sendable {
     
     private enum CodingKeys: String, CodingKey {
         case id = "urn"
-        case avatarUrl, permalinkUrl, uri, username, createdAt, firstName, lastName, fullName, city, country, description, trackCount, repostsCount, followersCount, followingsCount, commentsCount, online, likesCount, playlistCount, subscriptions
+        case avatarUrl,
+             permalinkUrl,
+             uri,
+             username,
+             createdAt,
+             firstName,
+             lastName,
+             fullName,
+             city,
+             country,
+             description,
+             trackCount,
+             repostsCount,
+             followersCount,
+             followingsCount,
+             commentsCount,
+             online,
+             likesCount,
+             playlistCount,
+             subscriptions
     }
 }
 
@@ -99,10 +118,12 @@ extension User: Hashable {
 extension User {
     public struct Subscription: Codable, Equatable, Sendable {
         public let product: Product
-        
-        public struct Product: Codable, Equatable, Sendable {
-            public let id: String
-            public let name: String
-        }
+    }
+}
+
+extension User.Subscription {
+    public struct Product: Codable, Equatable, Sendable {
+        public let id: String
+        public let name: String
     }
 }
