@@ -18,15 +18,7 @@ public func testUser(_ id: String = "\(Int.random(in: 0..<1000))") -> User {
         fullName: "",
         city: "Angel LDN",
         country: "",
-        description: """
-        DJ
-        
-        Always looking to cut dubplates and promote new tunes/producers, so feel free to send me tunes on here or to rizlateef111@gmail.com
-        
-        Bookings: nikki@synchronicity.agency
-        
-        Label: @southlondonpressings
-        """,
+        description: "Dubplate enthusiast",
         trackCount: 67,
         repostsCount: 0,
         followersCount: 2673,
@@ -40,7 +32,7 @@ public func testUser(_ id: String = "\(Int.random(in: 0..<1000))") -> User {
 }
 
 public func testPlaylist(empty: Bool = false) -> Playlist {
-    Playlist (
+    Playlist(
         id: "\(Int.random(in: 0..<1000))",
         genre: "",
         permalink: "",
@@ -95,8 +87,15 @@ public func testTrack(isLiked: Bool = false) -> Track {
     )
 }
 
-public let testFreeSubscription = User.Subscription(product: User.Subscription.Product(id: "free", name: "Free"))
-public let testNextProSubscription = User.Subscription(product: User.Subscription.Product(id: "next_pro", name: "Next Pro"))
+public let testFreeSubscription = User.Subscription(product: User.Subscription.Product(
+    id: "free",
+    name: "Free"
+))
+
+public let testNextProSubscription = User.Subscription(product: User.Subscription.Product(
+    id: "next_pro",
+    name: "Next Pro"
+))
 
 public let testSC = SoundCloud(SoundCloud.Config(clientId: "", clientSecret: "", redirectURI: ""))
 

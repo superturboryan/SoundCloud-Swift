@@ -7,54 +7,57 @@
 
 import Foundation
 
+private extension SoundCloud {
+    
+    enum API {
+        
+        case accessToken(
+            _ accessCode: String,
+            _ clientId: String,
+            _ clientSecret: String,
+            _ redirectURI: String,
+            _ codeVerifier: String
+        )
+        case refreshAccessToken(
+            _ refreshToken: String,
+            _ clientId: String,
+            _ clientSecret: String,
+            _ redirectURI: String
+        )
+        
+        case currentUser
+        case myLikedTracks(_ limit: Int)
+        case myFollowingsRecentlyPosted(_ limit: Int)
+        case myLikedPlaylists
+        case myPlaylists
+        case tracksForPlaylist(_ id: URN, _ limit: Int)
+        case tracksForUser(_ id: URN, _ limit: Int)
+        case likedTracksForUser(_ id: URN, _ limit: Int)
+        case relatedTracks(_ tracksRelatedToId: URN, _ limit: Int)
+        case streamInfoForTrack(_ id: URN)
+        case usersImFollowing
+        
+        case likeTrack(_ id: URN)
+        case unlikeTrack(_ id: URN)
+        case likePlaylist(_ id: URN)
+        case unlikePlaylist(_ id: URN)
+        case followUser(_ id: URN)
+        case unfollowUser(_ id: URN)
+        
+        case resolve(_ url: String)
+        case searchTracks(_ query: String, _ limit: Int)
+        case searchPlaylists(_ query: String, _ limit: Int)
+        case searchUsers(_ query: String, _ limit: Int)
+        
+        case nextPage(_ href: String)
+    }
+}
+
 extension SoundCloud {
     
     struct Request<T: Decodable> {
         
         private let api: API
-        
-        private enum API {
-            
-            case accessToken(
-                _ accessCode: String,
-                _ clientId: String,
-                _ clientSecret: String,
-                _ redirectURI: String,
-                _ codeVerifier: String
-            )
-            case refreshAccessToken(
-                _ refreshToken: String,
-                _ clientId: String,
-                _ clientSecret: String,
-                _ redirectURI: String
-            )
-            
-            case currentUser
-            case myLikedTracks(_ limit: Int)
-            case myFollowingsRecentlyPosted(_ limit: Int)
-            case myLikedPlaylists
-            case myPlaylists
-            case tracksForPlaylist(_ id: URN, _ limit: Int)
-            case tracksForUser(_ id: URN, _ limit: Int)
-            case likedTracksForUser(_ id: URN, _ limit: Int)
-            case relatedTracks(_ tracksRelatedToId: URN, _ limit: Int)
-            case streamInfoForTrack(_ id: URN)
-            case usersImFollowing
-            
-            case likeTrack(_ id: URN)
-            case unlikeTrack(_ id: URN)
-            case likePlaylist(_ id: URN)
-            case unlikePlaylist(_ id: URN)
-            case followUser(_ id: URN)
-            case unfollowUser(_ id: URN)
-            
-            case resolve(_ url: String)
-            case searchTracks(_ query: String, _ limit: Int)
-            case searchPlaylists(_ query: String, _ limit: Int)
-            case searchUsers(_ query: String, _ limit: Int)
-            
-            case nextPage(_ href: String)
-        }
         
         static func accessToken(
             _ code: String,
@@ -162,13 +165,6 @@ extension SoundCloud {
         static func resolve<ItemType: Decodable>(_ url: String) -> Request<ItemType> {
             .init(api: .resolve(url))
         }
-    }
-}
-
-extension String {
-    var urlEncoded: String? {
-        let allowedCharacterSet = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "~-_."))
-        return self.addingPercentEncoding(withAllowedCharacters: allowedCharacterSet)
     }
 }
 
@@ -350,6 +346,7 @@ extension SoundCloud.Request {
 }
 
 // MARK: - Helpers 🤝
+
 extension SoundCloud.Request {
     
     var shouldUseAuthHeader: Bool {

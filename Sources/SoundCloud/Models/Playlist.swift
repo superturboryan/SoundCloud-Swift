@@ -83,11 +83,32 @@ public struct Playlist: Decodable, Hashable, Identifiable, Equatable, @unchecked
     
     private enum CodingKeys: String, CodingKey {
         case id = "urn"
-        case genre, permalink, permalinkUrl, description, uri, tagList, trackCount, lastModified, license, user, likesCount, sharing, createdAt, tags, kind, title, streamable, artworkUrl, tracksUri, tracks, nextPageUrl
+        case genre,
+             permalink,
+             permalinkUrl,
+             description,
+             uri,
+             tagList,
+             trackCount,
+             lastModified,
+             license,
+             user,
+             likesCount,
+             sharing,
+             createdAt,
+             tags,
+             kind,
+             title,
+             streamable,
+             artworkUrl,
+             tracksUri,
+             tracks,
+             nextPageUrl
     }
 }
 
 extension Playlist {
+    
     var largerArtworkUrl: String? { artworkUrl?.replacingOccurrences(of: "large.jpg", with: "t500x500.jpg") }
     
     public var durationInSeconds: Int {
@@ -113,9 +134,9 @@ extension Playlist {
 }
 
 public enum PlaylistType: String, CaseIterable, Sendable {
-    case nowPlaying = "nowPlaying"
-    case downloads = "downloads"
-    case likes = "likes"
-    case recentlyPosted = "recentlyPosted" // By people current user follows
-    case relatedTracks = "relatedTracks"
+    case nowPlaying
+    case downloads
+    case likes
+    case recentlyPosted // By artists current user follows
+    case relatedTracks
 }

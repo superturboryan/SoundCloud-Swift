@@ -14,9 +14,16 @@ public struct TokenResponse: Codable, Sendable {
     let scope: String
     let tokenType: String
     
-    var expiryDate: Date? = nil // 💡 Set when persisting object
+    var expiryDate: Date? // 💡 Set when persisting object
     
-    public init(accessToken: String, expiresIn: Int, refreshToken: String, scope: String, tokenType: String, expiryDate: Date? = nil) {
+    public init(
+        accessToken: String,
+        expiresIn: Int,
+        refreshToken: String,
+        scope: String,
+        tokenType: String,
+        expiryDate: Date? = nil
+    ) {
         self.accessToken = accessToken
         self.expiresIn = expiresIn
         self.refreshToken = refreshToken

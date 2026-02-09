@@ -6,17 +6,17 @@
 
 /// Response from API containing URLs which the authenticated client can use to stream.
 ///
-/// - Important: Some older tracks may not have HLS AAC transcodings available, you may need to fallback to the HLS MP3 URL for streaming. See [deprecation notice on SoundCloud API repo](https://github.com/soundcloud/api/issues/441).
+/// - Important: Older tracks may not have AAC transcodings available while migration is in progress.
+/// See deprecation notice in [SoundCloud API repo](https://github.com/soundcloud/api/issues/441).
 public struct StreamInfo: Decodable, Sendable {
+    
     @available(*, deprecated, message: "Use AAC transcodings.")
     public let httpMp3128URL: String?
     
     @available(*, deprecated, message: "Use AAC transcodings.")
     public let hlsMp3128URL: String?
     
-    /// "Optional, depending on availability"
     public let hlsAAC96URL: String?
-    
     public let hlsAAC160URL: String?
 }
 
