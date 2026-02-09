@@ -6,10 +6,7 @@
 [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fsuperturboryan%2FSoundCloud-Swift%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/superturboryan/SoundCloud-Swift)
 [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fsuperturboryan%2FSoundCloud-Swift%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/superturboryan/SoundCloud-Swift)
 
-A lightweight Swift package for working with the public SoundCloud API. It handles OAuth 2.1 and gives you convenient async/await APIs to access track, artist, and playlist data, as well as playable stream URLs.
-
-> [!IMPORTANT]
-> **Breaking change (v2.0.0):** SoundCloud migrated resource identifiers from numeric IDs to **string URNs**. Versions `< 2.0.0` of this package are not compatible with this change. Please update to `2.x` and audit any code that assumes numeric IDs. See [release PR](https://github.com/superturboryan/SoundCloud-Swift/pull/14) for more info.
+A lightweight Swift package for interacting with the public SoundCloud API. It handles OAuth 2.1 SSO and gives you convenient async/await APIs to access track, artist, and playlist data, as well as playable stream URLs.
 
 ## Features
 - OAuth 2.1 authentication flow with **PKCE**
@@ -35,7 +32,7 @@ https://github.com/superturboryan/SoundCloud-Swift/
 - SoundCloud app management: [soundcloud.com/you/apps](https://soundcloud.com/you/apps)
 
 > [!CAUTION]
-> The redirect URI you use **when registering your app with SoundCloud** must match one of the redirect URIs configured for your SoundCloud app.
+> The redirect URI you use when registering your app with SoundCloud **must match one of the redirect URIs configured for your SoundCloud app**.
 
 ## Quick Start
 Authenticate with a SoundCloud account:
@@ -75,15 +72,14 @@ Access to the SoundCloud Public API requires a registered app and compliance wit
 If you're upgrading from `< 2.0.0`, note the switch from numeric IDs to string **URNs** introduced by SoundCloud. Expect types touching `id` fields to change to `String`. Review any code paths that parse or store numeric IDs and update persistence accordingly. See: <https://developers.soundcloud.com/blog/urn-num-to-string>.
 
 ## Example Apps
-
-[<img alt="WatchCloud" src="https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/fc/b3/8f/fcb38fc0-fbae-8f7a-0b70-9f1bfbbd719f/AppIcon-0-0-1x_U007ephone-0-1-85-220.png/246x0w.webp" width=60/>](https://apps.apple.com/us/app/watchcloud/id6466678799) 
+[<img alt="WatchCloud" src="https://github.com/user-attachments/assets/96ffcaa8-da08-4ab8-9b65-f0c5d2329bfb" width=60/>](https://apps.apple.com/us/app/watchcloud/id6466678799) 
 
 This package powers the third‑party SoundCloud watchOS app **WatchCloud** — available on the [App Store](https://apps.apple.com/us/app/watchcloud/id6466678799) 📲
 
 If you use this package in your app, let me know and I'll give you a shout‑out! 👋
 
 ## Contributing
-Issues and PRs welcome! If you have ideas for additional endpoints or helpers, open an issue to discuss.
+Issues and PRs welcome! 🙌
 
 ---
 
