@@ -41,10 +41,12 @@ public final class SoundCloud: Sendable {
     }
 }
 
-// MARK: - Public 👀
+// MARK: - Public
+
 public extension SoundCloud {
     
-    // MARK: - Auth 🔐
+    // MARK: - Auth
+    
     /// Performs the `OAuth` authentication flow and persists the resulting access tokens.
     ///
     /// This method does three things:
@@ -93,7 +95,8 @@ public extension SoundCloud {
         return ["Authorization" : "Bearer " + validAuthTokens.accessToken]
     }}
     
-    // MARK: - Auth 🔐
+    // MARK: - Auth
+    
     func getAuthorizationCode(from url: URL, with codeChallenge: String) async throws -> String {
         try await ASWebAuthenticationSession.getAuthorizationCode(
             from: url,
@@ -102,7 +105,8 @@ public extension SoundCloud {
         )
     }
     
-    // MARK: - My User 🕺
+    // MARK: - My User
+    
     /// Fetch the authenticated user's profile.
     ///
     /// - Returns: The `User` associated with the current OAuth token.
@@ -135,16 +139,16 @@ public extension SoundCloud {
         try await get(.myFollowingsRecentlyPosted())
     }
     
-    /// Fetch your playlists without track items to reduce payload size.
+    /// Fetch playlists created by your user.
     ///
     /// Use `tracks(inPlaylist:)` to load tracks for a given playlist.
-    /// - Returns: A list of `Playlist` objects (track lists omitted).
+    /// - Returns: A list of `Playlist` objects (with or without track items, depending on `showTracks` parameter).
     /// - Throws: Authorization, network, or decoding errors.
-    func playlists() async throws -> [Playlist] {
-        try await get(.myPlaylists())
+    func playlists(showTracks: Bool = false, limit: Int = 50) async throws -> Page<Playlist> {
+        try await get(.myPlaylists(showTracks: showTracks, limit: limit))
     }
     
-    /// Fetch playlists you've liked, without track items to reduce payload size.
+    /// Fetch playlists you've liked.
     ///
     /// Use `tracks(inPlaylist:)` to load tracks for a given playlist.
     /// - Returns: A list of `Playlist` objects (track lists omitted).
@@ -153,7 +157,8 @@ public extension SoundCloud {
         try await get(.myLikedPlaylists())
     }
     
-    // MARK: - Tracks 💿
+    // MARK: - Tracks
+    
     /// Fetch tracks for a specific playlist.
     ///
     /// - Parameter id: The playlist URN.
@@ -196,7 +201,8 @@ public extension SoundCloud {
         try await get(.relatedTracks(id, limit))
     }
     
-    // MARK: - Search 🕵️
+    // MARK: - Search
+    
     /// Search for tracks.
     ///
     /// - Parameters:
@@ -230,7 +236,8 @@ public extension SoundCloud {
         try await get(.searchUsers(query, limit))
     }
     
-    // MARK: - Like + Follow 🧡
+    // MARK: - Like + Follow
+    
     /// Like a track on behalf of the authenticated user.
     ///
     /// - Parameter track: The track to like.
@@ -281,7 +288,7 @@ public extension SoundCloud {
         try await get(.unfollowUser(user.id))
     }
     
-    // MARK: - Miscellaneous ✨
+    // MARK: - Miscellaneous
     
     /// Resolve a SoundCloud web URL to its canonical API resource.
     ///
@@ -339,7 +346,7 @@ public extension SoundCloud {
     }
 }
 
-// MARK: - Private 🚫👀
+// MARK: - Private
 
 private extension SoundCloud {
     func getAuthenticationTokens(with authCode: String, and codeVerifier: String) async throws -> (TokenResponse) {

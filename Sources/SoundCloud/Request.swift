@@ -29,7 +29,7 @@ private extension SoundCloud {
         case myLikedTracks(_ limit: Int)
         case myFollowingsRecentlyPosted(_ limit: Int)
         case myLikedPlaylists
-        case myPlaylists
+        case myPlaylists(_ showTracks: Bool, _ limit: Int)
         case tracksForPlaylist(_ id: URN, _ limit: Int)
         case tracksForUser(_ id: URN, _ limit: Int)
         case likedTracksForUser(_ id: URN, _ limit: Int)
@@ -94,8 +94,8 @@ extension SoundCloud {
             .init(api: .myLikedPlaylists)
         }
         
-        static func myPlaylists() -> Request<[Playlist]> {
-            .init(api: .myPlaylists)
+        static func myPlaylists(showTracks: Bool = false, limit: Int = 50) -> Request<Page<Playlist>> {
+            .init(api: .myPlaylists(showTracks, limit))
         }
         
         static func tracksForPlaylist(_ id: URN, _ limit: Int = 1000) -> Request<Page<Track>> {
@@ -237,6 +237,12 @@ extension SoundCloud.Request {
             "linked_partitioning" : "true"
         ]
             
+        case let .myPlaylists(showTracks, limit): [
+            "show_tracks" : "\(showTracks)",
+            "limit" : "\(limit)",
+            "linked_partitioning" : "true"
+        ]
+
         case let .myFollowingsRecentlyPosted(limit): [
             "limit" : "\(limit)",
             "access" : "playable",
@@ -267,7 +273,7 @@ extension SoundCloud.Request {
         ]
             
         case .usersImFollowing: [
-            "limit" : "1000", // Page size
+            "limit" : "1000",
             "linked_partitioning" : "true"
         ]
             
