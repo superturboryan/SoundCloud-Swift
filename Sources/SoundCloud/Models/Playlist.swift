@@ -124,11 +124,8 @@ extension Playlist {
     }
     
     public mutating func updateWith(_ page: Page<Track>) {
-        if var tracks, !tracks.isEmpty {
-            tracks += page.items
-        } else { //
-            tracks = page.items
-        }
+        if tracks == nil { tracks = [] }
+        tracks!.append(contentsOf: page.items)
         nextPageUrl = page.nextPageURL
     }
 }
