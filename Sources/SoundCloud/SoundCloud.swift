@@ -1,4 +1,3 @@
-// swiftlint:disable file_length
 //
 //  SoundCloud.swift
 //  SoundCloud
@@ -438,5 +437,3 @@ private extension SoundCloud {
 extension Logger {
     static let auth = Logger(subsystem: "SoundCloud", category: "Authentication")
 }
-
-// swiftlint:enable file_length
