@@ -63,7 +63,7 @@ public extension SoundCloud {
             let codeVerifier = PKCE.generateCodeVerifier()
             let codeChallenge = try PKCE.generateCodeChallenge(using: codeVerifier)
             let authorizationURL = makeAuthorizationURL(config.clientId, config.redirectURI, codeChallenge)
-            let authorizationCode = try await getAuthorizationCode(from: authorizationURL, with: codeChallenge)
+            let authorizationCode = try await getAuthorizationCode(from: authorizationURL)
             let newAuthTokens = try await getAuthenticationTokens(with: authorizationCode, and: codeVerifier)
             saveTokensWithCreationDate(newAuthTokens)
             return newAuthTokens
@@ -97,7 +97,7 @@ public extension SoundCloud {
     
     // MARK: - Auth
     
-    func getAuthorizationCode(from url: URL, with codeChallenge: String) async throws -> String {
+    func getAuthorizationCode(from url: URL) async throws -> String {
         try await ASWebAuthenticationSession.getAuthorizationCode(
             from: url,
             with: config.redirectURI,

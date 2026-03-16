@@ -109,7 +109,7 @@ public struct Playlist: Decodable, Hashable, Identifiable, Equatable, @unchecked
 
 extension Playlist {
     
-    var largerArtworkUrl: String? { artworkUrl?.replacingOccurrences(of: "large.jpg", with: "t500x500.jpg") }
+    public var largerArtworkUrl: String? { artworkUrl?.replacingOccurrences(of: "large.jpg", with: "t500x500.jpg") }
     
     public var durationInSeconds: Int {
         (tracks ?? []).reduce(into: 0, { $0 += $1.durationInSeconds})
