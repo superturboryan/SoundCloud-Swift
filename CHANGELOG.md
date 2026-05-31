@@ -1,5 +1,37 @@
 # Changelog
 
+## 🌟 2.2.0
+
+### ✨ Features
+- Update `playlists()` to return `Page<Playlist>` with `showTracks` and `limit` parameters
+- Make `Playlist.largerArtworkUrl` public
+
+### 🐞 Bug fixes
+- Fix `Playlist.updateWith(_:)` so empty existing track arrays are preserved and appended to
+- Remove the PKCE code challenge from the authorization-code callback helper
+
+### 📋 API updates
+- `playlists()` → `playlists(showTracks:limit:)`
+- `playlists(showTracks:limit:)` now returns `Page<Playlist>` instead of `[Playlist]`
+
+
+## 🌟 2.1.0
+
+### ✨ Features
+- Add support for additional HLS AAC stream transcodings
+- Add `setTokens(_:)` for saving externally provided authentication tokens
+- Adopt Swift strict concurrency checks and update public models/DAOs for `Sendable`
+
+### 🐞 Bug fixes
+- Configure request and resource timeouts for `URLSession`
+- Return `.userNotAuthorized` when token refresh fails
+
+### 📋 API updates
+- Update Swift tools version to 5.10
+- Remove bundled UI assets, color/image helpers, and localizations
+- Remove the unused test target
+
+
 ## 🌟 2.0.0
 
 ### ⚠️ Warning: Support for version `<2.0.0` has been dropped. The SoundCloud API's way of identifying resources has changed. Please make sure you update to version `2.0.0`. 
